@@ -643,7 +643,7 @@
     <h2>Session Details</h2>
     <div class="session-grid">
       <div>
-        <label>Name <span class="required">*</span></label>
+        <label>Trainee Name <span class="required">*</span></label>
         <div class="species-search-wrap">
           <input type="text" id="trainee-name" class="species-input"
                  placeholder="Type to search or add name…"
@@ -1312,12 +1312,18 @@ function sanitiseNum(input) {
   const val = parseInt(input.value);
   if (isNaN(val) || val < 0) input.value = 0;
   else input.value = val;
+  const row = input.closest('.species-row');
+  row.querySelector('.num-wrap').style.outline = '';
+  row.querySelector('.proc-wrap').style.outline = '';
 }
 
 function sanitiseProc(input) {
   const val = parseInt(input.value);
   if (isNaN(val) || val < 0) input.value = 0;
   else input.value = val;
+  const row = input.closest('.species-row');
+  row.querySelector('.num-wrap').style.outline = '';
+  row.querySelector('.proc-wrap').style.outline = '';
 }
 
 // ─────────────────────────────────────────────
@@ -1408,12 +1414,16 @@ function changeNum(id, delta) {
   const input = document.getElementById(`num-${id}`);
   const current = parseInt(input.value) || 0;
   input.value = Math.max(0, current + delta);
+  document.querySelector(`#row-${id} .num-wrap`).style.outline = '';
+  document.querySelector(`#row-${id} .proc-wrap`).style.outline = '';
 }
 
 function changeProc(id, delta) {
   const input = document.getElementById(`proc-${id}`);
   const current = parseInt(input.value) || 0;
   input.value = Math.max(0, current + delta);
+  document.querySelector(`#row-${id} .num-wrap`).style.outline = '';
+  document.querySelector(`#row-${id} .proc-wrap`).style.outline = '';
 }
 
 function escapeRe(s) {
@@ -1460,10 +1470,19 @@ function submitForm() {
       valid = false;
     }
 
+    if (num === 0 && processed === 0) {
+      row.querySelector('.num-wrap').style.outline = '2px solid #8b2e2e';
+      row.querySelector('.proc-wrap').style.outline = '2px solid #8b2e2e';
+      valid = false;
+    } else {
+      row.querySelector('.num-wrap').style.outline = '';
+      row.querySelector('.proc-wrap').style.outline = '';
+    }
+
     entries.push({ species, speciesWriteIn, age, num, method, methodWriteIn, processed });
   });
 
-  if (!valid) { showStatus('Please fill in species, age, and method for all rows.', false); return; }
+  if (!valid) { showStatus('Please fill in species, age, and catching method for all rows, and enter at least one extracted or processed bird.', false); return; }
 
   const payload = {
     trainee: name,
