@@ -653,7 +653,7 @@
       <div>
         <label>Name <span class="required">*</span></label>
         <div class="species-search-wrap">
-          <input type="text" id="trainee-name" class="species-input"
+          <input type="search" id="trainee-name" class="species-input"
                  placeholder="Type to search or add name…"
                  autocomplete="off"
                  data-is-new="false"
@@ -1071,7 +1071,7 @@ function addRow() {
   row.id = `row-${id}`;
   row.innerHTML = `
     <div class="species-search-wrap">
-      <input class="species-input" type="text"
+      <input class="species-input" type="search"
              placeholder="Type to search…"
              autocomplete="off"
              oninput="filterSpecies(${id}, this.value)"
@@ -1096,7 +1096,7 @@ function addRow() {
     </div>
 
     <div class="species-search-wrap method-wrap" id="method-wrap-${id}">
-      <input class="method-input" type="text"
+      <input class="method-input" type="search"
              placeholder="Type or search…"
              autocomplete="off"
              oninput="filterMethod(${id}, this.value)"
