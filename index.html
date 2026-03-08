@@ -212,7 +212,6 @@
 
   .species-input {
     width: 100%;
-    height: 42px;
     padding: 8px 10px;
     border: 1px solid var(--border);
     border-radius: 3px;
@@ -656,7 +655,7 @@
         <label>Name <span class="required">*</span></label>
         <div class="species-search-wrap">
           <input type="search" id="trainee-name" class="species-input"
-                 placeholder="Type to search or add name…"
+                 placeholder="Type to search or add name"
                  autocomplete="off"
                  data-is-new="false"
                  oninput="filterTrainees(this.value)"
@@ -1074,7 +1073,7 @@ function addRow() {
   row.innerHTML = `
     <div class="species-search-wrap">
       <input class="species-input" type="search"
-             placeholder="Type to search…"
+             placeholder="Type to search"
              autocomplete="off"
              oninput="filterSpecies(${id}, this.value)"
              onkeydown="handleKey(event, ${id})"
