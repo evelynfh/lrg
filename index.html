@@ -115,6 +115,7 @@
   }
 
   input[type="text"],
+  input[type="search"],
   input[type="date"],
   select {
     width: 100%;
@@ -128,9 +129,11 @@
     color: var(--ink);
     transition: border-color 0.15s, box-shadow 0.15s;
     appearance: none;
+    box-sizing: border-box;
   }
 
   input[type="text"]:focus,
+  input[type="search"]:focus,
   input[type="date"]:focus,
   select:focus {
     outline: none;
@@ -211,15 +214,7 @@
   }
 
   .species-input {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.8rem;
-    color: var(--ink);
-    background: var(--surface);
-    transition: border-color 0.15s, box-shadow 0.15s;
   }
 
   .species-input:focus {
@@ -268,17 +263,22 @@
     font-style: italic;
   }
 
-  /* Row inputs */
-  .row-select, .row-input {
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    font-family: 'IBM Plex Mono', monospace;
+  /* Row inputs (number spinners) */
+  .row-input {
     font-size: 0.8rem;
+    font-family: 'IBM Plex Mono', monospace;
     color: var(--ink);
     background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
     width: 100%;
     transition: border-color 0.15s;
+  }
+
+  .row-input:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
   }
 
   .age-toggle {
@@ -309,15 +309,7 @@
   }
 
   .method-input {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.8rem;
-    color: var(--ink);
-    background: var(--surface);
-    transition: border-color 0.15s, box-shadow 0.15s;
   }
 
   .method-input:focus {
@@ -326,11 +318,6 @@
     box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
   }
 
-  .row-select:focus, .row-input:focus {
-    outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
-  }
 
   input[type="number"].row-input {
     -moz-appearance: textfield;
@@ -519,6 +506,7 @@
 
     /* 16px minimum on all inputs to prevent iOS auto-zoom on focus */
     input[type="text"],
+    input[type="search"],
     input[type="date"],
     input[type="number"],
     select {
@@ -571,7 +559,7 @@
       width: 0 !important;
       text-align: center;
       padding: 8px 4px;
-      font-size: 0.88rem;
+      font-size: 1rem;
       margin: 0 4px;
     }
 
@@ -652,9 +640,9 @@
     <h2>Session Details</h2>
     <div class="session-grid">
       <div>
-        <label>Name <span class="required">*</span></label>
+        <label>Trainee Name <span class="required">*</span></label>
         <div class="species-search-wrap">
-          <input type="search" id="trainee-name" class="species-input"
+          <input type="text" id="trainee-name" class="species-input"
                  placeholder="Type to search or add name"
                  autocomplete="off"
                  data-is-new="false"
@@ -1072,7 +1060,7 @@ function addRow() {
   row.id = `row-${id}`;
   row.innerHTML = `
     <div class="species-search-wrap">
-      <input class="species-input" type="search"
+      <input class="species-input" type="text"
              placeholder="Type to search"
              autocomplete="off"
              oninput="filterSpecies(${id}, this.value)"
@@ -1097,8 +1085,8 @@ function addRow() {
     </div>
 
     <div class="species-search-wrap method-wrap" id="method-wrap-${id}">
-      <input class="method-input" type="search"
-             placeholder="Type or search…"
+      <input class="method-input" type="text"
+             placeholder="Type or search"
              autocomplete="off"
              oninput="filterMethod(${id}, this.value)"
              onkeydown="handleMethodKey(event, ${id})"
