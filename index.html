@@ -51,13 +51,6 @@
     color: #f5f0e8;
   }
 
-  header span {
-    font-size: 0.75rem;
-    color: #9a9480;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
   /* Bird silhouette decoration */
   header::after {
     content: '🐦';
@@ -129,7 +122,6 @@
     color: var(--ink);
     transition: border-color 0.15s, box-shadow 0.15s;
     appearance: none;
-    box-sizing: border-box;
   }
 
   input[type="text"]:focus,
@@ -213,14 +205,29 @@
     position: relative;
   }
 
-  .species-input {
+  .species-input,
+  .method-input {
     font-size: 0.8rem;
   }
 
-  .species-input:focus {
-    outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
+  .input-confirmed {
+    border-color: var(--accent) !important;
+    background: var(--accent-light) !important;
+    box-shadow: 0 0 0 3px rgba(45,90,39,0.15) !important;
+  }
+
+  /* Error state on actual inputs */
+  input.input-error {
+    border-color: var(--danger) !important;
+    box-shadow: 0 0 0 3px rgba(139,46,46,0.15) !important;
+    outline: none !important;
+  }
+
+  /* Error state on wrapper divs (age-toggle, num-wrap, proc-wrap) — use outline */
+  div.input-error {
+    outline: 2px solid var(--danger);
+    outline-offset: 2px;
+    border-radius: 3px;
   }
 
   .species-dropdown {
@@ -308,17 +315,6 @@
     border-color: var(--accent);
   }
 
-  .method-input {
-    font-size: 0.8rem;
-  }
-
-  .method-input:focus {
-    outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
-  }
-
-
   input[type="number"].row-input {
     -moz-appearance: textfield;
   }
@@ -399,27 +395,6 @@
 
   .add-row-btn:hover { background: var(--accent-light); }
 
-  /* Notes */
-  textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.82rem;
-    color: var(--ink);
-    background: var(--surface);
-    resize: vertical;
-    min-height: 80px;
-    transition: border-color 0.15s;
-  }
-
-  textarea:focus {
-    outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
-  }
-
   /* Submit */
   .submit-row {
     display: flex;
@@ -450,7 +425,272 @@
     letter-spacing: 0.04em;
   }
 
+  /* ── Screen transitions ── */
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeSlideOut {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-8px); }
+  }
+
+  .screen-enter {
+    animation: fadeSlideIn 0.3s ease forwards;
+  }
+
+  .screen-exit {
+    animation: fadeSlideOut 0.2s ease forwards;
+    pointer-events: none;
+  }
+
+  /* ── Confirmation screen ── */
+  #confirm-screen {
+    display: none;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px 60px;
+  }
+
+  #confirm-screen.visible { display: block; }
+
+  .confirm-banner {
+    background: #fff8e6;
+    border: 1px solid #e8d88a;
+    border-left: 3px solid #c9a800;
+    border-radius: 3px;
+    padding: 12px 18px;
+    margin-bottom: 24px;
+    font-size: 0.78rem;
+    color: #6b5700;
+    letter-spacing: 0.03em;
+  }
+
+  .confirm-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .confirm-card-header {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .confirm-card-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .confirm-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .confirm-meta-item {
+    padding: 14px 24px;
+    border-bottom: 1px solid #f0ebe0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .confirm-meta-label {
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .confirm-meta-value {
+    font-size: 0.88rem;
+    color: var(--ink);
+  }
+
+  .confirm-table-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.2fr 0.7fr 0.8fr;
+    gap: 10px;
+    padding: 8px 24px;
+    background: var(--accent-light);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .confirm-col-head {
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .confirm-table-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.2fr 0.7fr 0.8fr;
+    gap: 10px;
+    padding: 10px 24px;
+    border-bottom: 1px solid #f0ebe0;
+    align-items: center;
+  }
+
+  .confirm-table-row:last-child { border-bottom: none; }
+  .confirm-table-row:nth-child(even) { background: var(--row-alt); }
+
+  .confirm-totals-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.2fr 0.7fr 0.8fr;
+    gap: 10px;
+    padding: 10px 24px;
+    background: var(--bg);
+    border-top: 2px solid var(--border);
+  }
+
+  .confirm-cell { font-size: 0.82rem; color: var(--ink-muted); }
+  .confirm-cell-primary { font-size: 0.85rem; color: var(--ink); }
+  .confirm-cell-num { font-size: 0.85rem; color: var(--ink); text-align: right; }
+  .confirm-cell-total { font-size: 0.82rem; font-weight: 600; color: var(--ink); text-align: right; }
+  .confirm-cell-label { font-size: 0.62rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); }
+  .confirm-mob-label { display: none; }
+
+  .confirm-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .confirm-back-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    height: 48px;
+    padding: 0 24px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    color: var(--ink-muted);
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  #confirm-submit-btn {
+    height: 48px;
+    padding: 0 36px;
+  }
+
+  .confirm-back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Success screen */
+  #success-screen {
+    display: none;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px 60px;
+  }
+
+  #success-screen.visible { display: block; }
+
+  .success-card {
+    max-width: 420px;
+    margin: 60px auto 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 48px 40px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .success-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    border: 2px solid var(--accent);
+  }
+
+  .success-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+
+  .success-sub {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .success-new-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 12px 28px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.06em;
+    transition: background 0.15s;
+  }
+
+  .success-new-btn:hover { background: var(--accent-hover); }
+
   @media (max-width: 600px) {
+    #confirm-screen { margin: 16px auto; padding: 0 12px 40px; }
+    .confirm-table-header { display: none; }
+    .confirm-mob-label {
+      display: block;
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin-bottom: 2px;
+    }
+    .confirm-table-row {
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 12px;
+      padding: 12px 16px;
+    }
+    .confirm-table-row .confirm-cell-primary {
+      grid-column: 1 / -1;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+    }
+    .confirm-cell-num, .confirm-cell-warn, .confirm-cell-total { text-align: left; }
+    .confirm-totals-row {
+      grid-template-columns: 1fr 1fr;
+      padding: 12px 16px;
+      gap: 4px 12px;
+    }
+    .confirm-totals-row span:nth-child(1) { grid-column: 1 / -1; }
+    .confirm-totals-row span:nth-child(2),
+    .confirm-totals-row span:nth-child(3) { display: none; }
+    .confirm-meta-grid { grid-template-columns: 1fr; }
+    .confirm-actions { flex-direction: column-reverse; }
+    .confirm-back-btn, #confirm-submit-btn { width: 100%; text-align: center; }
+    .success-card { padding: 36px 24px; }
 
     header { padding: 18px 20px; }
     header h1 { font-size: 1.3rem; }
@@ -589,22 +829,6 @@
   .status-ok { color: var(--accent); }
   .status-err { color: var(--danger); }
 
-  /* Notes card */
-  .notes-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 24px 32px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow);
-  }
-
-  .notes-card h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    margin-bottom: 16px;
-  }
-
   /* Config notice */
   .config-notice {
     background: #fff8e6;
@@ -640,15 +864,16 @@
     <h2>Session Details</h2>
     <div class="session-grid">
       <div>
-        <label>Trainee Name <span class="required">*</span></label>
+        <label>Name <span class="required">*</span></label>
         <div class="species-search-wrap">
           <input type="text" id="trainee-name" class="species-input"
                  placeholder="Type to search or add name"
                  autocomplete="off"
                  data-is-new="false"
+                 data-selected=""
                  oninput="filterTrainees(this.value)"
                  onkeydown="handleTraineeKey(event)"
-                 onblur="delayCloseTrainee()"
+                 onblur="delayClose('dd-trainee')"
                  onfocus="filterTrainees(this.value)">
           <div class="species-dropdown" id="dd-trainee"></div>
         </div>
@@ -692,6 +917,63 @@
   </div>
 
 </main>
+
+<!-- Confirmation screen -->
+<div id="confirm-screen">
+  <div class="confirm-banner">⚠ Please review your session before submitting</div>
+
+  <div class="confirm-card">
+    <div class="confirm-card-header">
+      <h2>Session Details</h2>
+    </div>
+    <div class="confirm-meta-grid">
+      <div class="confirm-meta-item">
+        <span class="confirm-meta-label">Ringer</span>
+        <span class="confirm-meta-value" id="confirm-ringer">—</span>
+      </div>
+      <div class="confirm-meta-item">
+        <span class="confirm-meta-label">Date</span>
+        <span class="confirm-meta-value" id="confirm-date">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirm-card">
+    <div class="confirm-card-header">
+      <h2>Species Recorded</h2>
+    </div>
+    <div class="confirm-table-header">
+      <span class="confirm-col-head">Species</span>
+      <span class="confirm-col-head">Age</span>
+      <span class="confirm-col-head">Method</span>
+      <span class="confirm-col-head" style="text-align:right">Extracted</span>
+      <span class="confirm-col-head" style="text-align:right">Processed</span>
+    </div>
+    <div id="confirm-entries"></div>
+    <div class="confirm-totals-row">
+      <span class="confirm-cell-label">Total</span>
+      <span></span>
+      <span></span>
+      <span class="confirm-cell-total" id="confirm-tot-ext">0</span>
+      <span class="confirm-cell-total" id="confirm-tot-proc">0</span>
+    </div>
+  </div>
+
+  <div class="confirm-actions">
+    <button class="confirm-back-btn" onclick="goBackToForm()">← Back to edit</button>
+    <button class="submit-btn" id="confirm-submit-btn" onclick="doSubmit()">Confirm &amp; submit</button>
+  </div>
+</div>
+
+<!-- Success screen -->
+<div id="success-screen">
+  <div class="success-card">
+    <div class="success-icon">✓</div>
+    <h2 class="success-title">Session submitted</h2>
+    <p class="success-sub" id="success-sub">Data has been recorded in the LRG sheet.</p>
+    <button class="success-new-btn" onclick="startNewSession()">Start new session</button>
+  </div>
+</div>
 
 <script>
 // ─────────────────────────────────────────────
@@ -1050,7 +1332,7 @@ const SPECIES_LIST = [
 // ─────────────────────────────────────────────
 let rowCount = 0;
 
-function addRow() {
+function addRow(skipFocus = false) {
   rowCount++;
   const id = rowCount;
   const container = document.getElementById('species-rows');
@@ -1065,7 +1347,7 @@ function addRow() {
              autocomplete="off"
              oninput="filterSpecies(${id}, this.value)"
              onkeydown="handleKey(event, ${id})"
-             onblur="delayClose(${id})"
+             onblur="delayClose('dd-${id}')"
              onfocus="filterSpecies(${id}, this.value)"
              data-selected=""
              data-write-in="false">
@@ -1078,36 +1360,36 @@ function addRow() {
     </div>
 
     <div class="num-wrap">
-      <button type="button" class="num-btn" onmousedown="changeNum(${id}, 1)">▲</button>
+      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'num', 1)">▲</button>
       <input type="number" class="row-input num-input" id="num-${id}"
-             min="0" value="0" oninput="sanitiseNum(this)">
-      <button type="button" class="num-btn" onmousedown="changeNum(${id}, -1)">▼</button>
+             min="0" value="0" oninput="sanitiseSpinner(this)">
+      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'num', -1)">▼</button>
     </div>
 
     <div class="species-search-wrap method-wrap" id="method-wrap-${id}">
       <input class="method-input" type="text"
-             placeholder="Type or search"
+             placeholder="Type or select"
              autocomplete="off"
              oninput="filterMethod(${id}, this.value)"
              onkeydown="handleMethodKey(event, ${id})"
-             onblur="delayCloseMethod(${id})"
-             onfocus="filterMethod(${id}, this.value)"
+             onblur="delayClose('dd-method-${id}')"
+             onclick="filterMethod(${id}, this.value)"
              data-selected=""
              data-write-in="false">
       <div class="species-dropdown" id="dd-method-${id}"></div>
     </div>
 
     <div class="num-wrap proc-wrap">
-      <button type="button" class="num-btn" onmousedown="changeProc(${id}, 1)">▲</button>
+      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'proc', 1)">▲</button>
       <input type="number" class="row-input num-input" id="proc-${id}"
-             min="0" value="0" oninput="sanitiseProc(this)">
-      <button type="button" class="num-btn" onmousedown="changeProc(${id}, -1)">▼</button>
+             min="0" value="0" oninput="sanitiseSpinner(this)">
+      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'proc', -1)">▼</button>
     </div>
 
     <button class="remove-row" onclick="removeRow(${id})" title="Remove row">×</button>
   `;
   container.appendChild(row);
-  row.querySelector('.species-input').focus();
+  if (!skipFocus) row.querySelector('.species-input').focus();
 }
 
 function removeRow(id) {
@@ -1122,8 +1404,20 @@ let highlightIndex = {};
 
 function filterSpecies(id, query) {
   const dd = document.getElementById(`dd-${id}`);
+  const input = document.querySelector(`#row-${id} .species-input`);
+
+  // Don't reopen dropdown if user is just re-focusing a confirmed selection
+  if (input.dataset.selected && input.dataset.selected === query.trim()) {
+    dd.innerHTML = '';
+    dd.classList.remove('open');
+    return;
+  }
+
   const q = query.trim().toLowerCase();
   highlightIndex[id] = 0;
+
+  input.classList.remove('input-confirmed');
+  input.dataset.selected = '';
 
   if (!q) { dd.innerHTML = ''; dd.classList.remove('open'); return; }
 
@@ -1134,7 +1428,6 @@ function filterSpecies(id, query) {
 
   // "Use as written" option if typed value isn't an exact name match
   // and nothing has been formally selected yet
-  const input = document.querySelector(`#row-${id} .species-input`);
   const alreadySelected = input && input.dataset.selected === query.trim();
   const exactMatch = alreadySelected || SPECIES_LIST.some(s => s.name.toLowerCase() === q);
   const writeIn = !exactMatch
@@ -1168,16 +1461,20 @@ function selectSpecies(id, name, isWriteIn) {
   input.value = name;
   input.dataset.selected = name;
   input.dataset.writeIn = isWriteIn ? 'true' : 'false';
-  input.style.borderColor = '';
+  input.classList.remove('input-error');
+  input.classList.add('input-confirmed');
   const dd = document.getElementById(`dd-${id}`);
   dd.classList.remove('open');
   dd.innerHTML = '';
+  // Re-focus after blur cycle so focus stays on species input rather than
+  // drifting to the next field. filterSpecies guard prevents dropdown reopening.
+  setTimeout(() => input.focus(), 0);
 }
 
-function delayClose(id) {
+function delayClose(ddId) {
   setTimeout(() => {
-    const dd = document.getElementById(`dd-${id}`);
-    if (dd) { dd.classList.remove('open'); }
+    const dd = document.getElementById(ddId);
+    if (dd) dd.classList.remove('open');
   }, 150);
 }
 
@@ -1213,14 +1510,8 @@ function updateHighlight(id, items) {
 function selectAge(id, value, btn) {
   document.querySelectorAll(`#age-${id} .age-btn`).forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById(`age-${id}`).style.outline = '';
+  document.getElementById(`age-${id}`).classList.remove('input-error');
 }
-
-function clearPlaceholder(el) {
-  el.classList.add('selected');
-}
-
-function handleMethodChange(id, value) {} // legacy stub — no longer used
 
 const METHOD_DEFAULTS = ["Mist net", "Whoosh net", "Hand net", "Spring trap", "Potter trap", "Nest", "Nest box"];
 let methodList = [...METHOD_DEFAULTS];
@@ -1238,14 +1529,21 @@ function fetchMethods() {
     .catch(() => {});
 }
 
+let methodHighlightIndex = {};
+
 function filterMethod(id, query) {
   const dd = document.getElementById(`dd-method-${id}`);
   const q = query.trim().toLowerCase();
+  methodHighlightIndex[id] = 0;
+
+  const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
+  if (methodInput && methodInput.dataset.selected !== query.trim()) {
+    methodInput.classList.remove('input-confirmed');
+    methodInput.dataset.selected = '';
+  }
 
   const matches = q ? methodList.filter(m => m.toLowerCase().includes(q)) : methodList;
-  const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
-  const alreadySelected = methodInput && methodInput.dataset.selected === query.trim();
-  const exactMatch = alreadySelected || methodList.some(m => m.toLowerCase() === q);
+  const exactMatch = methodList.some(m => m.toLowerCase() === q);
   const writeIn = q && !exactMatch
     ? `<div class="species-option write-in-option"
          onmousedown="selectMethod(${id}, '${query.trim().replace(/'/g,"\\'")}', true)">
@@ -1266,7 +1564,8 @@ function selectMethod(id, value, isWriteIn) {
   input.value = value;
   input.dataset.selected = value;
   input.dataset.writeIn = isWriteIn ? 'true' : 'false';
-  input.style.borderColor = '';
+  input.classList.remove('input-error');
+  input.classList.add('input-confirmed');
   // Add write-ins to the local list immediately so they appear in future dropdowns
   if (isWriteIn && !methodList.includes(value)) {
     methodList = [...methodList, value].sort();
@@ -1276,51 +1575,35 @@ function selectMethod(id, value, isWriteIn) {
   dd.innerHTML = '';
 }
 
-function delayCloseMethod(id) {
-  setTimeout(() => {
-    const dd = document.getElementById(`dd-method-${id}`);
-    if (dd) dd.classList.remove('open');
-  }, 150);
-}
-
 function handleMethodKey(e, id) {
   const dd = document.getElementById(`dd-method-${id}`);
   const items = dd.querySelectorAll('.species-option');
   if (!items.length) return;
   if (e.key === 'ArrowDown') {
     e.preventDefault();
-    const cur = parseInt(dd.dataset.hi || 0);
-    dd.dataset.hi = Math.min(cur + 1, items.length - 1);
+    methodHighlightIndex[id] = Math.min((methodHighlightIndex[id] || 0) + 1, items.length - 1);
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
-    dd.dataset.hi = Math.max(parseInt(dd.dataset.hi || 0) - 1, 0);
+    methodHighlightIndex[id] = Math.max((methodHighlightIndex[id] || 0) - 1, 0);
   } else if (e.key === 'Enter') {
     e.preventDefault();
-    items[parseInt(dd.dataset.hi || 0)]?.dispatchEvent(new MouseEvent('mousedown'));
+    items[methodHighlightIndex[id] || 0]?.dispatchEvent(new MouseEvent('mousedown'));
     return;
   } else if (e.key === 'Escape') {
-    dd.classList.remove('open'); return;
+    dd.classList.remove('open');
+    return;
   }
-  items.forEach((el, i) => el.classList.toggle('highlighted', i === parseInt(dd.dataset.hi || 0)));
-  items[parseInt(dd.dataset.hi || 0)]?.scrollIntoView({ block: 'nearest' });
+  items.forEach((el, i) => el.classList.toggle('highlighted', i === methodHighlightIndex[id]));
+  items[methodHighlightIndex[id]]?.scrollIntoView({ block: 'nearest' });
 }
 
-function sanitiseNum(input) {
+function sanitiseSpinner(input) {
   const val = parseInt(input.value);
   if (isNaN(val) || val < 0) input.value = 0;
   else input.value = val;
   const row = input.closest('.species-row');
-  row.querySelector('.num-wrap').style.outline = '';
-  row.querySelector('.proc-wrap').style.outline = '';
-}
-
-function sanitiseProc(input) {
-  const val = parseInt(input.value);
-  if (isNaN(val) || val < 0) input.value = 0;
-  else input.value = val;
-  const row = input.closest('.species-row');
-  row.querySelector('.num-wrap').style.outline = '';
-  row.querySelector('.proc-wrap').style.outline = '';
+  row.querySelector('.num-wrap').classList.remove('input-error');
+  row.querySelector('.proc-wrap').classList.remove('input-error');
 }
 
 // ─────────────────────────────────────────────
@@ -1339,8 +1622,20 @@ function fetchTrainees() {
 
 function filterTrainees(query) {
   const dd = document.getElementById('dd-trainee');
+  const input = document.getElementById('trainee-name');
+
+  // Don't reopen dropdown if user is just re-focusing a confirmed selection
+  if (input.dataset.selected && input.dataset.selected === query.trim()) {
+    dd.innerHTML = '';
+    dd.classList.remove('open');
+    return;
+  }
+
   const q = query.trim().toLowerCase();
   traineeHighlight = 0;
+
+  input.classList.remove('input-confirmed');
+  input.dataset.selected = '';
 
   if (!q) { dd.innerHTML = ''; dd.classList.remove('open'); return; }
 
@@ -1370,17 +1665,14 @@ function filterTrainees(query) {
 function selectTrainee(name, isNew) {
   const input = document.getElementById('trainee-name');
   input.value = name;
+  input.dataset.selected = name;
   input.dataset.isNew = isNew ? 'true' : 'false';
+  input.classList.remove('input-error');
+  input.classList.add('input-confirmed');
+  showStatus('', null);
   const dd = document.getElementById('dd-trainee');
   dd.classList.remove('open');
   dd.innerHTML = '';
-}
-
-function delayCloseTrainee() {
-  setTimeout(() => {
-    const dd = document.getElementById('dd-trainee');
-    if (dd) dd.classList.remove('open');
-  }, 150);
 }
 
 function handleTraineeKey(e) {
@@ -1404,23 +1696,11 @@ function handleTraineeKey(e) {
   items[traineeHighlight]?.scrollIntoView({ block: 'nearest' });
 }
 
-// ─────────────────────────────────────────────
-// Number spinner
-// ─────────────────────────────────────────────
-function changeNum(id, delta) {
-  const input = document.getElementById(`num-${id}`);
-  const current = parseInt(input.value) || 0;
-  input.value = Math.max(0, current + delta);
-  document.querySelector(`#row-${id} .num-wrap`).style.outline = '';
-  document.querySelector(`#row-${id} .proc-wrap`).style.outline = '';
-}
-
-function changeProc(id, delta) {
-  const input = document.getElementById(`proc-${id}`);
-  const current = parseInt(input.value) || 0;
-  input.value = Math.max(0, current + delta);
-  document.querySelector(`#row-${id} .num-wrap`).style.outline = '';
-  document.querySelector(`#row-${id} .proc-wrap`).style.outline = '';
+function changeSpinner(id, type, delta) {
+  const input = document.getElementById(`${type}-${id}`);
+  input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
+  document.querySelector(`#row-${id} .num-wrap`).classList.remove('input-error');
+  document.querySelector(`#row-${id} .proc-wrap`).classList.remove('input-error');
 }
 
 function escapeRe(s) {
@@ -1430,11 +1710,21 @@ function escapeRe(s) {
 // ─────────────────────────────────────────────
 // Form submission
 // ─────────────────────────────────────────────
+// Stores the validated payload between confirm screen and actual submit
+let pendingPayload = null;
+
 function submitForm() {
-  const name = document.getElementById('trainee-name').value.trim();
+  const nameInput = document.getElementById('trainee-name');
+  const name = nameInput.value.trim();
   const date = document.getElementById('session-date').value;
 
-  if (!name) { showStatus('Please enter trainee name.', false); return; }
+  if (!name) {
+    nameInput.classList.add('input-error');
+    showStatus('Please enter a name.', false);
+    return;
+  }
+  nameInput.classList.remove('input-error');
+  showStatus('', null);
 
   const rows = document.querySelectorAll('.species-row');
   if (!rows.length) { showStatus('Please add at least one species.', false); return; }
@@ -1444,7 +1734,8 @@ function submitForm() {
 
   rows.forEach(row => {
     const id = row.id.replace('row-', '');
-    const species = row.querySelector('.species-input').dataset.selected;
+    const speciesInput = row.querySelector('.species-input');
+    const species = speciesInput.dataset.selected;
     const speciesWriteIn = species && !SPECIES_LIST.some(s => s.name === species) ? 'Yes' : 'No';
     const ageBtn = document.querySelector(`#age-${id} .age-btn.active`);
     const age = ageBtn ? ageBtn.textContent : '';
@@ -1455,25 +1746,24 @@ function submitForm() {
     const processed = Math.max(0, parseInt(document.getElementById(`proc-${id}`).value) || 0);
 
     if (!species) {
-      row.querySelector('.species-input').style.borderColor = '#8b2e2e';
+      speciesInput.classList.add('input-error');
       valid = false;
     }
     if (!age) {
-      row.querySelector('.age-toggle').style.outline = '2px solid #8b2e2e';
+      row.querySelector('.age-toggle').classList.add('input-error');
       valid = false;
     }
     if (!method) {
-      methodInput.style.borderColor = '#8b2e2e';
+      methodInput.classList.add('input-error');
       valid = false;
     }
-
     if (num === 0 && processed === 0) {
-      row.querySelector('.num-wrap').style.outline = '2px solid #8b2e2e';
-      row.querySelector('.proc-wrap').style.outline = '2px solid #8b2e2e';
+      row.querySelector('.num-wrap').classList.add('input-error');
+      row.querySelector('.proc-wrap').classList.add('input-error');
       valid = false;
     } else {
-      row.querySelector('.num-wrap').style.outline = '';
-      row.querySelector('.proc-wrap').style.outline = '';
+      row.querySelector('.num-wrap').classList.remove('input-error');
+      row.querySelector('.proc-wrap').classList.remove('input-error');
     }
 
     entries.push({ species, speciesWriteIn, age, num, method, methodWriteIn, processed });
@@ -1483,47 +1773,146 @@ function submitForm() {
 
   const payload = {
     trainee: name,
-    isNewTrainee: document.getElementById('trainee-name').dataset.isNew === 'true',
+    isNewTrainee: nameInput.dataset.isNew === 'true',
     date,
     entries
   };
-  // Collect any write-in methods not in the default list to add to the Methods sheet
   const newMethods = [...new Set(
-    entries
-      .filter(e => e.methodWriteIn === 'Yes' && e.method)
-      .map(e => e.method)
+    entries.filter(e => e.methodWriteIn === 'Yes' && e.method).map(e => e.method)
   )];
   if (newMethods.length) payload.newMethods = newMethods;
 
-  const btn = document.getElementById('submit-btn');
+  pendingPayload = payload;
+
+  const mainEl = document.querySelector('main');
+  mainEl.classList.add('screen-exit');
+  setTimeout(() => {
+    mainEl.style.display = 'none';
+    mainEl.classList.remove('screen-exit');
+    const confirmEl = document.getElementById('confirm-screen');
+    confirmEl.classList.add('visible', 'screen-enter');
+    confirmEl.addEventListener('animationend', () => confirmEl.classList.remove('screen-enter'), { once: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showConfirmScreen(payload);
+  }, 200);
+}
+
+function showConfirmScreen(payload) {
+  // Populate session meta
+  document.getElementById('confirm-ringer').textContent = payload.trainee;
+  document.getElementById('confirm-date').textContent = payload.date || 'Not specified';
+
+  const totalExt = payload.entries.reduce((s, e) => s + e.num, 0);
+  const totalProc = payload.entries.reduce((s, e) => s + e.processed, 0);
+  document.getElementById('confirm-tot-ext').textContent = totalExt;
+  document.getElementById('confirm-tot-proc').textContent = totalProc;
+
+  // Populate entries table
+  const container = document.getElementById('confirm-entries');
+  container.innerHTML = payload.entries.map((e, i) => `
+    <div class="confirm-table-row">
+      <span class="confirm-cell-primary">${e.species}${e.speciesWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : ''}</span>
+      <span class="confirm-cell">${e.age}</span>
+      <span class="confirm-cell">${e.method}${e.methodWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : ''}</span>
+      <span class="confirm-cell-num"><span class="confirm-mob-label">Extracted</span>${e.num}</span>
+      <span class="confirm-cell-num"><span class="confirm-mob-label">Processed</span>${e.processed}</span>
+    </div>
+  `).join('');
+}
+
+function goBackToForm() {
+  const confirmEl = document.getElementById('confirm-screen');
+  confirmEl.classList.add('screen-exit');
+  setTimeout(() => {
+    confirmEl.classList.remove('visible', 'screen-exit');
+    const mainEl = document.querySelector('main');
+    mainEl.style.display = '';
+    mainEl.classList.add('screen-enter');
+    mainEl.addEventListener('animationend', () => mainEl.classList.remove('screen-enter'), { once: true });
+    showStatus('', null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 200);
+}
+
+function showSuccessScreen(numSpecies, name) {
+  const confirmEl = document.getElementById('confirm-screen');
+  confirmEl.classList.add('screen-exit');
+  setTimeout(() => {
+    confirmEl.classList.remove('visible', 'screen-exit');
+    const successEl = document.getElementById('success-screen');
+    document.getElementById('success-sub').textContent =
+      `${numSpecies} species logged for ${name}.`;
+    successEl.classList.add('visible', 'screen-enter');
+    successEl.addEventListener('animationend', () => successEl.classList.remove('screen-enter'), { once: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 200);
+}
+
+function doSubmit() {
+  if (!pendingPayload) return;
+
+  const btn = document.getElementById('confirm-submit-btn');
   btn.disabled = true;
-  showStatus('Submitting…', null);
+  btn.textContent = 'Submitting…';
+
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') {
+    setTimeout(() => {
+      showSuccessScreen(pendingPayload.entries.length, pendingPayload.trainee);
+      btn.disabled = false;
+      btn.textContent = 'Confirm & submit';
+    }, 600);
+    return;
+  }
 
   fetch(SCRIPT_URL, {
     method: 'POST',
-    body: JSON.stringify(payload)
+    body: JSON.stringify(pendingPayload)
   })
   .then(r => r.json())
   .then(data => {
     if (data.result === 'success') {
-      showStatus(`✓ Session submitted (${entries.length} species logged).`, true);
-      resetForm();
+      showSuccessScreen(pendingPayload.entries.length, pendingPayload.trainee);
     } else {
       showStatus('Submission failed: ' + (data.error || 'unknown error'), false);
+      goBackToForm();
     }
   })
   .catch(() => {
     showStatus('Network error — check your connection or Script URL.', false);
+    goBackToForm();
   })
-  .finally(() => { btn.disabled = false; });
+  .finally(() => {
+    btn.disabled = false;
+    btn.textContent = 'Confirm & submit';
+  });
+}
+
+function startNewSession() {
+  const successEl = document.getElementById('success-screen');
+  successEl.classList.add('screen-exit');
+  setTimeout(() => {
+    successEl.classList.remove('visible', 'screen-exit');
+    const mainEl = document.querySelector('main');
+    mainEl.style.display = '';
+    mainEl.classList.add('screen-enter');
+    mainEl.addEventListener('animationend', () => mainEl.classList.remove('screen-enter'), { once: true });
+    pendingPayload = null;
+    resetForm();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 200);
 }
 
 function resetForm() {
-  document.getElementById('trainee-name').value = '';
+  const nameInput = document.getElementById('trainee-name');
+  nameInput.value = '';
+  nameInput.dataset.isNew = 'false';
+  nameInput.dataset.selected = '';
+  nameInput.classList.remove('input-confirmed', 'input-error');
   document.getElementById('session-date').value = '';
   document.getElementById('species-rows').innerHTML = '';
+  showStatus('', null);
   rowCount = 0;
-  addRow();
+  addRow(true);
 }
 
 function showStatus(msg, ok) {
@@ -1540,7 +1929,7 @@ window.addEventListener('DOMContentLoaded', () => {
   dateInput.valueAsDate = new Date();
   fetchTrainees();
   fetchMethods();
-  addRow();
+  addRow(true);
 });
 </script>
 
