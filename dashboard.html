@@ -49,10 +49,10 @@
     margin-right: 16px;
   }
 
-  header::after { display: none; }
 
   header nav {
     display: flex;
+    flex: 1;
     gap: 4px;
     align-items: center;
   }
@@ -69,6 +69,7 @@
 
   header nav a:hover { color: var(--bg); background: rgba(255,255,255,0.08); }
   header nav a.active { color: var(--bg); }
+  header nav span { margin-left: auto; }
 
   /* ── Loading spinner ── */
   .spinner {
@@ -421,11 +422,11 @@
 
   /* ── Responsive ── */
   @media (max-width: 640px) {
-    header { padding: 18px 16px; }
-    header h1 { font-size: 1.05rem; margin-right: 8px; white-space: nowrap; }
-    header { justify-content: space-evenly; align-items: center; }
-    header nav { display: contents; }
-    header nav a { padding: 8px 8px 4px; white-space: nowrap; }
+    header { padding: 14px 16px; display: flex; flex-direction: row; align-items: center; gap: 0; }
+    header h1 { font-size: 1.3rem; width: 88px; flex-shrink: 0; margin-right: 8px; }
+    header nav { display: flex; flex: 1; justify-content: space-evenly; align-items: center; }
+    header nav a { padding: 4px 0; white-space: nowrap; flex: 1; text-align: center; }
+    header nav span { margin-left: 0 !important; flex: 1; text-align: center; }
     main { margin: 16px auto; padding: 0 12px 60px; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
     select.ringer-select { max-width: 100%; }
@@ -460,8 +461,8 @@
   <nav>
     <a href="index.html">Log session</a>
     <a href="dashboard.html" class="active">Dashboard</a>
+    <span aria-hidden="true" style="font-size:1.4rem;opacity:0.6">🐦</span>
   </nav>
-  <span aria-hidden="true" style="margin-left:auto;font-size:1.4rem;opacity:0.6">🐦</span>
 </header>
 
 <main>
@@ -532,8 +533,7 @@
       <div class="section-header">
         <h3>Species breakdown</h3>
         <div style="display:flex;align-items:center;gap:12px">
-          <span class="badge" id="species-badge"></span>
-          <div id="species-sort-toggle" class="sort-toggle"></div>
+<div id="species-sort-toggle" class="sort-toggle"></div>
         </div>
       </div>
       <div class="species-table-scroll">
@@ -618,6 +618,7 @@ function hideLoading() {
 function loadDashboard(ringer) {
   clearError();
   if (!ringer) {
+    hideLoading();
     document.getElementById('placeholder').style.display = '';
     document.getElementById('dashboard').classList.remove('visible');
     return;
@@ -642,7 +643,7 @@ function loadDashboard(ringer) {
 // Render
 // ─────────────────────────────────────────────
 function renderDashboard(data, ringer) {
-  const sessions = (data.sessions || []).slice().sort(function(a, b) {
+  var sessions = (data.sessions || []).slice().sort(function(a, b) {
     return b.date.localeCompare(a.date);
   });
 
@@ -671,11 +672,10 @@ function renderDashboard(data, ringer) {
     });
   });
 
-  // Species extracted: unique species where at least one extraction occurred
-  var extractedSpecies = Object.keys(speciesMap).filter(function(sp) {
+  // Unique species where at least one extraction occurred
+  var speciesCount = Object.keys(speciesMap).filter(function(sp) {
     return speciesMap[sp]._total > 0;
-  });
-  var speciesCount = extractedSpecies.length;
+  }).length;
 
   // All unique species seen (extracted or processed) — used for processed tile
   var allSpeciesCount = Object.keys(speciesMap).length;
@@ -720,7 +720,6 @@ function renderDashboard(data, ringer) {
   }).join('');
 
   // ── Species table ──
-  document.getElementById('species-badge').textContent = '';
   window._speciesData = { speciesMap: speciesMap, methodList: methodList };
   buildSortToggle(methodList);
   buildSpeciesTable('count');
