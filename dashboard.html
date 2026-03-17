@@ -62,7 +62,7 @@
     text-decoration: none;
     font-size: 0.72rem;
     letter-spacing: 0.08em;
-    padding: 6px 12px;
+    padding: 8px 12px 4px;
     border-radius: 3px;
     transition: color 0.15s, background 0.15s;
   }
@@ -422,7 +422,10 @@
   /* ── Responsive ── */
   @media (max-width: 640px) {
     header { padding: 18px 16px; }
-    header h1 { font-size: 1.3rem; }
+    header h1 { font-size: 1.05rem; margin-right: 8px; white-space: nowrap; }
+    header { justify-content: space-evenly; align-items: center; }
+    header nav { display: contents; }
+    header nav a { padding: 8px 8px 4px; white-space: nowrap; }
     main { margin: 16px auto; padding: 0 12px 60px; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
     select.ringer-select { max-width: 100%; }
