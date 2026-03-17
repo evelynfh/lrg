@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LRG Ringer Dashboard</title>
+<title>Ringing Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -50,14 +50,10 @@
     margin-right: 8px;
   }
 
-  header::after {
-    content: '🐦';
-    margin-left: auto;
-    font-size: 1.4rem;
-    opacity: 0.6;
-  }
+  header::after { display: none; }
 
   header nav {
+    margin-left: auto;
     display: flex;
     gap: 4px;
     align-items: center;
@@ -434,6 +430,11 @@
     select.ringer-select { max-width: 100%; }
     .session-item { flex-wrap: wrap; }
 
+    /* Method table: compress padding and font so it fits without scrolling */
+    .method-table th,
+    .method-table td { padding: 8px 10px; font-size: 0.75rem; }
+
+    /* Species table: sticky first column */
     .species-table-scroll .data-table th:first-child,
     .species-table-scroll .data-table td:first-child {
       position: sticky;
@@ -454,11 +455,12 @@
 <body>
 
 <header>
-  <h1>LRG Session Log</h1>
+  <h1>Ringing Tracker</h1>
   <nav>
     <a href="index.html">Log session</a>
     <a href="dashboard.html" class="active">Dashboard</a>
   </nav>
+  <span aria-hidden="true" style="font-size:1.4rem;opacity:0.6">🐦</span>
 </header>
 
 <main>
@@ -514,11 +516,10 @@
         <h3>Extractions by method</h3>
         <span class="badge" id="method-badge"></span>
       </div>
-      <table class="data-table">
+      <table class="data-table method-table">
         <thead><tr>
           <th>Method</th>
           <th class="r">Extracted</th>
-          <th class="r">%</th>
           <th class="r">Species</th>
           <th class="r">Sessions</th>
         </tr></thead>
@@ -708,19 +709,17 @@ function renderDashboard(data, ringer) {
   // ── Method table ──
   document.getElementById('method-badge').textContent = methodList.length + ' method' + (methodList.length !== 1 ? 's' : '');
   document.getElementById('method-tbody').innerHTML = methodList.map(function(m) {
-    var v   = methodMap[m];
-    var pct = totalExt > 0 ? Math.round(v.extracted / totalExt * 100) : 0;
+    var v = methodMap[m];
     return '<tr>'
       + '<td class="primary">' + m + '</td>'
       + '<td class="r">' + v.extracted + '</td>'
-      + '<td class="r">' + pct + '%</td>'
       + '<td class="r">' + v.species.size + '</td>'
       + '<td class="r">' + v.dates.size + '</td>'
       + '</tr>';
   }).join('');
 
   // ── Species table ──
-  document.getElementById('species-badge').textContent = speciesCount + ' species';
+  document.getElementById('species-badge').textContent = '';
   window._speciesData = { speciesMap: speciesMap, methodList: methodList };
   buildSortToggle(methodList);
   buildSpeciesTable('count');
@@ -758,7 +757,7 @@ function renderDashboard(data, ringer) {
   });
 
   document.getElementById('missing-badge').textContent = allMissingSpecies.size
-    ? allMissingSpecies.size + ' species \u2014 number shows times caught by others'
+    ? 'Totals of species recorded by other ringers'
     : 'no gaps \u2713';
 
   var methodSections = siteMethods.map(function(m) {
@@ -833,6 +832,26 @@ function setSpeciesSort(order) {
     btn.classList.toggle('active', btn.dataset.sort === order);
   });
   buildSpeciesTable(order);
+
+  // On mobile, scroll the active sort column into view
+  if (order.indexOf('method:') === 0 || order === 'proc') {
+    var wrap = document.querySelector('.species-table-scroll');
+    var table = document.getElementById('species-table-wrap').querySelector('table');
+    if (!wrap || !table) return;
+    var headers = table.querySelectorAll('thead th');
+    var targetCol = -1;
+    if (order === 'proc') {
+      targetCol = headers.length - 1;
+    } else {
+      var methodName = order.slice(7);
+      headers.forEach(function(th, i) { if (th.textContent === methodName) targetCol = i; });
+    }
+    if (targetCol >= 0) {
+      var th = headers[targetCol];
+      // Scroll so the target column is visible, with a little breathing room
+      wrap.scrollLeft = th.offsetLeft - 80;
+    }
+  }
 }
 
 function buildSpeciesTable(order) {
