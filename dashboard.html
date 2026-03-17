@@ -17,12 +17,8 @@
     --border: #d4ccb8;
     --row-alt: #faf7f0;
     --shadow: 0 2px 8px rgba(26,26,20,0.08);
-    --shadow-lg: 0 8px 32px rgba(26,26,20,0.12);
-    --warn: #c9a800;
     --warn-bg: #fff8e6;
     --warn-border: #e8d88a;
-    --danger: #8b2e2e;
-    --danger-bg: #fdf0f0;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,6 +30,7 @@
     min-height: 100vh;
   }
 
+  /* ── Header ── */
   header {
     background: var(--ink);
     color: var(--bg);
@@ -78,6 +75,7 @@
   header nav a:hover { color: var(--bg); background: rgba(255,255,255,0.08); }
   header nav a.active { color: var(--bg); }
 
+  /* ── Layout ── */
   main {
     max-width: 960px;
     margin: 40px auto;
@@ -130,6 +128,18 @@
     box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
   }
 
+  /* ── Error banner ── */
+  .error-banner {
+    background: #fdf0f0;
+    border: 1px solid #e8b8b8;
+    border-left: 3px solid #8b2e2e;
+    border-radius: 3px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 0.78rem;
+    color: #8b2e2e;
+  }
+
   /* ── Placeholder ── */
   .state-placeholder {
     text-align: center;
@@ -137,13 +147,6 @@
     color: var(--ink-muted);
     font-size: 0.82rem;
     letter-spacing: 0.04em;
-  }
-
-  .state-placeholder .icon {
-    font-size: 2.2rem;
-    display: block;
-    margin-bottom: 12px;
-    opacity: 0.4;
   }
 
   /* ── Dashboard ── */
@@ -157,9 +160,6 @@
 
   /* ── Ringer name strip ── */
   .ringer-strip {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
     margin-bottom: 20px;
   }
 
@@ -169,8 +169,6 @@
     font-weight: 600;
     color: var(--ink);
   }
-
-  .ringer-strip span { display: none; }
 
   /* ── Stat tiles ── */
   .stats-grid {
@@ -278,14 +276,43 @@
   .data-table tbody tr:last-child td { border-bottom: none; }
   .data-table tbody tr:nth-child(even) { background: var(--row-alt); }
 
-  /* ── Missing method blocks ── */
-  .missing-method-block {
-    border-bottom: 1px solid var(--border);
+  /* ── Species table scroll wrapper ── */
+  .species-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
+
+  .species-table-scroll .data-table { min-width: 480px; }
+
+  /* ── Sort toggle ── */
+  .sort-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .sort-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: transparent;
+    color: #9a9480;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .sort-btn:hover { background: rgba(255,255,255,0.08); color: var(--bg); }
+  .sort-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* ── Missing species ── */
+  .missing-method-block { border-bottom: 1px solid var(--border); }
   .missing-method-block:last-child { border-bottom: none; }
 
   .missing-method-label {
-    padding: 8px 22px 4px;
+    padding: 8px 22px;
     font-size: 0.62rem;
     font-weight: 500;
     letter-spacing: 0.1em;
@@ -295,22 +322,6 @@
     border-bottom: 1px solid var(--border);
   }
 
-  /* Chip count badge inside missing chips */
-  .chip-count {
-    display: inline-block;
-    margin-left: 5px;
-    background: #e8d88a;
-    color: #4a3c00;
-    border-radius: 2px;
-    padding: 0 5px;
-    font-size: 0.68rem;
-    font-weight: 500;
-    vertical-align: middle;
-  }
-
-
-
-  /* ── Missing species chips ── */
   .missing-grid {
     display: flex;
     flex-wrap: wrap;
@@ -325,6 +336,18 @@
     background: var(--warn-bg);
     border: 1px solid var(--warn-border);
     color: #6b5700;
+  }
+
+  .chip-count {
+    display: inline-block;
+    margin-left: 5px;
+    background: #e8d88a;
+    color: #4a3c00;
+    border-radius: 2px;
+    padding: 0 5px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    vertical-align: middle;
   }
 
   .missing-empty {
@@ -368,40 +391,15 @@
 
   .session-totals { color: var(--ink-muted); font-size: 0.72rem; white-space: nowrap; }
 
-  /* ── Sort toggle ── */
-  .sort-toggle {
-    display: flex;
-    gap: 4px;
-  }
-
-  .sort-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.06em;
-    padding: 4px 10px;
-    border-radius: 2px;
-    border: 1px solid rgba(255,255,255,0.18);
-    background: transparent;
-    color: #9a9480;
-    cursor: pointer;
-    transition: background 0.12s, color 0.12s;
-  }
-
-  .sort-btn:hover { background: rgba(255,255,255,0.08); color: var(--bg); }
-  .sort-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-
-  /* ── Species table scroll wrapper (mobile) ── */
-  .species-table-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .species-table-scroll .data-table {
-    min-width: 480px;
-  }
-
-  /* Sticky first column on mobile */
+  /* ── Responsive ── */
   @media (max-width: 640px) {
+    header { padding: 18px 16px; }
+    header h1 { font-size: 1.3rem; }
+    main { margin: 16px auto; padding: 0 12px 60px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    select.ringer-select { max-width: 100%; }
+    .session-item { flex-wrap: wrap; }
+
     .species-table-scroll .data-table th:first-child,
     .species-table-scroll .data-table td:first-child {
       position: sticky;
@@ -416,16 +414,6 @@
     .species-table-scroll .data-table thead th:first-child {
       background: var(--accent-light);
     }
-  }
-
-  /* ── Responsive ── */
-  @media (max-width: 640px) {
-    header { padding: 18px 16px; }
-    header h1 { font-size: 1.3rem; }
-    main { margin: 16px auto; padding: 0 12px 60px; }
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-    select.ringer-select { max-width: 100%; }
-    .session-item { flex-wrap: wrap; }
   }
 </style>
 </head>
@@ -448,6 +436,8 @@
     </select>
   </div>
 
+  <div id="error-banner" class="error-banner" style="display:none"></div>
+
   <div id="placeholder" class="state-placeholder">
     Select a ringer above to view their statistics
   </div>
@@ -455,7 +445,6 @@
   <div id="dashboard">
     <div class="ringer-strip">
       <h2 id="ringer-title"></h2>
-      <span id="ringer-subtitle"></span>
     </div>
 
     <div class="stats-grid">
@@ -531,256 +520,86 @@
 </main>
 
 <script>
-// ─────────────────────────────────────────────
-// CONFIGURATION
-// ─────────────────────────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAa-SJC2CixjfJLASBmdaS0LWH_BuDbBZUsbTyETFYyF2vXnLw4loFmbBTq7TIjqD1/exec';
-
-// Set to false once your Apps Script supports action=getRingerData
-const USE_MOCK = true;
-
-// ─────────────────────────────────────────────
-// Mock data — replace with live data later
-// ─────────────────────────────────────────────
-const MOCK = {
-  // Species caught site-wide by other ringers: name → total extractions by others
-  // (computed from the other ringers' sessions for realism)
-  siteFreqByMethod: {
-    'Mist net': {
-      'Robin': 8, 'Blue Tit': 22, 'Great Tit': 11, 'Coal Tit': 7,
-      'Blackbird': 7, 'Song Thrush': 4, 'Chaffinch': 6, 'Wren': 5,
-      'Dunnock': 7, 'Goldfinch': 4, 'Reed Warbler': 9, 'Sedge Warbler': 8,
-      'Blackcap': 9, 'Chiffchaff': 10, 'Willow Warbler': 3, 'Goldcrest': 13,
-      'Redwing': 9, 'Fieldfare': 4, 'Treecreeper': 2, 'Nuthatch': 1,
-      'Marsh Tit': 2, 'Willow Tit': 1
-    },
-    'Spring trap': {
-      'Chaffinch': 10, 'Siskin': 9, 'Bullfinch': 2, 'Greenfinch': 3,
-      'House Sparrow': 5, 'Tree Sparrow': 8, 'Robin': 4
-    },
-    'Whoosh net': {
-      'Blue Tit': 11, 'Great Tit': 9, 'Long-tailed Tit': 6,
-      'Redwing': 12, 'Fieldfare': 8, 'Blackbird': 4
-    },
-    'Nest box': {
-      'Blue Tit': 17, 'Great Tit': 13, 'House Sparrow': 6,
-      'Pied Flycatcher': 3, 'Coal Tit': 3
-    },
-    'Nest': {
-      'Reed Warbler': 15, 'Sedge Warbler': 10
-    }
-  },
-  siteProcessedFreq: {
-    'Robin': 11, 'Blue Tit': 30, 'Great Tit': 18, 'Coal Tit': 9,
-    'Blackbird': 10, 'Song Thrush': 5, 'Chaffinch': 15, 'Wren': 5,
-    'Dunnock': 6, 'Goldfinch': 4, 'Siskin': 9, 'Reed Warbler': 14,
-    'Sedge Warbler': 11, 'Blackcap': 11, 'Chiffchaff': 13, 'Willow Warbler': 3,
-    'Goldcrest': 19, 'Long-tailed Tit': 6, 'Bullfinch': 2, 'Greenfinch': 3,
-    'Treecreeper': 3, 'Nuthatch': 1, 'Redwing': 20, 'Fieldfare': 11,
-    'House Sparrow': 10, 'Tree Sparrow': 7, 'Marsh Tit': 3, 'Willow Tit': 1,
-    'Pied Flycatcher': 3
-  },
-
-  ringers: {
-    'Alice Meadows': { sessions: [
-      { date: '2025-03-08', entries: [
-        { species: 'Robin',          extracted: 4,  processed: 4,  method: 'Mist net' },
-        { species: 'Blue Tit',       extracted: 11, processed: 10, method: 'Mist net' },
-        { species: 'Great Tit',      extracted: 3,  processed: 3,  method: 'Mist net' },
-        { species: 'Goldcrest',      extracted: 2,  processed: 2,  method: 'Mist net' },
-      ]},
-      { date: '2025-02-14', entries: [
-        { species: 'Chaffinch',      extracted: 7,  processed: 6,  method: 'Spring trap' },
-        { species: 'Greenfinch',     extracted: 3,  processed: 3,  method: 'Spring trap' },
-        { species: 'Robin',          extracted: 2,  processed: 2,  method: 'Spring trap' },
-      ]},
-      { date: '2025-01-19', entries: [
-        { species: 'Blue Tit',       extracted: 6,  processed: 5,  method: 'Mist net' },
-        { species: 'Coal Tit',       extracted: 3,  processed: 3,  method: 'Mist net' },
-        { species: 'Goldcrest',      extracted: 4,  processed: 4,  method: 'Mist net' },
-        { species: 'Treecreeper',    extracted: 1,  processed: 1,  method: 'Mist net' },
-      ]},
-      { date: '2024-11-03', entries: [
-        { species: 'Redwing',        extracted: 9,  processed: 8,  method: 'Mist net' },
-        { species: 'Fieldfare',      extracted: 4,  processed: 4,  method: 'Mist net' },
-        { species: 'Song Thrush',    extracted: 2,  processed: 2,  method: 'Mist net' },
-      ]},
-      { date: '2024-09-21', entries: [
-        { species: 'Blackcap',       extracted: 5,  processed: 5,  method: 'Mist net' },
-        { species: 'Chiffchaff',     extracted: 8,  processed: 7,  method: 'Mist net' },
-        { species: 'Willow Warbler', extracted: 3,  processed: 3,  method: 'Mist net' },
-        { species: 'Goldcrest',      extracted: 5,  processed: 5,  method: 'Mist net' },
-      ]},
-      { date: '2024-06-10', entries: [
-        { species: 'Reed Warbler',   extracted: 5,  processed: 5,  method: 'Nest' },
-        { species: 'Sedge Warbler',  extracted: 4,  processed: 4,  method: 'Nest' },
-        { species: 'Blue Tit',       extracted: 8,  processed: 8,  method: 'Nest box' },
-        { species: 'Great Tit',      extracted: 6,  processed: 6,  method: 'Nest box' },
-      ]},
-    ]},
-
-    'Ben Harrow': { sessions: [
-      { date: '2025-03-01', entries: [
-        { species: 'Wren',           extracted: 5,  processed: 5,  method: 'Mist net' },
-        { species: 'Dunnock',        extracted: 4,  processed: 3,  method: 'Mist net' },
-        { species: 'Robin',          extracted: 3,  processed: 3,  method: 'Mist net' },
-      ]},
-      { date: '2025-01-25', entries: [
-        { species: 'Bullfinch',      extracted: 2,  processed: 2,  method: 'Spring trap' },
-        { species: 'Chaffinch',      extracted: 6,  processed: 5,  method: 'Spring trap' },
-        { species: 'Siskin',         extracted: 9,  processed: 9,  method: 'Spring trap' },
-      ]},
-      { date: '2024-12-07', entries: [
-        { species: 'Blue Tit',       extracted: 7,  processed: 6,  method: 'Whoosh net' },
-        { species: 'Great Tit',      extracted: 4,  processed: 4,  method: 'Whoosh net' },
-        { species: 'Long-tailed Tit',extracted: 6,  processed: 6,  method: 'Whoosh net' },
-      ]},
-      { date: '2024-10-14', entries: [
-        { species: 'Chiffchaff',     extracted: 6,  processed: 5,  method: 'Mist net' },
-        { species: 'Blackcap',       extracted: 3,  processed: 3,  method: 'Mist net' },
-        { species: 'Goldcrest',      extracted: 7,  processed: 7,  method: 'Mist net' },
-      ]},
-      { date: '2024-07-18', entries: [
-        { species: 'Reed Warbler',   extracted: 4,  processed: 4,  method: 'Nest' },
-        { species: 'House Sparrow',  extracted: 6,  processed: 6,  method: 'Nest box' },
-      ]},
-    ]},
-
-    'Clara Finch': { sessions: [
-      { date: '2025-03-10', entries: [
-        { species: 'Blackbird',      extracted: 3,  processed: 3,  method: 'Mist net' },
-        { species: 'Song Thrush',    extracted: 2,  processed: 2,  method: 'Mist net' },
-        { species: 'Robin',          extracted: 5,  processed: 5,  method: 'Mist net' },
-        { species: 'Dunnock',        extracted: 3,  processed: 2,  method: 'Mist net' },
-      ]},
-      { date: '2025-02-01', entries: [
-        { species: 'Nuthatch',       extracted: 1,  processed: 1,  method: 'Mist net' },
-        { species: 'Treecreeper',    extracted: 2,  processed: 2,  method: 'Mist net' },
-        { species: 'Marsh Tit',      extracted: 1,  processed: 1,  method: 'Mist net' },
-        { species: 'Coal Tit',       extracted: 4,  processed: 4,  method: 'Mist net' },
-      ]},
-      { date: '2024-11-22', entries: [
-        { species: 'Redwing',        extracted: 12, processed: 11, method: 'Whoosh net' },
-        { species: 'Fieldfare',      extracted: 8,  processed: 7,  method: 'Whoosh net' },
-        { species: 'Blackbird',      extracted: 4,  processed: 4,  method: 'Whoosh net' },
-      ]},
-      { date: '2024-08-30', entries: [
-        { species: 'Sedge Warbler',  extracted: 3,  processed: 3,  method: 'Mist net' },
-        { species: 'Reed Warbler',   extracted: 5,  processed: 5,  method: 'Mist net' },
-        { species: 'Chiffchaff',     extracted: 4,  processed: 3,  method: 'Mist net' },
-      ]},
-      { date: '2024-05-17', entries: [
-        { species: 'Blue Tit',       extracted: 10, processed: 10, method: 'Nest box' },
-        { species: 'Great Tit',      extracted: 7,  processed: 7,  method: 'Nest box' },
-        { species: 'Pied Flycatcher',extracted: 3,  processed: 3,  method: 'Nest box' },
-      ]},
-    ]},
-
-    'David Wren': { sessions: [
-      { date: '2025-02-28', entries: [
-        { species: 'Tree Sparrow',   extracted: 8,  processed: 7,  method: 'Spring trap' },
-        { species: 'House Sparrow',  extracted: 5,  processed: 5,  method: 'Spring trap' },
-        { species: 'Chaffinch',      extracted: 4,  processed: 4,  method: 'Spring trap' },
-      ]},
-      { date: '2025-01-11', entries: [
-        { species: 'Willow Tit',     extracted: 1,  processed: 1,  method: 'Mist net' },
-        { species: 'Marsh Tit',      extracted: 2,  processed: 2,  method: 'Mist net' },
-        { species: 'Coal Tit',       extracted: 3,  processed: 3,  method: 'Mist net' },
-        { species: 'Blue Tit',       extracted: 9,  processed: 8,  method: 'Mist net' },
-      ]},
-      { date: '2024-10-05', entries: [
-        { species: 'Blackcap',       extracted: 4,  processed: 4,  method: 'Mist net' },
-        { species: 'Goldcrest',      extracted: 6,  processed: 6,  method: 'Mist net' },
-        { species: 'Chiffchaff',     extracted: 5,  processed: 4,  method: 'Mist net' },
-      ]},
-      { date: '2024-06-28', entries: [
-        { species: 'Reed Warbler',   extracted: 6,  processed: 6,  method: 'Nest' },
-        { species: 'Sedge Warbler',  extracted: 5,  processed: 5,  method: 'Nest' },
-        { species: 'Blue Tit',       extracted: 7,  processed: 7,  method: 'Nest box' },
-      ]},
-    ]},
-  }
-};
 
 // ─────────────────────────────────────────────
 // Init — populate ringer dropdown
 // ─────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  const sel = document.getElementById('ringer-select');
-
-  if (USE_MOCK) {
-    Object.keys(MOCK.ringers).sort().forEach(n => {
-      const o = document.createElement('option');
-      o.value = n; o.textContent = n;
-      sel.appendChild(o);
-    });
-  } else {
-    fetch(SCRIPT_URL + '?action=getTrainees')
-      .then(r => r.json())
-      .then(d => (d.trainees || []).sort().forEach(n => {
+window.addEventListener('DOMContentLoaded', function() {
+  fetch(SCRIPT_URL + '?action=getTrainees')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      const sel = document.getElementById('ringer-select');
+      (d.trainees || []).sort().forEach(function(n) {
         const o = document.createElement('option');
         o.value = n; o.textContent = n;
         sel.appendChild(o);
-      }))
-      .catch(() => {});
-  }
+      });
+    })
+    .catch(function() { showError('Could not load ringer list — check your Script URL and network.'); });
 });
 
 // ─────────────────────────────────────────────
-// Load — fires immediately on select change
+// Error display
+// ─────────────────────────────────────────────
+function showError(msg) {
+  const el = document.getElementById('error-banner');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function clearError() {
+  const el = document.getElementById('error-banner');
+  el.style.display = 'none';
+  el.textContent = '';
+}
+
+// ─────────────────────────────────────────────
+// Load — fires on select change
 // ─────────────────────────────────────────────
 function loadDashboard(ringer) {
+  clearError();
   if (!ringer) {
     document.getElementById('placeholder').style.display = '';
     document.getElementById('dashboard').classList.remove('visible');
     return;
   }
 
-  if (USE_MOCK) {
-    const d = MOCK.ringers[ringer];
-    if (d) renderDashboard({
-      sessions: d.sessions,
-      siteFreqByMethod: MOCK.siteFreqByMethod,
-      siteProcessedFreq: MOCK.siteProcessedFreq
-    }, ringer);
-    return;
-  }
-
   fetch(SCRIPT_URL + '?action=getRingerData&ringer=' + encodeURIComponent(ringer))
-    .then(r => r.json())
-    .then(d => renderDashboard(d, ringer))
-    .catch(() => alert('Could not load data for ' + ringer));
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.error) { showError(d.error); return; }
+      renderDashboard(d, ringer);
+    })
+    .catch(function() { showError('Could not load data for ' + ringer + ' — check your connection.'); });
 }
 
 // ─────────────────────────────────────────────
 // Render
 // ─────────────────────────────────────────────
 function renderDashboard(data, ringer) {
-  const sessions = (data.sessions || []).slice().sort((a, b) => b.date.localeCompare(a.date));
+  const sessions = (data.sessions || []).slice().sort(function(a, b) {
+    return b.date.localeCompare(a.date);
+  });
 
-  let totalExt = 0, totalProc = 0;
-  // speciesMap[sp][method] = count; also speciesMap[sp]._total
-  const speciesMap = {}, methodMap = {};
-  const allMethods = new Set();
+  var totalExt = 0, totalProc = 0;
+  var speciesMap = {}, methodMap = {};
 
-  sessions.forEach(s => {
-    (s.entries || []).forEach(e => {
-      const ext  = e.extracted || 0;
-      const proc = e.processed || 0;
-      const sp   = e.species   || 'Unknown';
-      const mt   = e.method    || 'Unknown';
+  sessions.forEach(function(s) {
+    (s.entries || []).forEach(function(e) {
+      var ext  = e.extracted || 0;
+      var proc = e.processed || 0;
+      var sp   = e.species   || 'Unknown';
+      var mt   = e.method    || 'Unknown';
 
       totalExt  += ext;
       totalProc += proc;
-      allMethods.add(mt);
 
-      // speciesMap
       if (!speciesMap[sp]) speciesMap[sp] = { _total: 0, _proc: 0 };
       speciesMap[sp]._total += ext;
       speciesMap[sp]._proc  += proc;
       speciesMap[sp][mt]     = (speciesMap[sp][mt] || 0) + ext;
 
-      // methodMap
       if (!methodMap[mt]) methodMap[mt] = { extracted: 0, species: new Set(), dates: new Set() };
       methodMap[mt].extracted += ext;
       methodMap[mt].species.add(sp);
@@ -788,170 +607,158 @@ function renderDashboard(data, ringer) {
     });
   });
 
-  const speciesCount = Object.keys(speciesMap).length;
-  const methodList   = Object.keys(methodMap).sort((a, b) => methodMap[b].extracted - methodMap[a].extracted);
+  var speciesCount = Object.keys(speciesMap).length;
+  var methodList   = Object.keys(methodMap).sort(function(a, b) {
+    return methodMap[b].extracted - methodMap[a].extracted;
+  });
 
-  const firstDate = sessions.length ? sessions[sessions.length - 1].date : null;
-  const lastDate  = sessions.length ? sessions[0].date : null;
+  var firstDate = sessions.length ? sessions[sessions.length - 1].date : null;
+  var lastDate  = sessions.length ? sessions[0].date : null;
 
-  // ── Helper: format date as "Mon YYYY" ──
   function fmtMonth(iso) {
     if (!iso) return '—';
-    const d = new Date(iso + 'T00:00:00');
+    var d = new Date(iso + 'T00:00:00');
     return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
   }
 
-  // ── Header strip (just name, no subtitle) ──
+  // ── Ringer name ──
   document.getElementById('ringer-title').textContent = ringer;
 
   // ── Tiles ──
-  const mistNetExt     = methodMap['Mist net'] ? methodMap['Mist net'].extracted : 0;
-  const mistNetSpecies = methodMap['Mist net'] ? methodMap['Mist net'].species.size : 0;
-
-  document.getElementById('stat-sessions').textContent   = sessions.length;
-  document.getElementById('stat-extracted').textContent  = totalExt;
-  document.getElementById('stat-mistnet').textContent    = mistNetExt;
-  document.getElementById('stat-processed').textContent  = totalProc;
-
-  document.getElementById('stat-sessions-sub').textContent  =
-    firstDate ? `${fmtMonth(firstDate)} → ${fmtMonth(lastDate)}` : '—';
-  document.getElementById('stat-ext-sub').textContent        = `across ${speciesCount} species`;
-  document.getElementById('stat-mistnet-sub').textContent    = `across ${mistNetSpecies} species`;
-  document.getElementById('stat-proc-sub').textContent       = `across ${speciesCount} species`;
+  var mistNet = methodMap['Mist net'] || { extracted: 0, species: new Set() };
+  document.getElementById('stat-sessions').textContent  = sessions.length;
+  document.getElementById('stat-extracted').textContent = totalExt;
+  document.getElementById('stat-mistnet').textContent   = mistNet.extracted;
+  document.getElementById('stat-processed').textContent = totalProc;
+  document.getElementById('stat-sessions-sub').textContent  = firstDate ? fmtMonth(firstDate) + ' \u2192 ' + fmtMonth(lastDate) : '\u2014';
+  document.getElementById('stat-ext-sub').textContent       = 'across ' + speciesCount + ' species';
+  document.getElementById('stat-mistnet-sub').textContent   = 'across ' + mistNet.species.size + ' species';
+  document.getElementById('stat-proc-sub').textContent      = 'across ' + speciesCount + ' species';
 
   // ── Method table ──
-  document.getElementById('method-badge').textContent =
-    `${methodList.length} method${methodList.length !== 1 ? 's' : ''}`;
-  document.getElementById('method-tbody').innerHTML = methodList.map(m => {
-    const v   = methodMap[m];
-    const pct = totalExt > 0 ? Math.round(v.extracted / totalExt * 100) : 0;
-    return `<tr>
-      <td class="primary">${m}</td>
-      <td class="r">${v.extracted}</td>
-      <td class="r">${pct}%</td>
-      <td class="r">${v.species.size}</td>
-      <td class="r">${v.dates.size}</td>
-    </tr>`;
+  document.getElementById('method-badge').textContent = methodList.length + ' method' + (methodList.length !== 1 ? 's' : '');
+  document.getElementById('method-tbody').innerHTML = methodList.map(function(m) {
+    var v   = methodMap[m];
+    var pct = totalExt > 0 ? Math.round(v.extracted / totalExt * 100) : 0;
+    return '<tr>'
+      + '<td class="primary">' + m + '</td>'
+      + '<td class="r">' + v.extracted + '</td>'
+      + '<td class="r">' + pct + '%</td>'
+      + '<td class="r">' + v.species.size + '</td>'
+      + '<td class="r">' + v.dates.size + '</td>'
+      + '</tr>';
   }).join('');
 
-  // ── Species table — method columns + processed, sortable ──
-  document.getElementById('species-badge').textContent = `${speciesCount} species`;
-
-  // Store data on window so the sort buttons can rebuild without a full re-render
-  window._speciesData = { speciesMap, methodList, speciesCount };
-  window._speciesSort = 'count';
+  // ── Species table ──
+  document.getElementById('species-badge').textContent = speciesCount + ' species';
+  window._speciesData = { speciesMap: speciesMap, methodList: methodList };
   buildSortToggle(methodList);
   buildSpeciesTable('count');
 
-  // ── Missing species — one table per method + one for processing ──
-  const mySpecies         = new Set(Object.keys(speciesMap));
-  const myProcessedSpecies = new Set(
-    Object.entries(speciesMap).filter(([,v]) => v._proc > 0).map(([sp]) => sp)
+  // ── Species gaps ──
+  var mySpecies         = new Set(Object.keys(speciesMap));
+  var myProcessedSpecies = new Set(
+    Object.entries(speciesMap).filter(function(e) { return e[1]._proc > 0; }).map(function(e) { return e[0]; })
   );
-  const siteFreqByMethod  = data.siteFreqByMethod  || {};
-  const siteProcessedFreq = data.siteProcessedFreq || {};
+  var siteFreqByMethod  = data.siteFreqByMethod  || {};
+  var siteProcessedFreq = data.siteProcessedFreq || {};
+  var siteMethods       = Object.keys(siteFreqByMethod);
 
-  // Collect all methods seen site-wide
-  const siteMethods = Object.keys(siteFreqByMethod);
-
-  function missingTableHTML(freqMap, mySet) {
-    const missing = Object.entries(freqMap)
-      .filter(([sp]) => !mySet.has(sp) && freqMap[sp] > 0)
-      .sort((a, b) => b[1] - a[1]);
-    if (!missing.length) return `<div class="missing-empty">✓ None missing for this method.</div>`;
-    return `<div class="missing-grid">
-      ${missing.map(([sp, n]) =>
-        `<span class="missing-chip">${sp} <span class="chip-count">${n}</span></span>`
-      ).join('')}
-    </div>`;
+  function missingChips(freqMap, mySet) {
+    var missing = Object.entries(freqMap)
+      .filter(function(e) { return !mySet.has(e[0]) && e[1] > 0; })
+      .sort(function(a, b) { return b[1] - a[1]; });
+    if (!missing.length) return '<div class="missing-empty">\u2713 None missing for this method.</div>';
+    return '<div class="missing-grid">'
+      + missing.map(function(e) {
+          return '<span class="missing-chip">' + e[0]
+            + ' <span class="chip-count">' + e[1] + '</span></span>';
+        }).join('')
+      + '</div>';
   }
 
-  // Count total unique missing species across all methods for badge
-  const allMissingSpecies = new Set();
-  siteMethods.forEach(m => {
-    Object.keys(siteFreqByMethod[m]).forEach(sp => {
+  var allMissingSpecies = new Set();
+  siteMethods.forEach(function(m) {
+    Object.keys(siteFreqByMethod[m]).forEach(function(sp) {
       if (!mySpecies.has(sp)) allMissingSpecies.add(sp);
     });
   });
-  Object.keys(siteProcessedFreq).forEach(sp => {
+  Object.keys(siteProcessedFreq).forEach(function(sp) {
     if (!myProcessedSpecies.has(sp)) allMissingSpecies.add(sp);
   });
 
-  const missingBadgeEl = document.getElementById('missing-badge');
-  if (missingBadgeEl) missingBadgeEl.textContent =
-    allMissingSpecies.size
-      ? allMissingSpecies.size + ' species — number shows times caught by others'
-      : 'no gaps \u2713';
+  document.getElementById('missing-badge').textContent = allMissingSpecies.size
+    ? allMissingSpecies.size + ' species \u2014 number shows times caught by others'
+    : 'no gaps \u2713';
 
-  const methodSections = siteMethods.map(m => {
-    const missing = Object.entries(siteFreqByMethod[m])
-      .filter(([sp]) => !mySpecies.has(sp) && siteFreqByMethod[m][sp] > 0);
-    if (!missing.length) return '';
-    return `<div class="missing-method-block">
-      <div class="missing-method-label">${m}</div>
-      ${missingTableHTML(siteFreqByMethod[m], mySpecies)}
-    </div>`;
+  var methodSections = siteMethods.map(function(m) {
+    var hasMissing = Object.keys(siteFreqByMethod[m]).some(function(sp) {
+      return !mySpecies.has(sp) && siteFreqByMethod[m][sp] > 0;
+    });
+    if (!hasMissing) return '';
+    return '<div class="missing-method-block">'
+      + '<div class="missing-method-label">' + m + '</div>'
+      + missingChips(siteFreqByMethod[m], mySpecies)
+      + '</div>';
   }).join('');
 
-  const procMissing = Object.entries(siteProcessedFreq)
-    .filter(([sp]) => !myProcessedSpecies.has(sp) && siteProcessedFreq[sp] > 0);
-  const procSection = procMissing.length ? `<div class="missing-method-block">
-    <div class="missing-method-label">Processing</div>
-    ${missingTableHTML(siteProcessedFreq, myProcessedSpecies)}
-  </div>` : '';
+  var procHasMissing = Object.keys(siteProcessedFreq).some(function(sp) {
+    return !myProcessedSpecies.has(sp) && siteProcessedFreq[sp] > 0;
+  });
+  var procSection = procHasMissing
+    ? '<div class="missing-method-block">'
+      + '<div class="missing-method-label">Processing</div>'
+      + missingChips(siteProcessedFreq, myProcessedSpecies)
+      + '</div>'
+    : '';
 
-  document.getElementById('missing-area').innerHTML =
-    allMissingSpecies.size
-      ? methodSections + procSection
-      : `<div class="missing-empty">✓ This ringer has ringed every species caught at this site.</div>`;
+  document.getElementById('missing-area').innerHTML = allMissingSpecies.size
+    ? methodSections + procSection
+    : '<div class="missing-empty">\u2713 This ringer has ringed every species caught at this site.</div>';
 
-  // ── Session history — no totals footer ──
-  document.getElementById('session-badge').textContent =
-    `${sessions.length} session${sessions.length !== 1 ? 's' : ''}`;
-  document.getElementById('session-list').innerHTML = sessions.map(s => {
-    const entries = s.entries || [];
-    const ext     = entries.reduce((n, e) => n + (e.extracted || 0), 0);
-    const proc    = entries.reduce((n, e) => n + (e.processed || 0), 0);
-    const methods = [...new Set(entries.map(e => e.method).filter(Boolean))];
-    const species = [...new Set(entries.map(e => e.species).filter(Boolean))];
-    return `<div class="session-item">
-      <span class="session-date">${s.date}</span>
-      <div class="session-pills">
-        ${methods.map(m => `<span class="pill pill-method">${m}</span>`).join('')}
-        ${species.map(sp => `<span class="pill pill-species">${sp}</span>`).join('')}
-      </div>
-      <span class="session-totals">${ext} ext · ${proc} proc</span>
-    </div>`;
+  // ── Session history ──
+  document.getElementById('session-badge').textContent = sessions.length + ' session' + (sessions.length !== 1 ? 's' : '');
+  document.getElementById('session-list').innerHTML = sessions.map(function(s) {
+    var entries = s.entries || [];
+    var ext     = entries.reduce(function(n, e) { return n + (e.extracted || 0); }, 0);
+    var proc    = entries.reduce(function(n, e) { return n + (e.processed || 0); }, 0);
+    var methods = [...new Set(entries.map(function(e) { return e.method; }).filter(Boolean))];
+    var species = [...new Set(entries.map(function(e) { return e.species; }).filter(Boolean))];
+    return '<div class="session-item">'
+      + '<span class="session-date">' + s.date + '</span>'
+      + '<div class="session-pills">'
+      + methods.map(function(m) { return '<span class="pill pill-method">' + m + '</span>'; }).join('')
+      + species.map(function(sp) { return '<span class="pill pill-species">' + sp + '</span>'; }).join('')
+      + '</div>'
+      + '<span class="session-totals">' + ext + ' ext \u00b7 ' + proc + ' proc</span>'
+      + '</div>';
   }).join('');
 
   // ── Reveal ──
   document.getElementById('placeholder').style.display = 'none';
   document.getElementById('dashboard').classList.add('visible');
 }
-// ─────────────────────────────────────────────
-// Species table — sort control
-// ─────────────────────────────────────────────
-window._speciesSort = 'count';
 
+// ─────────────────────────────────────────────
+// Species table sort
+// ─────────────────────────────────────────────
 function buildSortToggle(methodList) {
-  const toggle = document.getElementById('species-sort-toggle');
-  // Buttons: total, each method, processed, alpha
-  const buttons = [
-    { key: 'count',     label: 'Total' },
-    ...methodList.map(m => ({ key: 'method:' + m, label: m })),
-    { key: 'proc',      label: 'Processed' },
-    { key: 'alpha',     label: 'A–Z' },
-  ];
-  toggle.innerHTML = buttons.map(b =>
-    '<button class="sort-btn' + (b.key === 'count' ? ' active' : '') + '" '
-    + 'data-sort="' + b.key + '" '
-    + 'onclick="setSpeciesSort(\'' + b.key.replace(/'/g, "\\'") + '\')">'
-    + b.label + '</button>'
-  ).join('');
+  var buttons = [
+    { key: 'count', label: 'Extracted' },
+  ].concat(methodList.map(function(m) { return { key: 'method:' + m, label: m }; })).concat([
+    { key: 'proc',  label: 'Processed' },
+    { key: 'alpha', label: 'A\u2013Z'  },
+  ]);
+
+  document.getElementById('species-sort-toggle').innerHTML = buttons.map(function(b) {
+    return '<button class="sort-btn' + (b.key === 'count' ? ' active' : '') + '" '
+      + 'data-sort="' + b.key + '" '
+      + 'onclick="setSpeciesSort(\'' + b.key.replace(/'/g, "\\'") + '\')">'
+      + b.label + '</button>';
+  }).join('');
 }
 
 function setSpeciesSort(order) {
-  window._speciesSort = order;
   document.querySelectorAll('#species-sort-toggle .sort-btn').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.sort === order);
   });
@@ -959,29 +766,24 @@ function setSpeciesSort(order) {
 }
 
 function buildSpeciesTable(order) {
-  const d = window._speciesData;
+  var d = window._speciesData;
   if (!d) return;
-  const { speciesMap, methodList } = d;
+  var speciesMap = d.speciesMap;
+  var methodList = d.methodList;
 
-  const rows = Object.entries(speciesMap).slice().sort(function(a, b) {
+  var rows = Object.entries(speciesMap).slice().sort(function(a, b) {
     if (order === 'alpha') return a[0].localeCompare(b[0]);
     if (order === 'proc')  return (b[1]._proc || 0) - (a[1]._proc || 0);
-    if (order.indexOf('method:') === 0) {
-      const m = order.slice(7);
-      return (b[1][m] || 0) - (a[1][m] || 0);
-    }
-    return b[1]._total - a[1]._total; // 'count'
+    if (order.indexOf('method:') === 0) return (b[1][order.slice(7)] || 0) - (a[1][order.slice(7)] || 0);
+    return b[1]._total - a[1]._total;
   });
 
-  const thCols = methodList.map(function(m) {
-    return '<th class="r">' + m + '</th>';
-  }).join('');
+  var thCols = methodList.map(function(m) { return '<th class="r">' + m + '</th>'; }).join('');
 
-  const tbody = rows.map(function(entry) {
-    const sp = entry[0];
-    const v  = entry[1];
-    const methodCells = methodList.map(function(m) {
-      const cnt = v[m] || 0;
+  var tbody = rows.map(function(entry) {
+    var sp = entry[0], v = entry[1];
+    var methodCells = methodList.map(function(m) {
+      var cnt = v[m] || 0;
       return '<td class="r">' + (cnt > 0 ? cnt : '\u2014') + '</td>';
     }).join('');
     return '<tr>'
@@ -993,15 +795,11 @@ function buildSpeciesTable(order) {
   }).join('');
 
   document.getElementById('species-table-wrap').innerHTML =
-    '<table class="data-table">'
-    + '<thead><tr>'
-    + '<th>Species</th>'
-    + '<th class="r">Extracted</th>'
+    '<table class="data-table"><thead><tr>'
+    + '<th>Species</th><th class="r">Extracted</th>'
     + thCols
     + '<th class="r">Processed</th>'
-    + '</tr></thead>'
-    + '<tbody>' + tbody + '</tbody>'
-    + '</table>';
+    + '</tr></thead><tbody>' + tbody + '</tbody></table>';
 }
 </script>
 </body>
