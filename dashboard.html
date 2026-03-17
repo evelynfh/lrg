@@ -37,7 +37,6 @@
     padding: 28px 40px;
     display: flex;
     align-items: center;
-    gap: 20px;
     border-bottom: 3px solid var(--accent);
   }
 
@@ -47,6 +46,7 @@
     font-weight: 600;
     letter-spacing: -0.02em;
     color: #f5f0e8;
+    margin-right: 16px;
   }
 
   header::after { display: none; }
@@ -837,7 +837,13 @@ function scrollSpeciesColumnIntoView(order) {
   var wrap = document.querySelector('.species-table-scroll');
   if (!wrap) return;
 
-  // Wait one frame so the freshly-written table has been laid out
+  // alpha — scroll back to species column
+  if (order === 'alpha') {
+    wrap.scrollLeft = 0;
+    return;
+  }
+
+  // Wait one frame so the freshly-written table has been laid out before measuring
   requestAnimationFrame(function() {
     var table = document.getElementById('species-table-wrap').querySelector('table');
     if (!table) return;
@@ -855,18 +861,16 @@ function scrollSpeciesColumnIntoView(order) {
       headers.forEach(function(th, i) {
         if (th.textContent.trim() === methodName) targetIndex = i;
       });
-    } else {
-      // alpha - scroll back to start so Species column is visible
-      wrap.scrollLeft = 0;
-      return;
     }
 
     if (targetIndex < 0) return;
 
-    // Use getBoundingClientRect relative to the scroll container for accurate position
-    var wrapRect = wrap.getBoundingClientRect();
-    var thRect   = headers[targetIndex].getBoundingClientRect();
-    var scrollTarget = wrap.scrollLeft + (thRect.left - wrapRect.left) - 80;
+    var wrapRect   = wrap.getBoundingClientRect();
+    var thRect     = headers[targetIndex].getBoundingClientRect();
+    // Offset by the sticky species column width so the target header
+    // appears right at the edge of the sticky column, not hidden behind it
+    var stickyWidth = headers[0].getBoundingClientRect().width;
+    var scrollTarget = wrap.scrollLeft + (thRect.left - wrapRect.left) - stickyWidth;
     wrap.scrollLeft = Math.max(0, scrollTarget);
   });
 }
