@@ -54,10 +54,29 @@
   /* Bird silhouette decoration */
   header::after {
     content: '🐦';
-    margin-left: auto;
     font-size: 1.4rem;
     opacity: 0.6;
   }
+
+  header nav {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  header nav a {
+    color: #9a9480;
+    text-decoration: none;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    padding: 6px 12px;
+    border-radius: 3px;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  header nav a:hover { color: var(--bg); background: rgba(255,255,255,0.08); }
+  header nav a.active { color: var(--bg); }
 
   /* Main layout */
   main {
@@ -692,8 +711,9 @@
     .confirm-back-btn, #confirm-submit-btn { width: 100%; text-align: center; }
     .success-card { padding: 36px 24px; }
 
-    header { padding: 18px 20px; }
+    header { padding: 18px 20px; flex-wrap: wrap; }
     header h1 { font-size: 1.3rem; }
+    header nav { gap: 2px; }
     main { margin: 16px auto; padding: 0 12px 40px; }
     .session-card { padding: 20px 16px; margin-bottom: 20px; }
     .session-grid { grid-template-columns: 1fr; }
@@ -855,6 +875,11 @@
 
 <header>
   <h1>LRG Session Log</h1>
+  <nav>
+    <a href="index.html" class="active">Log session</a>
+    <a href="dashboard.html">Dashboard</a>
+  </nav>
+  <span aria-hidden="true" style="font-size:1.4rem;opacity:0.6">🐦</span>
 </header>
 
 <main>
