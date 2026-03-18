@@ -20,6 +20,11 @@
     --row-alt: #faf7f0;
     --shadow: 0 2px 8px rgba(26,26,20,0.08);
     --shadow-lg: 0 8px 32px rgba(26,26,20,0.12);
+    --amber: #c9a800;
+    --amber-bg: #fff8e6;
+    --amber-border: #e8d88a;
+    --amber-ink: #6b5700;
+    --modal-overlay: rgba(26,26,20,0.55);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -71,7 +76,6 @@
   header nav a:hover { color: var(--bg); background: rgba(255,255,255,0.08); }
   header nav a.active { color: var(--bg); }
   header nav span { margin-left: auto; }
-
 
   /* Main layout */
   main {
@@ -146,6 +150,7 @@
     border-color: var(--border-focus);
     box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
   }
+
   /* Species entries section */
   .species-section {
     background: var(--surface);
@@ -230,14 +235,12 @@
     box-shadow: 0 0 0 3px rgba(45,90,39,0.15) !important;
   }
 
-  /* Error state on actual inputs */
   input.input-error {
     border-color: var(--danger) !important;
     box-shadow: 0 0 0 3px rgba(139,46,46,0.15) !important;
     outline: none !important;
   }
 
-  /* Error state on wrapper divs (age-toggle, num-wrap, proc-wrap) — use outline */
   div.input-error {
     outline: 2px solid var(--danger);
     outline-offset: 2px;
@@ -305,7 +308,7 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Row inputs (number spinners) */
+  /* Row inputs */
   .row-input {
     font-size: 0.8rem;
     font-family: 'IBM Plex Mono', monospace;
@@ -691,6 +694,365 @@
 
   .success-new-btn:hover { background: var(--accent-hover); }
 
+  .status-ok  { color: var(--accent); }
+  .status-err { color: var(--danger); }
+
+  /* Config notice */
+  .config-notice {
+    background: #fff8e6;
+    border: 1px solid #e8d88a;
+    border-left: 3px solid #c9a800;
+    border-radius: 3px;
+    padding: 14px 18px;
+    margin-bottom: 28px;
+    font-size: 0.78rem;
+    color: #6b5700;
+    line-height: 1.6;
+  }
+
+  .config-notice strong { color: #4a3c00; }
+  .config-notice code {
+    background: #f0e8c0;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Trainee fetch spinner */
+  .fetch-spinner {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    pointer-events: none;
+  }
+
+  .fetch-spinner.visible { display: block; }
+
+  @keyframes spin       { to { transform: translateY(-50%) rotate(360deg); } }
+  @keyframes spin-plain { to { transform: rotate(360deg); } }
+
+  .dropdown-spinner { animation: spin-plain 0.7s linear infinite; }
+
+  /* ── Upload previous records button ── */
+  .upload-prev-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    white-space: nowrap;
+  }
+
+  .upload-prev-btn:hover {
+    border-color: var(--amber, #c9a800);
+    color: #4a3c00;
+    background: #fff8e6;
+  }
+
+  /* ─────────────────────────────────────────
+     Upload modal
+  ───────────────────────────────────────── */
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--modal-overlay);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+    animation: fadeIn 0.18s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid #e8d88a;
+    border-top: 3px solid #c9a800;
+    border-radius: 4px;
+    box-shadow: 0 16px 48px rgba(26,26,20,0.22);
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalIn 0.22s ease;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .modal-header {
+    background: #4a3c00;
+    color: #fff8e6;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .modal-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: #c9a800;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 2px;
+    transition: color 0.12s;
+  }
+
+  .modal-close:hover { color: #fff8e6; }
+
+  .modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* Drop zone */
+  .upload-drop-zone {
+    border: 2px dashed var(--amber-border);
+    border-radius: 4px;
+    background: var(--amber-bg);
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+
+  .upload-drop-zone:hover,
+  .upload-drop-zone.drag-over {
+    border-color: var(--amber);
+    background: #fff3cc;
+  }
+
+  .upload-drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    /* override general input styles */
+    height: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .drop-icon {
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+    display: block;
+    opacity: 0.7;
+  }
+
+  .drop-label {
+    font-size: 0.82rem;
+    color: var(--amber-ink);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .drop-hint {
+    font-size: 0.68rem;
+    color: #8b7000;
+    letter-spacing: 0.03em;
+  }
+
+  /* File list */
+  .upload-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .upload-file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    animation: slideIn 0.15s ease;
+  }
+
+  .upload-file-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+  }
+
+  .upload-file-name {
+    flex: 1;
+    font-size: 0.78rem;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .upload-file-size {
+    font-size: 0.68rem;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .upload-file-remove {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+    line-height: 1;
+  }
+
+  .upload-file-remove:hover {
+    background: #fde8e8;
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  /* Size warning */
+  .upload-size-warn {
+    display: none;
+    font-size: 0.72rem;
+    color: var(--danger);
+    padding: 4px 0;
+  }
+
+  .upload-size-warn.visible { display: block; }
+
+  /* Meta row: name + notes */
+  .upload-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .upload-meta-grid label {
+    margin-bottom: 5px;
+  }
+
+  textarea.upload-notes {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--surface);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--ink);
+    resize: vertical;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    line-height: 1.5;
+  }
+
+  textarea.upload-notes:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
+  }
+
+  textarea.upload-notes::placeholder { color: var(--ink-muted); }
+
+  /* Upload submit row */
+  .upload-submit-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .upload-btn {
+    background: #4a3c00;
+    color: #fff8e6;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .upload-btn:hover   { background: #332900; }
+  .upload-btn:active  { transform: scale(0.98); }
+  .upload-btn:disabled { background: var(--ink-muted); cursor: not-allowed; }
+
+  #upload-status {
+    font-size: 0.76rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* Progress bar */
+  .upload-progress-wrap {
+    display: none;
+    height: 4px;
+    background: var(--amber-border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .upload-progress-wrap.visible { display: block; }
+
+  .upload-progress-bar {
+    height: 100%;
+    background: var(--amber);
+    border-radius: 2px;
+    transition: width 0.2s ease;
+    width: 0%;
+  }
+
+  /* ── Responsive ── */
   @media (max-width: 600px) {
     #confirm-screen { margin: 16px auto; padding: 0 12px 40px; }
     .confirm-table-header { display: none; }
@@ -852,54 +1214,13 @@
     .add-row-btn { width: 100%; justify-content: center; padding: 12px; font-size: 0.85rem; }
     .submit-btn { width: 100%; padding: 16px; font-size: 0.9rem; }
     .submit-row { flex-direction: column; align-items: stretch; }
+    .upload-prev-btn { width: 100%; margin-left: 0 !important; text-align: center; }
+
+    /* Upload modal on mobile */
+    .modal { max-height: 92vh; border-radius: 4px; }
+    .modal-overlay { padding: 16px; align-items: flex-end; }
+    .upload-meta-grid { grid-template-columns: 1fr; }
   }
-
-  .status-ok { color: var(--accent); }
-  .status-err { color: var(--danger); }
-
-  /* Config notice */
-  .config-notice {
-    background: #fff8e6;
-    border: 1px solid #e8d88a;
-    border-left: 3px solid #c9a800;
-    border-radius: 3px;
-    padding: 14px 18px;
-    margin-bottom: 28px;
-    font-size: 0.78rem;
-    color: #6b5700;
-    line-height: 1.6;
-  }
-
-  .config-notice strong { color: #4a3c00; }
-  .config-notice code {
-    background: #f0e8c0;
-    padding: 1px 5px;
-    border-radius: 2px;
-    font-family: 'IBM Plex Mono', monospace;
-  }
-
-  /* Trainee fetch spinner */
-  .fetch-spinner {
-    display: none;
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    pointer-events: none;
-  }
-
-  .fetch-spinner.visible { display: block; }
-
-  @keyframes spin       { to { transform: translateY(-50%) rotate(360deg); } }
-  @keyframes spin-plain { to { transform: rotate(360deg); } }
-
-  .dropdown-spinner { animation: spin-plain 0.7s linear infinite; }
 </style>
 </head>
 <body>
@@ -970,9 +1291,79 @@
   <div class="submit-row">
     <button class="submit-btn" id="submit-btn" onclick="submitForm()">Submit Session</button>
     <span id="status-msg"></span>
+    <button class="upload-prev-btn" onclick="openUploadModal()" style="margin-left:auto">
+      ↑ Upload previous records
+    </button>
   </div>
 
 </main>
+
+<!-- ── Upload previous records modal ── -->
+<div class="modal-overlay" id="upload-modal" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Upload previous records</h2>
+      <button class="modal-close" onclick="closeUploadModal()" aria-label="Close">×</button>
+    </div>
+
+    <!-- Upload form panel -->
+    <div class="modal-body" id="upload-form-panel">
+
+      <!-- Drop zone -->
+      <div class="upload-drop-zone" id="upload-drop-zone"
+           ondragover="handleDragOver(event)"
+           ondragleave="handleDragLeave(event)"
+           ondrop="handleDrop(event)">
+        <input type="file" id="upload-file-input" multiple
+               accept=".csv,.xlsx,.xls,.ods,.pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.heic"
+               onchange="handleFileSelect(this.files)">
+        <span class="drop-icon">📂</span>
+        <div class="drop-label">Drop files here, or click to browse</div>
+        <div class="drop-hint">Any format · max 20 MB</div>
+      </div>
+
+      <!-- File list -->
+      <div class="upload-file-list" id="upload-file-list"></div>
+      <div class="upload-size-warn" id="upload-size-warn">
+        ⚠ Total file size exceeds 20 MB — please remove some files before sending.
+      </div>
+
+      <!-- Progress bar -->
+      <div class="upload-progress-wrap" id="upload-progress-wrap">
+        <div class="upload-progress-bar" id="upload-progress-bar"></div>
+      </div>
+
+      <!-- Meta -->
+      <div class="upload-meta-grid">
+        <div>
+          <label for="upload-sender">Your name <span class="required">*</span></label>
+          <input type="text" id="upload-sender" placeholder="Type your full name" autocomplete="off">
+        </div>
+        <div>
+          <label for="upload-notes">Notes</label>
+          <textarea class="upload-notes" id="upload-notes"
+                    placeholder="Type to add any notes"></textarea>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="upload-submit-row">
+        <button class="upload-btn" id="upload-btn" onclick="submitUpload()">Upload files</button>
+        <span id="upload-status"></span>
+      </div>
+
+    </div>
+
+    <!-- Success panel (shown after send) -->
+    <div class="modal-body upload-success-panel" id="upload-success-panel" style="display:none; text-align:center; padding: 36px 24px;">
+      <div class="success-icon" style="margin: 0 auto 16px;">✓</div>
+      <h3 class="success-title" style="margin-bottom:8px;" id="upload-success-title">Files sent</h3>
+      <p class="success-sub" id="upload-success-sub"></p>
+      <button class="upload-btn" onclick="resetUploadModal()" style="margin-top:20px;">Send more files</button>
+    </div>
+
+  </div>
+</div>
 
 <!-- Confirmation screen -->
 <div id="confirm-screen">
@@ -1035,7 +1426,7 @@
 // ─────────────────────────────────────────────
 // CONFIGURATION — edit these values
 // ─────────────────────────────────────────────
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAa-SJC2CixjfJLASBmdaS0LWH_BuDbBZUsbTyETFYyF2vXnLw4loFmbBTq7TIjqD1/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_325ASJS3a7eWO0SF1VKzMLJyePOAVuk46kxnRf6voyz_u1lIBJYvnZ9gbkczMrpH/exec';
 
 const SPECIES_LIST = [
   { name: "Mute Swan", code: "MUTSW" },
@@ -1559,8 +1950,7 @@ function updateHighlight(id, items) {
 }
 
 // ─────────────────────────────────────────────
-// Age selection — clears method if Pullus and
-// current method doesn't contain "nest"
+// Age selection
 // ─────────────────────────────────────────────
 function selectAge(id, value, btn) {
   document.querySelectorAll(`#age-${id} .age-btn`).forEach(b => b.classList.remove('active'));
@@ -1580,11 +1970,8 @@ function selectAge(id, value, btn) {
 }
 
 // ─────────────────────────────────────────────
-// Methods — loaded from sheet only, no hardcoded defaults
+// Methods
 // ─────────────────────────────────────────────
-
-// Returns the appropriate method list for a row:
-// if age is Pullus, only methods containing "nest"; otherwise all methods.
 function getMethodListForRow(id) {
   const ageBtn = document.querySelector(`#age-${id} .age-btn.active`);
   const isPullus = ageBtn && ageBtn.textContent.trim() === 'Pullus';
@@ -1605,7 +1992,6 @@ function fetchMethods() {
       if (Array.isArray(data.methods) && data.methods.length) {
         methodList = data.methods;
       }
-      // Refresh any open method dropdowns
       document.querySelectorAll('.method-input').forEach(input => {
         const row = input.closest('.species-row');
         if (!row) return;
@@ -1631,10 +2017,8 @@ function filterMethod(id, query) {
     methodInput.dataset.selected = '';
   }
 
-  // Use the row-appropriate list (filtered to "nest" methods if Pullus)
   const activeList = getMethodListForRow(id);
 
-  // Show loading hint while fetch is in progress and list is empty
   if (methodsLoading && !activeList.length) {
     dd.innerHTML = `<div class="dropdown-loading"><span class="dropdown-spinner"></span>Loading methods&#8230;</div>`;
     dd.classList.add('open');
@@ -1711,7 +2095,7 @@ function sanitiseSpinner(input) {
 }
 
 // ─────────────────────────────────────────────
-// Trainee name list (fetched from Google Sheets)
+// Trainee name list
 // ─────────────────────────────────────────────
 let traineeList = [];
 let traineeHighlight = 0;
@@ -1724,14 +2108,11 @@ function fetchTrainees() {
     .then(r => r.json())
     .then(data => {
       if (Array.isArray(data.trainees)) traineeList = data.trainees.sort();
-      // Refresh dropdown if the input already has a value typed
       const input = document.getElementById('trainee-name');
       if (input && input.value.trim()) filterTrainees(input.value);
     })
     .catch(() => {})
-    .finally(() => {
-      traineesLoading = false;
-    });
+    .finally(() => { traineesLoading = false; });
 }
 
 function filterTrainees(query) {
@@ -1752,8 +2133,6 @@ function filterTrainees(query) {
 
   if (!q) { dd.innerHTML = ''; dd.classList.remove('open'); return; }
 
-
-  // Show loading hint while fetch is in progress and list is empty
   if (traineesLoading && !traineeList.length) {
     dd.innerHTML = `<div class="dropdown-loading"><span class="dropdown-spinner"></span>Loading names&#8230;</div>`;
     dd.classList.add('open');
@@ -1790,6 +2169,7 @@ function selectTrainee(name, isNew) {
   input.classList.remove('input-error');
   input.classList.add('input-confirmed');
   showStatus('', null);
+
   const dd = document.getElementById('dd-trainee');
   dd.classList.remove('open');
   dd.innerHTML = '';
@@ -1828,7 +2208,7 @@ function escapeRe(s) {
 }
 
 // ─────────────────────────────────────────────
-// Form submission
+// Session form submission
 // ─────────────────────────────────────────────
 let pendingPayload = null;
 
@@ -1861,7 +2241,6 @@ function submitForm() {
     const num = Math.max(0, parseInt(document.getElementById(`num-${id}`).value) || 0);
     const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
     const method = methodInput.dataset.selected || '';
-    // Use the data-write-in attribute set at selection time
     const methodWriteIn = methodInput.dataset.writeIn === 'true' ? 'Yes' : 'No';
     const processed = Math.max(0, parseInt(document.getElementById(`proc-${id}`).value) || 0);
 
@@ -2039,7 +2418,246 @@ function showStatus(msg, ok) {
   el.className = ok === true ? 'status-ok' : ok === false ? 'status-err' : '';
 }
 
-// Initialise with one empty row
+// ─────────────────────────────────────────────
+// Upload modal open / close
+// ─────────────────────────────────────────────
+function openUploadModal() {
+  // Pre-fill name from session form if available
+  const sessionName = document.getElementById('trainee-name').dataset.selected;
+  const senderInput = document.getElementById('upload-sender');
+  if (sessionName && !senderInput.value.trim()) {
+    senderInput.value = sessionName;
+  }
+  document.getElementById('upload-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function resetUploadModal() {
+  renderUploadList();
+  document.getElementById('upload-form-panel').style.display = '';
+  document.getElementById('upload-success-panel').style.display = 'none';
+  setUploadStatus('', null);
+  setProgress(null);
+  document.getElementById('upload-sender').classList.remove('input-error');
+}
+
+function closeUploadModal() {
+  document.getElementById('upload-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  // Reset fully so reopening is always clean
+  resetUploadModal();
+}
+
+function handleOverlayClick(e) {
+  // Close only when clicking the backdrop itself, not the modal card
+  if (e.target === document.getElementById('upload-modal')) closeUploadModal();
+}
+
+// Close on Escape key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeUploadModal();
+});
+
+// ─────────────────────────────────────────────
+// File upload — historical data
+// ─────────────────────────────────────────────
+
+const UPLOAD_MAX_BYTES = 20 * 1024 * 1024; // 20 MB client-side cap
+
+// Keyed by a generated uid so removal is safe across add/remove cycles
+let uploadQueue = {};   // { uid: File }
+let uploadUidCounter = 0;
+
+function fileIcon(mimeType, name) {
+  if (!mimeType && name) {
+    const ext = name.split('.').pop().toLowerCase();
+    const map = { pdf: '📄', csv: '📊', xls: '📊', xlsx: '📊', ods: '📊',
+                  doc: '📝', docx: '📝', txt: '📝',
+                  jpg: '🖼', jpeg: '🖼', png: '🖼', heic: '🖼', gif: '🖼' };
+    return map[ext] || '📎';
+  }
+  if (mimeType.startsWith('image/'))       return '🖼';
+  if (mimeType.includes('pdf'))            return '📄';
+  if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType.includes('csv')) return '📊';
+  if (mimeType.includes('word') || mimeType.includes('document')) return '📝';
+  return '📎';
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024)        return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function totalQueueBytes() {
+  return Object.values(uploadQueue).reduce((sum, f) => sum + f.size, 0);
+}
+
+function renderUploadList() {
+  const list  = document.getElementById('upload-file-list');
+  const warn  = document.getElementById('upload-size-warn');
+  const total = totalQueueBytes();
+
+  const entries = Object.entries(uploadQueue);
+
+  if (!entries.length) {
+    list.innerHTML = '';
+    warn.classList.remove('visible');
+    return;
+  }
+
+  list.innerHTML = entries.map(([uid, file]) => `
+    <div class="upload-file-item" id="upload-item-${uid}">
+      <span class="upload-file-icon">${fileIcon(file.type, file.name)}</span>
+      <span class="upload-file-name" title="${file.name}">${file.name}</span>
+      <span class="upload-file-size">${formatBytes(file.size)}</span>
+      <button class="upload-file-remove" onclick="removeUploadFile('${uid}')" title="Remove">×</button>
+    </div>
+  `).join('');
+
+  warn.classList.toggle('visible', total > UPLOAD_MAX_BYTES);
+}
+
+function handleFileSelect(fileList) {
+  Array.from(fileList).forEach(file => {
+    uploadUidCounter++;
+    uploadQueue[uploadUidCounter] = file;
+  });
+  renderUploadList();
+  // Reset the file input so the same file can be re-added after removal
+  document.getElementById('upload-file-input').value = '';
+}
+
+function removeUploadFile(uid) {
+  delete uploadQueue[uid];
+  renderUploadList();
+}
+
+// Drag and drop
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('upload-drop-zone').classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+  document.getElementById('upload-drop-zone').classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-drop-zone').classList.remove('drag-over');
+  if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files);
+}
+
+// Read a File as base64 string (returns a Promise)
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result.split(',')[1]); // strip data-URL prefix
+    reader.onerror = () => reject(new Error('Could not read ' + file.name));
+    reader.readAsDataURL(file);
+  });
+}
+
+function setUploadStatus(msg, ok) {
+  const el = document.getElementById('upload-status');
+  el.textContent = msg;
+  el.className = ok === true ? 'status-ok' : ok === false ? 'status-err' : '';
+}
+
+function setProgress(pct) {
+  const wrap = document.getElementById('upload-progress-wrap');
+  const bar  = document.getElementById('upload-progress-bar');
+  if (pct === null) {
+    wrap.classList.remove('visible');
+    bar.style.width = '0%';
+  } else {
+    wrap.classList.add('visible');
+    bar.style.width = pct + '%';
+  }
+}
+
+async function submitUpload() {
+  const sender = document.getElementById('upload-sender').value.trim();
+  const notes  = document.getElementById('upload-notes').value.trim();
+  const btn    = document.getElementById('upload-btn');
+
+  // Validate
+  if (!sender) {
+    document.getElementById('upload-sender').classList.add('input-error');
+    setUploadStatus('Please enter your name.', false);
+    return;
+  }
+  document.getElementById('upload-sender').classList.remove('input-error');
+
+  const files = Object.values(uploadQueue);
+  if (!files.length) {
+    setUploadStatus('Please add at least one file.', false);
+    return;
+  }
+
+  if (totalQueueBytes() > UPLOAD_MAX_BYTES) {
+    setUploadStatus('Total size exceeds 20 MB — please remove some files.', false);
+    return;
+  }
+
+  btn.disabled = true;
+  setUploadStatus('', null);
+  setProgress(5);
+
+  try {
+    // Encode each file to base64, updating the progress bar as we go
+    const encoded = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const data = await readFileAsBase64(file);
+      encoded.push({ name: file.name, mimeType: file.type || 'application/octet-stream', data });
+      setProgress(5 + Math.round(((i + 1) / files.length) * 60)); // 5–65%
+    }
+
+    setProgress(70);
+    setUploadStatus('Sending…', null);
+
+    const payload = { action: 'uploadFiles', sender, notes, files: encoded };
+
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+    setProgress(100);
+
+    if (result.result === 'success') {
+      setProgress(null);
+      setUploadStatus(
+        '✓ ' + files.length + ' file' + (files.length !== 1 ? 's' : '') + ' sent — thank you!',
+        true
+      );
+      // Show success panel
+      const count = files.length;
+      document.getElementById('upload-success-sub').textContent =
+        count + ' file' + (count !== 1 ? 's' : '') + ' sent successfully — thank you!';
+      document.getElementById('upload-form-panel').style.display = 'none';
+      document.getElementById('upload-success-panel').style.display = '';
+      // Clear the queue ready for if they send more
+      uploadQueue = {};
+      document.getElementById('upload-notes').value = '';
+    } else {
+      throw new Error(result.error || 'Unknown error');
+    }
+
+  } catch (err) {
+    setProgress(null);
+    setUploadStatus('Failed to send: ' + err.message, false);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
   const dateInput = document.getElementById('session-date');
