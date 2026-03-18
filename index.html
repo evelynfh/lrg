@@ -300,7 +300,6 @@
     border: 2px solid var(--border);
     border-top-color: var(--accent);
     border-radius: 50%;
-    animation: spin 0.7s linear infinite;
     flex-shrink: 0;
   }
 
@@ -897,7 +896,10 @@
 
   .fetch-spinner.visible { display: block; }
 
-  @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+  @keyframes spin       { to { transform: translateY(-50%) rotate(360deg); } }
+  @keyframes spin-plain { to { transform: rotate(360deg); } }
+
+  .dropdown-spinner { animation: spin-plain 0.7s linear infinite; }
 </style>
 </head>
 <body>
@@ -1600,7 +1602,7 @@ function fetchMethods() {
     .then(r => r.json())
     .then(data => {
       if (Array.isArray(data.methods) && data.methods.length) {
-        methodList = data.methods.sort();
+        methodList = data.methods;
       }
     })
     .catch(() => {});
