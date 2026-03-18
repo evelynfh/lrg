@@ -931,7 +931,6 @@
                  onkeydown="handleTraineeKey(event)"
                  onblur="delayClose('dd-trainee')"
                  onfocus="filterTrainees(this.value)">
-          <div class="fetch-spinner" id="trainee-spinner"></div>
           <div class="species-dropdown" id="dd-trainee"></div>
         </div>
       </div>
@@ -1595,17 +1594,28 @@ function getMethodListForRow(id) {
 }
 
 let methodList = [];
+let methodsLoading = false;
 
 function fetchMethods() {
   if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') return;
+  methodsLoading = true;
   fetch(SCRIPT_URL + '?action=getMethods')
     .then(r => r.json())
     .then(data => {
       if (Array.isArray(data.methods) && data.methods.length) {
         methodList = data.methods;
       }
+      // Refresh any open method dropdowns
+      document.querySelectorAll('.method-input').forEach(input => {
+        const row = input.closest('.species-row');
+        if (!row) return;
+        const id = row.id.replace('row-', '');
+        const dd = document.getElementById(`dd-method-${id}`);
+        if (dd && dd.classList.contains('open')) filterMethod(id, input.value);
+      });
     })
-    .catch(() => {});
+    .catch(() => {})
+    .finally(() => { methodsLoading = false; });
 }
 
 let methodHighlightIndex = {};
@@ -1623,6 +1633,14 @@ function filterMethod(id, query) {
 
   // Use the row-appropriate list (filtered to "nest" methods if Pullus)
   const activeList = getMethodListForRow(id);
+
+  // Show loading hint while fetch is in progress and list is empty
+  if (methodsLoading && !activeList.length) {
+    dd.innerHTML = `<div class="dropdown-loading"><span class="dropdown-spinner"></span>Loading methods&#8230;</div>`;
+    dd.classList.add('open');
+    return;
+  }
+
   const matches = q ? activeList.filter(m => m.toLowerCase().includes(q)) : activeList;
   const exactMatch = activeList.some(m => m.toLowerCase() === q);
   const writeIn = q && !exactMatch
@@ -1702,8 +1720,6 @@ let traineesLoading = false;
 function fetchTrainees() {
   if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') return;
   traineesLoading = true;
-  const spinner = document.getElementById('trainee-spinner');
-  if (spinner) spinner.classList.add('visible');
   fetch(SCRIPT_URL + '?action=getTrainees')
     .then(r => r.json())
     .then(data => {
@@ -1715,7 +1731,6 @@ function fetchTrainees() {
     .catch(() => {})
     .finally(() => {
       traineesLoading = false;
-      if (spinner) spinner.classList.remove('visible');
     });
 }
 
