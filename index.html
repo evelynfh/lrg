@@ -284,6 +284,28 @@
     font-style: italic;
   }
 
+  .dropdown-loading {
+    padding: 10px 12px;
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dropdown-spinner {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   /* Row inputs (number spinners) */
   .row-input {
     font-size: 0.8rem;
@@ -717,8 +739,6 @@
     .col-headers { display: none; }
     #species-rows { padding: 8px 12px; }
 
-    /* Each entry: every wrapper becomes a flex row spanning full width.
-       Label from ::before (fixed 80px), input fills remainder. */
     .species-row {
       display: flex !important;
       flex-direction: column;
@@ -727,7 +747,6 @@
       border-bottom: 2px solid var(--border);
     }
 
-    /* All five wrappers: flex row, full width */
     .species-row > .species-search-wrap,
     .species-row > .age-toggle,
     .species-row > .num-wrap,
@@ -740,7 +759,6 @@
       gap: 0;
     }
 
-    /* ::before label: fixed 80px, no shrink */
     .species-row > .species-search-wrap::before,
     .species-row > .age-toggle::before,
     .species-row > .num-wrap::before,
@@ -761,7 +779,6 @@
     .species-row > .method-wrap::before         { content: 'Method'; }
     .species-row > .proc-wrap::before           { content: 'Processed'; }
 
-    /* 16px minimum on all inputs to prevent iOS auto-zoom on focus */
     input[type="text"],
     input[type="search"],
     input[type="date"],
@@ -770,7 +787,6 @@
       font-size: 1rem !important;
     }
 
-    /* Species input: fill remaining space after 80px label */
     .species-row > .species-search-wrap > .species-input {
       flex: 1;
       min-width: 0;
@@ -782,7 +798,6 @@
       position: absolute;
     }
 
-    /* Method input: same */
     .species-row > .method-wrap > .method-input {
       flex: 1;
       min-width: 0;
@@ -794,7 +809,6 @@
       position: absolute;
     }
 
-    /* Age buttons: fill remaining space as a flex pair */
     .age-btn {
       flex: 1;
       padding: 7px 4px;
@@ -802,7 +816,6 @@
     }
     .age-btn + .age-btn { margin-left: 4px; }
 
-    /* Num wrap: buttons fixed, input fills middle */
     .num-btn {
       width: 36px !important;
       height: 36px;
@@ -820,7 +833,6 @@
       margin: 0 4px;
     }
 
-    /* Flip spinner buttons on mobile: decrease left, increase right */
     .num-wrap .num-btn:first-child,
     .proc-wrap .num-btn:first-child { order: 3; }
     .num-wrap .num-input,
@@ -866,6 +878,26 @@
     border-radius: 2px;
     font-family: 'IBM Plex Mono', monospace;
   }
+
+  /* Trainee fetch spinner */
+  .fetch-spinner {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    pointer-events: none;
+  }
+
+  .fetch-spinner.visible { display: block; }
+
+  @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -897,6 +929,7 @@
                  onkeydown="handleTraineeKey(event)"
                  onblur="delayClose('dd-trainee')"
                  onfocus="filterTrainees(this.value)">
+          <div class="fetch-spinner" id="trainee-spinner"></div>
           <div class="species-dropdown" id="dd-trainee"></div>
         </div>
       </div>
@@ -1428,7 +1461,6 @@ function filterSpecies(id, query) {
   const dd = document.getElementById(`dd-${id}`);
   const input = document.querySelector(`#row-${id} .species-input`);
 
-  // Don't reopen dropdown if user is just re-focusing a confirmed selection
   if (input.dataset.selected && input.dataset.selected === query.trim()) {
     dd.innerHTML = '';
     dd.classList.remove('open');
@@ -1448,8 +1480,6 @@ function filterSpecies(id, query) {
     (s.code && s.code.toLowerCase().includes(q))
   ).slice(0, 40);
 
-  // "Use as written" option if typed value isn't an exact name match
-  // and nothing has been formally selected yet
   const alreadySelected = input && input.dataset.selected === query.trim();
   const exactMatch = alreadySelected || SPECIES_LIST.some(s => s.name.toLowerCase() === q);
   const writeIn = !exactMatch
@@ -1488,8 +1518,6 @@ function selectSpecies(id, name, isWriteIn) {
   const dd = document.getElementById(`dd-${id}`);
   dd.classList.remove('open');
   dd.innerHTML = '';
-  // Re-focus after blur cycle so focus stays on species input rather than
-  // drifting to the next field. filterSpecies guard prevents dropdown reopening.
   setTimeout(() => input.focus(), 0);
 }
 
@@ -1529,23 +1557,50 @@ function updateHighlight(id, items) {
   items[highlightIndex[id]]?.scrollIntoView({ block: 'nearest' });
 }
 
+// ─────────────────────────────────────────────
+// Age selection — clears method if Pullus and
+// current method doesn't contain "nest"
+// ─────────────────────────────────────────────
 function selectAge(id, value, btn) {
   document.querySelectorAll(`#age-${id} .age-btn`).forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(`age-${id}`).classList.remove('input-error');
+
+  if (value === 'Pullus') {
+    const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
+    const currentMethod = methodInput.dataset.selected || '';
+    if (currentMethod && !currentMethod.toLowerCase().includes('nest')) {
+      methodInput.value = '';
+      methodInput.dataset.selected = '';
+      methodInput.dataset.writeIn = 'false';
+      methodInput.classList.remove('input-confirmed');
+    }
+  }
 }
 
-const METHOD_DEFAULTS = ["Mist net", "Whoosh net", "Hand net", "Spring trap", "Potter trap", "Nest", "Nest box"];
-let methodList = [...METHOD_DEFAULTS];
+// ─────────────────────────────────────────────
+// Methods — loaded from sheet only, no hardcoded defaults
+// ─────────────────────────────────────────────
+
+// Returns the appropriate method list for a row:
+// if age is Pullus, only methods containing "nest"; otherwise all methods.
+function getMethodListForRow(id) {
+  const ageBtn = document.querySelector(`#age-${id} .age-btn.active`);
+  const isPullus = ageBtn && ageBtn.textContent.trim() === 'Pullus';
+  return isPullus
+    ? methodList.filter(m => m.toLowerCase().includes('nest'))
+    : methodList;
+}
+
+let methodList = [];
 
 function fetchMethods() {
   if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') return;
   fetch(SCRIPT_URL + '?action=getMethods')
     .then(r => r.json())
     .then(data => {
-      if (Array.isArray(data.methods)) {
-        const combined = [...new Set([...METHOD_DEFAULTS, ...data.methods])];
-        methodList = combined.sort();
+      if (Array.isArray(data.methods) && data.methods.length) {
+        methodList = data.methods.sort();
       }
     })
     .catch(() => {});
@@ -1564,13 +1619,21 @@ function filterMethod(id, query) {
     methodInput.dataset.selected = '';
   }
 
-  const matches = q ? methodList.filter(m => m.toLowerCase().includes(q)) : methodList;
-  const exactMatch = methodList.some(m => m.toLowerCase() === q);
+  // Use the row-appropriate list (filtered to "nest" methods if Pullus)
+  const activeList = getMethodListForRow(id);
+  const matches = q ? activeList.filter(m => m.toLowerCase().includes(q)) : activeList;
+  const exactMatch = activeList.some(m => m.toLowerCase() === q);
   const writeIn = q && !exactMatch
     ? `<div class="species-option write-in-option"
          onmousedown="selectMethod(${id}, '${query.trim().replace(/'/g,"\\'")}', true)">
          <span style="color:var(--ink-muted);font-size:0.72rem;">Use as written: </span>${query.trim()}
        </div>` : '';
+
+  if (!matches.length && !writeIn) {
+    dd.innerHTML = `<div class="no-results">No methods found</div>`;
+    dd.classList.add('open');
+    return;
+  }
 
   dd.innerHTML = matches.map((m, i) => {
     const hl = q ? m.replace(new RegExp(`(${escapeRe(q)})`, 'gi'), '<span class="match">$1</span>') : m;
@@ -1588,7 +1651,6 @@ function selectMethod(id, value, isWriteIn) {
   input.dataset.writeIn = isWriteIn ? 'true' : 'false';
   input.classList.remove('input-error');
   input.classList.add('input-confirmed');
-  // Add write-ins to the local list immediately so they appear in future dropdowns
   if (isWriteIn && !methodList.includes(value)) {
     methodList = [...methodList, value].sort();
   }
@@ -1633,20 +1695,32 @@ function sanitiseSpinner(input) {
 // ─────────────────────────────────────────────
 let traineeList = [];
 let traineeHighlight = 0;
+let traineesLoading = false;
 
 function fetchTrainees() {
   if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') return;
+  traineesLoading = true;
+  const spinner = document.getElementById('trainee-spinner');
+  if (spinner) spinner.classList.add('visible');
   fetch(SCRIPT_URL + '?action=getTrainees')
     .then(r => r.json())
-    .then(data => { if (Array.isArray(data.trainees)) traineeList = data.trainees.sort(); })
-    .catch(() => {}); // silently fail — form still works for write-in
+    .then(data => {
+      if (Array.isArray(data.trainees)) traineeList = data.trainees.sort();
+      // Refresh dropdown if the input already has a value typed
+      const input = document.getElementById('trainee-name');
+      if (input && input.value.trim()) filterTrainees(input.value);
+    })
+    .catch(() => {})
+    .finally(() => {
+      traineesLoading = false;
+      if (spinner) spinner.classList.remove('visible');
+    });
 }
 
 function filterTrainees(query) {
   const dd = document.getElementById('dd-trainee');
   const input = document.getElementById('trainee-name');
 
-  // Don't reopen dropdown if user is just re-focusing a confirmed selection
   if (input.dataset.selected && input.dataset.selected === query.trim()) {
     dd.innerHTML = '';
     dd.classList.remove('open');
@@ -1661,9 +1735,16 @@ function filterTrainees(query) {
 
   if (!q) { dd.innerHTML = ''; dd.classList.remove('open'); return; }
 
+
+  // Show loading hint while fetch is in progress and list is empty
+  if (traineesLoading && !traineeList.length) {
+    dd.innerHTML = `<div class="dropdown-loading"><span class="dropdown-spinner"></span>Loading names&#8230;</div>`;
+    dd.classList.add('open');
+    return;
+  }
+
   const matches = traineeList.filter(n => n.toLowerCase().includes(q)).slice(0, 30);
 
-  // Always show a "New trainee" option if the typed name isn't an exact match
   const exactMatch = traineeList.some(n => n.toLowerCase() === q);
   const newOption = !exactMatch
     ? `<div class="species-option new-trainee-option"
@@ -1732,7 +1813,6 @@ function escapeRe(s) {
 // ─────────────────────────────────────────────
 // Form submission
 // ─────────────────────────────────────────────
-// Stores the validated payload between confirm screen and actual submit
 let pendingPayload = null;
 
 function submitForm() {
@@ -1764,7 +1844,8 @@ function submitForm() {
     const num = Math.max(0, parseInt(document.getElementById(`num-${id}`).value) || 0);
     const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
     const method = methodInput.dataset.selected || '';
-    const methodWriteIn = method && !METHOD_DEFAULTS.includes(method) ? 'Yes' : 'No';
+    // Use the data-write-in attribute set at selection time
+    const methodWriteIn = methodInput.dataset.writeIn === 'true' ? 'Yes' : 'No';
     const processed = Math.max(0, parseInt(document.getElementById(`proc-${id}`).value) || 0);
 
     if (!species) {
@@ -1820,7 +1901,6 @@ function submitForm() {
 }
 
 function showConfirmScreen(payload) {
-  // Populate session meta
   document.getElementById('confirm-ringer').textContent = payload.trainee;
   document.getElementById('confirm-date').textContent = payload.date || 'Not specified';
 
@@ -1829,7 +1909,6 @@ function showConfirmScreen(payload) {
   document.getElementById('confirm-tot-ext').textContent = totalExt;
   document.getElementById('confirm-tot-proc').textContent = totalProc;
 
-  // Populate entries table
   const container = document.getElementById('confirm-entries');
   container.innerHTML = payload.entries.map((e, i) => `
     <div class="confirm-table-row">
