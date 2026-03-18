@@ -1357,7 +1357,7 @@
     <!-- Success panel (shown after send) -->
     <div class="modal-body upload-success-panel" id="upload-success-panel" style="display:none; text-align:center; padding: 36px 24px;">
       <div class="success-icon" style="margin: 0 auto 16px;">✓</div>
-      <h3 class="success-title" style="margin-bottom:8px;" id="upload-success-title">Files sent</h3>
+      <h3 class="success-title" style="margin-bottom:8px;" id="upload-success-title">Files uploaded</h3>
       <p class="success-sub" id="upload-success-sub"></p>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px;">
         <button class="upload-btn" onclick="resetUploadModal()">Upload more files</button>
@@ -2640,7 +2640,7 @@ async function submitUpload() {
       // Show success panel
       const count = files.length;
       document.getElementById('upload-success-sub').textContent =
-        count + ' file' + (count !== 1 ? 's' : '') + ' sent successfully — thank you!';
+        count + ' file' + (count !== 1 ? 's' : '') + ' uploaded successfully — thank you!';
       document.getElementById('upload-form-panel').style.display = 'none';
       document.getElementById('upload-success-panel').style.display = '';
       // Clear the queue ready for if they send more
