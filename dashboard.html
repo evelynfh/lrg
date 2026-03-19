@@ -49,7 +49,6 @@
     margin-right: 16px;
   }
 
-
   header nav {
     display: flex;
     flex: 1;
@@ -189,6 +188,10 @@
 
   /* ── Ringer name strip ── */
   .ringer-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     margin-bottom: 20px;
   }
 
@@ -197,6 +200,35 @@
     font-size: 1.45rem;
     font-weight: 600;
     color: var(--ink);
+  }
+
+  /* ── Export button ── */
+  .export-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .export-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .export-btn:active {
+    transform: scale(0.97);
   }
 
   /* ── Stat tiles ── */
@@ -431,6 +463,8 @@
     .stats-grid { grid-template-columns: 1fr 1fr; }
     select.ringer-select { max-width: 100%; }
     .session-item { flex-wrap: wrap; }
+    .ringer-strip { flex-wrap: wrap; }
+    .export-btn { font-size: 0.72rem; padding: 7px 12px; }
 
     /* Method table: compress padding and font so it fits without scrolling */
     .method-table th,
@@ -488,6 +522,9 @@
   <div id="dashboard">
     <div class="ringer-strip">
       <h2 id="ringer-title"></h2>
+      <button class="export-btn" onclick="exportCSV()" title="Download all session data as CSV">
+        ↓ Export CSV
+      </button>
     </div>
 
     <div class="stats-grid">
@@ -533,7 +570,7 @@
       <div class="section-header">
         <h3>Species breakdown</h3>
         <div style="display:flex;align-items:center;gap:12px">
-<div id="species-sort-toggle" class="sort-toggle"></div>
+          <div id="species-sort-toggle" class="sort-toggle"></div>
         </div>
       </div>
       <div class="species-table-scroll">
@@ -642,10 +679,21 @@ function loadDashboard(ringer) {
 // ─────────────────────────────────────────────
 // Render
 // ─────────────────────────────────────────────
+
+// Stored for use by exportCSV()
+window._exportSessions = [];
+window._exportRinger   = '';
+
 function renderDashboard(data, ringer) {
   var sessions = (data.sessions || []).slice().sort(function(a, b) {
     return b.date.localeCompare(a.date);
   });
+
+  // Store for export — sorted chronologically (ascending)
+  window._exportSessions = (data.sessions || []).slice().sort(function(a, b) {
+    return a.date.localeCompare(b.date);
+  });
+  window._exportRinger = ringer;
 
   var totalExt = 0, totalProc = 0;
   var speciesMap = {}, methodMap = {};
@@ -783,7 +831,7 @@ function renderDashboard(data, ringer) {
 
   document.getElementById('missing-area').innerHTML = allMissingSpecies.size
     ? methodSections + procSection
-    : '<div class="missing-empty">\u2713 This ringer has ringed every species logged by other ringers.</div>';
+    : '<div class="missing-empty">\u2713 This ringer has handled every species logged by other ringers.</div>';
 
   // ── Session history ──
   document.getElementById('session-badge').textContent = sessions.length + ' session' + (sessions.length !== 1 ? 's' : '');
@@ -806,6 +854,71 @@ function renderDashboard(data, ringer) {
   // ── Reveal ──
   document.getElementById('placeholder').style.display = 'none';
   document.getElementById('dashboard').classList.add('visible');
+}
+
+// ─────────────────────────────────────────────
+// CSV export
+// ─────────────────────────────────────────────
+function csvCell(value) {
+  // Wrap in quotes if the value contains a comma, quote, or newline
+  var s = value === null || value === undefined ? '' : String(value);
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function exportCSV() {
+  var sessions = window._exportSessions;
+  var ringer   = window._exportRinger;
+
+  if (!sessions || !sessions.length) return;
+
+  var rows = [['Date', 'Ringer', 'Species', 'Age', 'Extracted', 'Method', 'Processed']];
+
+  var totalExt = 0, totalProc = 0;
+
+  sessions.forEach(function(s) {
+    (s.entries || []).forEach(function(e) {
+      var ext  = e.extracted || 0;
+      var proc = e.processed || 0;
+      totalExt  += ext;
+      totalProc += proc;
+      rows.push([
+        s.date,
+        ringer,
+        e.species  || '',
+        e.age      || '',
+        ext,
+        e.method   || '',
+        proc
+      ]);
+    });
+  });
+
+  // Summary totals row
+  rows.push([]);
+  rows.push(['Total', '', '', '', totalExt, '', totalProc]);
+
+  var csv = rows.map(function(row) {
+    return row.map(csvCell).join(',');
+  }).join('\r\n');
+
+  // Build filename: ringing-data_RingerName_YYYY-MM-DD.csv
+  var today    = new Date().toISOString().split('T')[0];
+  var safeName = ringer.replace(/[^a-zA-Z0-9_-]/g, '_');
+  var filename = 'ringing-data_' + safeName + '_' + today + '.csv';
+
+  // Trigger download
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ─────────────────────────────────────────────
@@ -839,20 +952,17 @@ function scrollSpeciesColumnIntoView(order) {
   var wrap = document.querySelector('.species-table-scroll');
   if (!wrap) return;
 
-  // alpha — scroll back to species column
   if (order === 'alpha') {
     wrap.scrollLeft = 0;
     return;
   }
 
-  // Wait one frame so the freshly-written table has been laid out before measuring
   requestAnimationFrame(function() {
     var table = document.getElementById('species-table-wrap').querySelector('table');
     if (!table) return;
     var headers = Array.prototype.slice.call(table.querySelectorAll('thead th'));
     if (!headers.length) return;
 
-    // Table columns: Species(0) | Extracted(1) | ...methods... | Processed(last)
     var targetIndex = -1;
     if (order === 'count') {
       targetIndex = 1;
@@ -867,10 +977,8 @@ function scrollSpeciesColumnIntoView(order) {
 
     if (targetIndex < 0) return;
 
-    var wrapRect   = wrap.getBoundingClientRect();
-    var thRect     = headers[targetIndex].getBoundingClientRect();
-    // Offset by the sticky species column width so the target header
-    // appears right at the edge of the sticky column, not hidden behind it
+    var wrapRect    = wrap.getBoundingClientRect();
+    var thRect      = headers[targetIndex].getBoundingClientRect();
     var stickyWidth = headers[0].getBoundingClientRect().width;
     var scrollTarget = wrap.scrollLeft + (thRect.left - wrapRect.left) - stickyWidth;
     wrap.scrollLeft = Math.max(0, scrollTarget);
