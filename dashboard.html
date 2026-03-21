@@ -105,7 +105,7 @@
 
   /* ── Layout ── */
   main {
-    max-width: 960px;
+    max-width: 1260px;
     margin: 40px auto;
     padding: 0 20px 80px;
   }
@@ -231,10 +231,51 @@
     transform: scale(0.97);
   }
 
+  .export-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .export-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 8px 28px rgba(26,26,20,0.14);
+    min-width: 220px;
+    z-index: 100;
+    overflow: hidden;
+    animation: ddFadeIn 0.15s ease;
+  }
+
+  .export-dropdown.open { display: block; }
+
+  .export-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    letter-spacing: 0.02em;
+    transition: background 0.1s;
+  }
+
+  .export-item:last-child { border-bottom: none; }
+  .export-item:hover { background: var(--accent-light); color: var(--accent); }
+
   /* ── Stat tiles ── */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 14px;
     margin-bottom: 22px;
   }
@@ -258,7 +299,7 @@
 
   .stat-tile .tile-value {
     font-family: 'Playfair Display', serif;
-    font-size: 2.1rem;
+    font-size: 1.9rem;
     font-weight: 700;
     color: var(--ink);
     line-height: 1;
@@ -337,14 +378,6 @@
   .data-table tbody tr:last-child td { border-bottom: none; }
   .data-table tbody tr:nth-child(even) { background: var(--row-alt); }
 
-  /* ── Species table scroll wrapper ── */
-  .species-table-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .species-table-scroll .data-table { min-width: 480px; }
-
   /* ── Sort toggle ── */
   .sort-toggle {
     display: flex;
@@ -367,6 +400,61 @@
 
   .sort-btn:hover { background: rgba(255,255,255,0.08); color: var(--bg); }
   .sort-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* ── Species table scroll wrapper ── */
+  .species-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .species-table-scroll .data-table { min-width: 480px; }
+
+  /* ── Species table category headers ── */
+  .species-cat-label {
+    padding: 6px 22px 5px;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-light);
+    border-bottom: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+  }
+
+  /* Desktop: category row is a normal in-table row */
+  /* All cells in a category row get the green background — this covers
+     the empty cells to the right on desktop with no extra markup needed.
+     !important beats the .data-table tbody tr:nth-child(even) rule. */
+  .species-cat-row td {
+    background: var(--accent-light) !important;
+    border-bottom: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    padding: 0;
+  }
+
+  /* Only the label cell gets text styling */
+  .species-cat-row .species-cat-td {
+    padding: 6px 22px 5px;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* ── Missing species category subheadings ── */
+  .missing-cat-label {
+    padding: 5px 22px 4px 32px;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    border-bottom: 1px solid #f0ebe0;
+  }
+
+  .missing-cat-block:last-child .missing-grid { padding-bottom: 14px; }
 
   /* ── Missing species ── */
   .missing-method-block { border-bottom: 1px solid var(--border); }
@@ -485,8 +573,210 @@
     .species-table-scroll .data-table thead th:first-child {
       background: var(--accent-light);
     }
+    /* Category rows: all cells already green; pin the label cell so it
+       stays visible as the (empty, green) cells behind it scroll away */
+    .species-table-scroll .data-table .species-cat-row .species-cat-td {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+    }
+  }
+
+  /* ── Settings button & dropdown ── */
+  .settings-wrap {
+    position: relative;
+    margin-left: auto;
+  }
+
+  .settings-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 3px;
+    color: #9a9480;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    padding: 5px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+
+  .settings-btn:hover,
+  .settings-btn.open {
+    color: var(--bg);
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.3);
+  }
+
+  .settings-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 8px 28px rgba(26,26,20,0.18);
+    min-width: 180px;
+    z-index: 500;
+    overflow: hidden;
+  }
+
+  .settings-dropdown.open {
+    display: block;
+    animation: ddFadeIn 0.15s ease;
+  }
+
+  @keyframes ddFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .settings-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: background 0.1s;
+  }
+
+  .settings-item:last-child { border-bottom: none; }
+  .settings-item:hover { background: var(--accent-light); color: var(--accent); }
+
+  /* ── Info overlays / modals ── */
+  .info-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,20,0.55);
+    z-index: 600;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .info-overlay.open {
+    display: flex;
+    animation: infoOvFade 0.18s ease;
+  }
+
+  @keyframes infoOvFade { from { opacity: 0; } to { opacity: 1; } }
+
+  .info-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 4px;
+    box-shadow: 0 16px 48px rgba(26,26,20,0.22);
+    width: 100%;
+    max-width: 540px;
+    max-height: 88vh;
+    overflow-y: auto;
+    animation: modalIn 0.22s ease;
+  }
+
+  .info-modal-hd {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .info-modal-hd h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .info-modal-x {
+    background: none;
+    border: none;
+    color: #9a9480;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 2px;
+    transition: color 0.12s;
+  }
+
+  .info-modal-x:hover { color: var(--bg); }
+
+  .info-modal-bd {
+    padding: 22px 24px;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--ink-muted);
+  }
+
+  .info-modal-bd h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin: 18px 0 6px;
+    font-weight: 600;
+  }
+
+  .info-modal-bd h3:first-child { margin-top: 0; }
+  .info-modal-bd p { margin-bottom: 8px; }
+  .info-modal-bd a { color: var(--accent); text-decoration: underline; }
+
+  .vtag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 2px;
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid #c8dcc5;
+    margin-bottom: 4px;
+    vertical-align: middle;
+  }
+
+  .vtag-new {
+    background: #fff8e6;
+    color: #6b5700;
+    border-color: #e8d88a;
+  }
+
+  .cl-entry {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cl-entry:last-child { border-bottom: none; }
+  .cl-entry ul { margin: 6px 0 0 16px; }
+  .cl-entry li { margin-bottom: 3px; }
+
+  @media (max-width: 600px) {
+    .settings-wrap { margin-left: 0; }
+    .settings-btn .settings-label { display: none; }
+    .settings-dropdown { right: 0; left: auto; min-width: 160px; }
+    .info-modal { max-height: 92vh; }
+    .info-modal-bd { padding: 18px 16px; }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </head>
 <body>
 
@@ -495,7 +785,17 @@
   <nav>
     <a href="index.html">Log session</a>
     <a href="dashboard.html" class="active">Dashboard</a>
-    <span aria-hidden="true" style="font-size:1.4rem;opacity:0.6">🐦</span>
+    <div class="settings-wrap">
+      <button class="settings-btn" id="settings-btn"
+              onclick="toggleSettings(event)" aria-label="Settings">
+        ⚙ <span class="settings-label">Settings</span>
+      </button>
+      <div class="settings-dropdown" id="settings-dropdown">
+        <button class="settings-item" onclick="openInfoModal('about-modal')">FAQ</button>
+        <button class="settings-item" onclick="openInfoModal('changelog-modal')">Changelog</button>
+        <button class="settings-item" onclick="openInfoModal('report-modal')">Report issues</button>
+      </div>
+    </div>
   </nav>
 </header>
 
@@ -522,9 +822,15 @@
   <div id="dashboard">
     <div class="ringer-strip">
       <h2 id="ringer-title"></h2>
-      <button class="export-btn" onclick="exportCSV()" title="Download all session data as CSV">
-        ↓ Export CSV
-      </button>
+      <div class="export-wrap" id="export-wrap">
+        <button class="export-btn" onclick="toggleExportMenu(event)" title="Download data">
+          ↓ Export data
+        </button>
+        <div class="export-dropdown" id="export-dropdown">
+          <button class="export-item" onclick="exportSessionData()">Individual session data (.csv)</button>
+          <button class="export-item" onclick="exportBTOSummary()">BTO-format summary (.xlsx)</button>
+        </div>
+      </div>
     </div>
 
     <div class="stats-grid">
@@ -534,14 +840,19 @@
         <div class="tile-sub" id="stat-sessions-sub"></div>
       </div>
       <div class="stat-tile">
-        <div class="tile-label">Total extractions</div>
-        <div class="tile-value" id="stat-extracted">—</div>
-        <div class="tile-sub" id="stat-ext-sub"></div>
+        <div class="tile-label">Whoosh net extractions</div>
+        <div class="tile-value" id="stat-whoosh">—</div>
+        <div class="tile-sub" id="stat-whoosh-sub"></div>
       </div>
       <div class="stat-tile">
         <div class="tile-label">Mist net extractions</div>
         <div class="tile-value" id="stat-mistnet">—</div>
         <div class="tile-sub" id="stat-mistnet-sub"></div>
+      </div>
+      <div class="stat-tile">
+        <div class="tile-label">Pulli ringed</div>
+        <div class="tile-value" id="stat-pulli">—</div>
+        <div class="tile-sub" id="stat-pulli-sub"></div>
       </div>
       <div class="stat-tile">
         <div class="tile-label">Birds processed</div>
@@ -573,9 +884,7 @@
           <div id="species-sort-toggle" class="sort-toggle"></div>
         </div>
       </div>
-      <div class="species-table-scroll">
-        <div id="species-table-wrap"></div>
-      </div>
+      <div id="species-table-wrap"></div>
     </div>
 
     <div class="section-card">
@@ -618,7 +927,7 @@ window.addEventListener('DOMContentLoaded', function() {
     })
     .catch(function() {
       hideLoading();
-      showError('Could not load ringer list — check your Script URL and network.');
+      showError('Could not load the ringer list — please check your internet connection and try again.');
     });
 });
 
@@ -672,8 +981,168 @@ function loadDashboard(ringer) {
     })
     .catch(function() {
       hideLoading();
-      showError('Could not load data for ' + ringer + ' — check your connection.');
+      showError('Could not load data for ' + ringer + ' — please check your internet connection and try again.');
     });
+}
+
+// ─────────────────────────────────────────────
+// Species category lookup
+// ─────────────────────────────────────────────
+var SPECIES_CATEGORIES = (function() {
+  var map = {};
+  function add(cat, names) { names.forEach(function(n) { map[n] = cat; }); }
+
+  add('Open-nesting passerines and near-passerines', [
+    'Nightjar','Cuckoo','Woodpigeon','Turtle Dove','Collared Dove',
+    'Red-backed Shrike','Jay','Magpie','Rook','Carrion Crow','Raven',
+    'Waxwing','Woodlark','Skylark','Short-toed Lark','Shore Lark','Bearded Tit','Swallow',
+    'Wren','Cetti\'s Warbler','Long-tailed Tit','Wood Warbler',
+    'Yellow-browed Warbler','Willow Warbler','Chiffchaff',
+    'Sedge Warbler','Reed Warbler','Grasshopper Warbler',
+    'Blackcap','Garden Warbler','Lesser Whitethroat','Whitethroat',
+    'Dartford Warbler','Firecrest','Goldcrest',
+    'Ring Ouzel','Blackbird','Fieldfare','Redwing','Song Thrush','Mistle Thrush',
+    'Spotted Flycatcher','Robin','Bluethroat','Nightingale',
+    'Black Redstart','Whinchat','Stonechat','Dunnock',
+    'Yellow Wagtail','Grey Wagtail','Pied/White Wagtail',
+    'Meadow Pipit','Tree Pipit','Rock Pipit',
+    'Chaffinch','Brambling','Hawfinch','Bullfinch','Greenfinch','Serin',
+    'Twite','Linnet',
+    'Redpoll (Common/Lesser)','Common Redpoll','Lesser Redpoll','Arctic Redpoll',
+    'Scottish Crossbill','Common Crossbill','Parrot Crossbill',
+    'Goldfinch','Siskin',
+    'Snow Bunting','Corn Bunting','Yellowhammer','Reed Bunting','Lapland Bunting',
+    // extra warbler variants
+    'Marsh Warbler','Savi\'s Warbler','Aquatic Warbler','Barred Warbler',
+    'Icterine Warbler','Melodious Warbler','Subalpine Warbler',
+    'Greenish Warbler','Arctic Warbler','Pallas\'s Warbler',
+    'Radde\'s Warbler','Dusky Warbler',
+    'Red-breasted Flycatcher','Pied Flycatcher',
+    'Long-tailed Tit (Northern)',
+    'Yellow Wagtail (Blue-headed)','Yellow Wagtail (Grey-headed)',
+    'Pied Wagtail (yarrellii)','White Wagtail (alba)',
+    'Bluethroat (White-spotted)','Bluethroat (Red-spotted)',
+    'Wheatear (Greenland)',
+    'Common Redpoll (Mealy)','Common Redpoll (Greenland)',
+    'Common Rosefinch',
+    'Ortolan Bunting','Rustic Bunting','Little Bunting','Cirl Bunting',
+    'Tawny Pipit','Richard\'s Pipit','Red-throated Pipit','Water Pipit',
+    'Red-rumped Swallow','House Martin','Sand Martin',
+    // corvids
+    'Hooded Crow','Carrion/Hooded Crow hybrid','Jackdaw',
+    // wagtail/pipit extras
+    'Golden Oriole','Woodchat Shrike','Great Grey Shrike',
+  ]);
+
+  add('Cavity-nesting passerines and near-passerines', [
+    'Swift','Alpine Swift','Stock Dove','Rock Dove','Feral Pigeon','Kingfisher','Bee-eater','Hoopoe','Wryneck',
+    'Great Spotted Woodpecker','Green Woodpecker','Lesser Spotted Woodpecker',
+    'Ring-necked Parakeet','Chough','Jackdaw',
+    'Coal Tit','Coal Tit (Continental)','Crested Tit','Marsh Tit','Willow Tit',
+    'Blue Tit','Great Tit',
+    'Nuthatch','Treecreeper',
+    'Starling','Rose-coloured Starling',
+    'Pied Flycatcher','Redstart','Wheatear','Dipper',
+    'House Sparrow','Tree Sparrow',
+  ]);
+
+  add('Birds of prey', [
+    'Osprey','Golden Eagle','White-tailed Eagle',
+    'Sparrowhawk','Goshawk',
+    'Marsh Harrier','Hen Harrier','Montagu\'s Harrier',
+    'Red Kite','Black Kite',
+    'Buzzard','Rough-legged Buzzard','Honey-buzzard',
+    'Barn Owl','Tawny Owl','Little Owl',
+    'Long-eared Owl','Short-eared Owl',
+    'Kestrel','Red-footed Falcon','Merlin','Hobby','Peregrine',
+  ]);
+
+  add('Waders and gamebirds', [
+    'Red Grouse','Ptarmigan','Black Grouse','Capercaillie',
+    'Red-legged Partridge','Grey Partridge','Quail','Pheasant',
+    'Golden Pheasant','Lady Amherst\'s Pheasant','Chukar','Indian Peafowl',
+    'Stone-curlew','Oystercatcher','Avocet',
+    'Black-winged Stilt','Dotterel',
+    'Lapwing','Golden Plover','Grey Plover',
+    'Ringed Plover','Little Ringed Plover','Kentish Plover','American Golden Plover',
+    'Whimbrel','Curlew',
+    'Bar-tailed Godwit','Black-tailed Godwit',
+    'Turnstone','Knot','Ruff',
+    'Curlew Sandpiper','Sanderling','Dunlin','Purple Sandpiper',
+    'Little Stint','Temminck\'s Stint','White-rumped Sandpiper',
+    'Pectoral Sandpiper','Buff-breasted Sandpiper',
+    'Woodcock','Jack Snipe','Snipe',
+    'Common Sandpiper','Green Sandpiper','Wood Sandpiper',
+    'Redshank','Spotted Redshank','Greenshank','Lesser Yellowlegs',
+    'Red-necked Phalarope','Grey Phalarope',
+    'Corncrake','Spotted Crake',
+    'Water Rail','Moorhen','Coot','Crane',
+  ]);
+
+  add('Waterfowl', [
+    'Brent Goose','Brent Goose (Dark-bellied)','Brent Goose (Light-bellied)','Brent Goose (Black Brant)',
+    'Canada Goose','Barnacle Goose','Greylag Goose','Greylag Goose (domestic)',
+    'White-fronted Goose','White-fronted Goose (Greenland)','White-fronted Goose (European)',
+    'Pink-footed Goose','Bean Goose','Bean Goose (Taiga)','Bean Goose (Tundra)',
+    'Snow Goose','Bar-headed Goose','Black Swan',
+    'Mute Swan','Bewick\'s Swan','Whooper Swan',
+    'Egyptian Goose','Ruddy Shelduck','Shelduck',
+    'Mandarin Duck','Wood Duck',
+    'Wigeon','American Wigeon','Gadwall','Teal','Green-winged Teal',
+    'Mallard','Mallard (domestic)','Pintail','Garganey','Shoveler',
+    'Red-crested Pochard','Pochard','Ring-necked Duck','Ferruginous Duck',
+    'Tufted Duck','Scaup','Eider','Long-tailed Duck',
+    'Common Scoter','Surf Scoter','Velvet Scoter',
+    'Goldeneye','Smew','Red-breasted Merganser','Goosander',
+    'Ruddy Duck','Muscovy Duck',
+    'Little Grebe','Great Crested Grebe','Red-necked Grebe',
+    'Slavonian Grebe','Black-necked Grebe',
+    'Red-throated Diver','Black-throated Diver','Great Northern Diver',
+  ]);
+
+  add('Colony-nesting seabirds', [
+    'Black-headed Gull','Mediterranean Gull','Common Gull','Little Gull',
+    'Ring-billed Gull','Sabine\'s Gull',
+    'Herring Gull','Lesser Black-backed Gull','Great Black-backed Gull',
+    'Yellow-legged Gull','Caspian Gull','Iceland Gull','Glaucous Gull','Kittiwake',
+    'Sandwich Tern','Little Tern','Roseate Tern','Common Tern','Arctic Tern',
+    'Black Tern','White-winged Black Tern',
+    'Great Skua','Arctic Skua','Pomarine Skua','Long-tailed Skua',
+    'Puffin','Little Auk',
+    'Storm Petrel','Leach\'s Petrel','Wilson\'s Petrel',
+    'Fulmar','Manx Shearwater','Balearic Shearwater',
+    'Cory\'s Shearwater','Great Shearwater','Sooty Shearwater',
+    'Gannet',
+  ]);
+
+  add('Cliff-nesting seabirds', [
+    'Kittiwake','Guillemot','Black Guillemot','Razorbill','Shag','Cormorant',
+    'Cormorant (Continental)',
+  ]);
+
+  add('Herons and egrets', [
+    'Grey Heron','Purple Heron','Little Egret','Great White Egret',
+    'Bittern','Night-heron',
+    'White Stork','Glossy Ibis','Spoonbill',
+  ]);
+
+  return map;
+})();
+
+var CATEGORY_ORDER = [
+  'Open-nesting passerines and near-passerines',
+  'Cavity-nesting passerines and near-passerines',
+  'Birds of prey',
+  'Waders and gamebirds',
+  'Waterfowl',
+  'Colony-nesting seabirds',
+  'Cliff-nesting seabirds',
+  'Herons and egrets',
+  'Other',
+];
+
+function getSpeciesCategory(sp) {
+  return SPECIES_CATEGORIES[sp] || 'Other';
 }
 
 // ─────────────────────────────────────────────
@@ -696,7 +1165,12 @@ function renderDashboard(data, ringer) {
   window._exportRinger = ringer;
 
   var totalExt = 0, totalProc = 0;
+  var totalPulliRinged = 0, totalBroods = 0;
+  var whooshExt = 0, whooshFiringsTotal = 0;
   var speciesMap = {}, methodMap = {};
+  // fledgedMethodSet tracks methods used by fledged rows only (for species table columns)
+  var fledgedMethodSet = {};
+  var whooshFiringsByDate = {};
 
   sessions.forEach(function(s) {
     (s.entries || []).forEach(function(e) {
@@ -704,20 +1178,52 @@ function renderDashboard(data, ringer) {
       var proc = e.processed || 0;
       var sp   = e.species   || 'Unknown';
       var mt   = e.method    || 'Unknown';
+      var age  = e.age       || '';
+      var isPullus = age === 'Pullus';
 
       totalExt  += ext;
       totalProc += proc;
+      totalPulliRinged += (e.pulliRinged    || 0);
+      totalBroods      += (e.broodsAssessed || 0);
 
-      if (!speciesMap[sp]) speciesMap[sp] = { _total: 0, _proc: 0 };
+      if (mt.toLowerCase().includes('whoosh')) {
+        whooshExt += ext;
+      }
+
+      if (e.whooshFirings !== null && e.whooshFirings !== undefined && !(s.date in whooshFiringsByDate)) {
+        whooshFiringsByDate[s.date] = e.whooshFirings;
+      }
+
+      if (!speciesMap[sp]) speciesMap[sp] = { _total: 0, _proc: 0, _fledgedRinged: 0, _pulliRinged: 0, _broodsAssessed: 0 };
       speciesMap[sp]._total += ext;
       speciesMap[sp]._proc  += proc;
-      if (ext > 0) speciesMap[sp][mt] = (speciesMap[sp][mt] || 0) + ext;
+      speciesMap[sp]._fledgedRinged  += (e.fledgedRinged  || 0);
+      speciesMap[sp]._pulliRinged    += (e.pulliRinged    || 0);
+      speciesMap[sp]._broodsAssessed += (e.broodsAssessed || 0);
+
+      // Only track extracted per-method for fledged rows (pullus methods excluded from species table)
+      if (!isPullus && ext > 0) {
+        speciesMap[sp][mt] = (speciesMap[sp][mt] || 0) + ext;
+        if (!fledgedMethodSet[mt]) fledgedMethodSet[mt] = 0;
+        fledgedMethodSet[mt] += ext;
+      }
 
       if (!methodMap[mt]) methodMap[mt] = { extracted: 0, species: new Set(), dates: new Set() };
       methodMap[mt].extracted += ext;
       if (ext > 0) methodMap[mt].species.add(sp);
       methodMap[mt].dates.add(s.date);
     });
+  });
+
+  Object.values(whooshFiringsByDate).forEach(function(f) { whooshFiringsTotal += (f || 0); });
+
+  // Build ordered fledged method list: Mist net first, Whoosh net second, then others by total
+  var PRIORITY = { 'Mist net': 0, 'Whoosh net': 1 };
+  var fledgedMethodList = Object.keys(fledgedMethodSet).sort(function(a, b) {
+    var pa = (PRIORITY[a] !== undefined) ? PRIORITY[a] : 2;
+    var pb = (PRIORITY[b] !== undefined) ? PRIORITY[b] : 2;
+    if (pa !== pb) return pa - pb;
+    return fledgedMethodSet[b] - fledgedMethodSet[a];
   });
 
   // Unique species where at least one extraction occurred
@@ -747,13 +1253,15 @@ function renderDashboard(data, ringer) {
   // ── Tiles ──
   var mistNet = methodMap['Mist net'] || { extracted: 0, species: new Set() };
   document.getElementById('stat-sessions').textContent  = sessions.length;
-  document.getElementById('stat-extracted').textContent = totalExt;
+  document.getElementById('stat-whoosh').textContent    = whooshExt;
   document.getElementById('stat-mistnet').textContent   = mistNet.extracted;
+  document.getElementById('stat-pulli').textContent     = totalPulliRinged;
   document.getElementById('stat-processed').textContent = totalProc;
   document.getElementById('stat-sessions-sub').textContent  = firstDate ? fmtMonth(firstDate) + ' \u2192 ' + fmtMonth(lastDate) : '\u2014';
-  document.getElementById('stat-ext-sub').textContent       = 'across ' + speciesCount + ' species';
+  document.getElementById('stat-whoosh-sub').textContent    = 'across ' + whooshFiringsTotal + ' firing' + (whooshFiringsTotal !== 1 ? 's' : '');
   document.getElementById('stat-mistnet-sub').textContent   = 'across ' + mistNet.species.size + ' species';
-  document.getElementById('stat-proc-sub').textContent      = 'across ' + allSpeciesCount + ' species';
+  document.getElementById('stat-pulli-sub').textContent     = 'across ' + totalBroods + ' brood' + (totalBroods !== 1 ? 's' : '');
+  document.getElementById('stat-proc-sub').textContent      = 'across ' + Object.keys(speciesMap).length + ' species';
 
   // ── Method table ──
   document.getElementById('method-badge').textContent = methodList.length + ' method' + (methodList.length !== 1 ? 's' : '');
@@ -768,9 +1276,9 @@ function renderDashboard(data, ringer) {
   }).join('');
 
   // ── Species table ──
-  window._speciesData = { speciesMap: speciesMap, methodList: methodList };
-  buildSortToggle(methodList);
-  buildSpeciesTable('count');
+  window._speciesData = { speciesMap: speciesMap, methodList: fledgedMethodList };
+  buildSortToggle(fledgedMethodList);
+  buildSpeciesTable('proc');
 
   // ── Species gaps ──
   var mySpecies         = new Set(Object.keys(speciesMap));
@@ -786,12 +1294,25 @@ function renderDashboard(data, ringer) {
       .filter(function(e) { return !mySet.has(e[0]) && e[1] > 0; })
       .sort(function(a, b) { return b[1] - a[1]; });
     if (!missing.length) return '<div class="missing-empty">\u2713 None missing for this method.</div>';
-    return '<div class="missing-grid">'
-      + missing.map(function(e) {
-          return '<span class="missing-chip">' + e[0]
-            + ' <span class="chip-count">' + e[1] + '</span></span>';
-        }).join('')
-      + '</div>';
+
+    // Group by category
+    var byCategory = {};
+    missing.forEach(function(e) {
+      var cat = getSpeciesCategory(e[0]);
+      if (!byCategory[cat]) byCategory[cat] = [];
+      byCategory[cat].push(e);
+    });
+
+    return CATEGORY_ORDER.filter(function(cat) { return byCategory[cat]; }).map(function(cat) {
+      return '<div class="missing-cat-block">'
+        + '<div class="missing-cat-label">' + cat + '</div>'
+        + '<div class="missing-grid">'
+        + byCategory[cat].map(function(e) {
+            return '<span class="missing-chip">' + e[0]
+              + ' <span class="chip-count">' + e[1] + '</span></span>';
+          }).join('')
+        + '</div></div>';
+    }).join('');
   }
 
   var allMissingSpecies = new Set();
@@ -859,8 +1380,20 @@ function renderDashboard(data, ringer) {
 // ─────────────────────────────────────────────
 // CSV export
 // ─────────────────────────────────────────────
+function toggleExportMenu(e) {
+  e.stopPropagation();
+  document.getElementById('export-dropdown').classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('export-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    var dd = document.getElementById('export-dropdown');
+    if (dd) dd.classList.remove('open');
+  }
+});
+
 function csvCell(value) {
-  // Wrap in quotes if the value contains a comma, quote, or newline
   var s = value === null || value === undefined ? '' : String(value);
   if (s.includes(',') || s.includes('"') || s.includes('\n')) {
     return '"' + s.replace(/"/g, '""') + '"';
@@ -868,53 +1401,417 @@ function csvCell(value) {
   return s;
 }
 
-function exportCSV() {
+function downloadCSV(rows, filename) {
+  var csv = rows.map(function(row) { return row.map(csvCell).join(','); }).join('\r\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('export-dropdown').classList.remove('open');
+}
+
+function exportSessionData() {
   var sessions = window._exportSessions;
   var ringer   = window._exportRinger;
-
   if (!sessions || !sessions.length) return;
 
-  var rows = [['Date', 'Ringer', 'Species', 'Age', 'Extracted', 'Method', 'Processed']];
+  var rows = [['Date','Ringer','Species','Age','Extracted','Method','Processed',
+               'Fledged ringed','Pulli ringed','Broods assessed',
+               'Whoosh net firings','Submitted at']];
 
-  var totalExt = 0, totalProc = 0;
+  // Track whoosh firings already written per date (session-level field)
+  var whooshWritten = {};
 
   sessions.forEach(function(s) {
     (s.entries || []).forEach(function(e) {
-      var ext  = e.extracted || 0;
-      var proc = e.processed || 0;
-      totalExt  += ext;
-      totalProc += proc;
+      var whoosh = '';
+      if (e.whooshFirings !== null && e.whooshFirings !== undefined && !whooshWritten[s.date]) {
+        whoosh = e.whooshFirings;
+        whooshWritten[s.date] = true;
+      }
       rows.push([
         s.date,
         ringer,
-        e.species  || '',
-        e.age      || '',
-        ext,
-        e.method   || '',
-        proc
+        e.species         || '',
+        e.age             || '',
+        e.extracted       || 0,
+        e.method          || '',
+        e.processed       || 0,
+        e.fledgedRinged   || 0,
+        e.pulliRinged     || 0,
+        e.broodsAssessed  || 0,
+        whoosh,
+        e.submittedAt     || ''
       ]);
     });
   });
 
-  // Summary totals row
-  rows.push([]);
-  rows.push(['Total', '', '', '', totalExt, '', totalProc]);
-
-  var csv = rows.map(function(row) {
-    return row.map(csvCell).join(',');
-  }).join('\r\n');
-
-  // Build filename: ringing-data_RingerName_YYYY-MM-DD.csv
   var today    = new Date().toISOString().split('T')[0];
   var safeName = ringer.replace(/[^a-zA-Z0-9_-]/g, '_');
-  var filename = 'ringing-data_' + safeName + '_' + today + '.csv';
+  downloadCSV(rows, 'ringing-sessions_' + safeName + '_' + today + '.csv');
+}
 
-  // Trigger download
-  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+async function exportBTOSummary() {
+  var sessions = window._exportSessions;
+  var ringer   = window._exportRinger;
+  if (!sessions || !sessions.length) return;
+  document.getElementById('export-dropdown').classList.remove('open');
+
+  // ── Aggregate ──────────────────────────────────────────────────────
+  var spData = {};
+  var whooshFiringsTotal = 0;
+
+  sessions.forEach(function(s) {
+    (s.entries || []).forEach(function(e) {
+      var sp  = e.species || 'Unknown';
+      var mt  = e.method  || '';
+      var ext = e.extracted || 0;
+      var isPullus = e.age === 'Pullus';
+
+      if (!spData[sp]) spData[sp] = { proc: 0, fledgedRinged: 0, mistNet: 0, whooshNet: 0, pulliRinged: 0, broods: 0 };
+      if (!isPullus) {
+        spData[sp].proc          += e.processed     || 0;
+        spData[sp].fledgedRinged += e.fledgedRinged || 0;
+        if (mt === 'Mist net')                   spData[sp].mistNet   += ext;
+        if (mt.toLowerCase().includes('whoosh')) spData[sp].whooshNet += ext;
+      }
+      spData[sp].pulliRinged += e.pulliRinged    || 0;
+      spData[sp].broods      += e.broodsAssessed || 0;
+
+      if (e.whooshFirings !== null && e.whooshFirings !== undefined) {
+        whooshFiringsTotal += e.whooshFirings;
+      }
+    });
+  });
+
+  var BTO_MAP = {
+    'Redpoll':   ['Common Redpoll','Lesser Redpoll','Redpoll (Common/Lesser)',
+                  'Arctic Redpoll','Common Redpoll (Mealy)','Common Redpoll (Greenland)'],
+    'Crossbill': ['Common Crossbill','Parrot Crossbill'],
+  };
+
+  function getSpData(btoName) {
+    var names = BTO_MAP[btoName] || [btoName];
+    var agg = { proc: 0, fledgedRinged: 0, mistNet: 0, whooshNet: 0, pulliRinged: 0, broods: 0 };
+    names.forEach(function(n) {
+      var d = spData[n]; if (!d) return;
+      agg.proc          += d.proc;
+      agg.fledgedRinged += d.fledgedRinged;
+      agg.mistNet       += d.mistNet;
+      agg.whooshNet     += d.whooshNet;
+      agg.pulliRinged   += d.pulliRinged;
+      agg.broods        += d.broods;
+    });
+    return agg;
+  }
+
+  // ── BTO sections ───────────────────────────────────────────────────
+  var BTO_SECTIONS = [
+    { name: 'Open-nesting passerines and near-passerines', species: [
+      'Nightjar','Cuckoo','Woodpigeon','Turtle Dove','Collared Dove',
+      'Red-backed Shrike','Jay','Magpie','Rook','Carrion Crow','Raven',
+      'Waxwing','Woodlark','Skylark','Bearded Tit','Swallow','Wren',
+      "Cetti's Warbler",'Long-tailed Tit','Wood Warbler','Yellow-browed Warbler',
+      'Willow Warbler','Chiffchaff','Sedge Warbler','Reed Warbler',
+      'Grasshopper Warbler','Blackcap','Garden Warbler','Lesser Whitethroat',
+      'Whitethroat','Dartford Warbler','Firecrest','Goldcrest',
+      'Ring Ouzel','Blackbird','Fieldfare','Redwing','Song Thrush','Mistle Thrush',
+      'Spotted Flycatcher','Robin','Bluethroat','Nightingale','Black Redstart',
+      'Whinchat','Stonechat','Dunnock','Yellow Wagtail','Grey Wagtail',
+      'Pied/White Wagtail','Meadow Pipit','Tree Pipit','Rock Pipit',
+      'Chaffinch','Brambling','Hawfinch','Bullfinch','Greenfinch','Twite','Linnet',
+      'Redpoll','Scottish Crossbill','Crossbill','Goldfinch','Siskin',
+      'Snow Bunting','Corn Bunting','Yellowhammer','Reed Bunting',
+    ]},
+    { name: 'Cavity-nesting passerines and near-passerines', species: [
+      'Swift','Stock Dove','Kingfisher','Great Spotted Woodpecker','Green Woodpecker',
+      'Ring-necked Parakeet','Chough','Jackdaw','Coal Tit','Crested Tit','Marsh Tit',
+      'Willow Tit','Blue Tit','Great Tit','Sand Martin','House Martin','Nuthatch',
+      'Treecreeper','Starling','Pied Flycatcher','Redstart','Wheatear','Dipper',
+      'House Sparrow','Tree Sparrow',
+    ]},
+    { name: 'Birds of prey', species: [
+      'Osprey','Golden Eagle','Sparrowhawk','Goshawk','Marsh Harrier','Hen Harrier',
+      'Red Kite','Buzzard','Barn Owl','Tawny Owl','Little Owl','Long-eared Owl',
+      'Short-eared Owl','Kestrel','Merlin','Hobby','Peregrine',
+    ]},
+    { name: 'Waders and gamebirds', species: [
+      'Grey Partridge','Quail','Stone-curlew','Oystercatcher','Avocet','Lapwing',
+      'Golden Plover','Grey Plover','Ringed Plover','Little Ringed Plover','Whimbrel',
+      'Curlew','Bar-tailed Godwit','Black-tailed Godwit','Turnstone','Knot','Ruff',
+      'Curlew Sandpiper','Sanderling','Dunlin','Purple Sandpiper','Woodcock',
+      'Jack Snipe','Snipe','Common Sandpiper','Green Sandpiper','Redshank',
+      'Spotted Redshank','Greenshank',
+    ]},
+    { name: 'Waterfowl', species: [
+      'Brent Goose','Canada Goose','Greylag Goose','White-fronted Goose',
+      'Mute Swan',"Bewick's Swan",'Whooper Swan','Egyptian Goose','Shelduck',
+      'Mandarin Duck','Shoveler','Gadwall','Wigeon','Mallard','Pintail','Teal',
+      'Pochard','Tufted Duck','Eider','Goldeneye','Water Rail','Moorhen','Coot',
+      'Little Grebe','Red-throated Diver',
+    ]},
+    { name: 'Colony-nesting seabirds', species: [
+      'Black-headed Gull','Mediterranean Gull','Common Gull','Great Black-backed Gull',
+      'Herring Gull','Lesser Black-backed Gull','Sandwich Tern','Little Tern',
+      'Roseate Tern','Common Tern','Arctic Tern','Great Skua','Arctic Skua',
+      'Puffin','Storm Petrel',"Leach's Petrel",'Fulmar','Manx Shearwater','Gannet',
+    ]},
+    { name: 'Cliff-nesting seabirds', species: ['Kittiwake','Guillemot','Razorbill','Shag','Cormorant'] },
+    { name: 'Herons and egrets',      species: ['Grey Heron','Little Egret'] },
+  ];
+
+  // ── Build workbook ─────────────────────────────────────────────────
+  var wb = new ExcelJS.Workbook();
+  wb.creator = 'Ringing Tracker';
+  var ws = wb.addWorksheet('Species totals');
+
+  // Column widths matched exactly to reference spreadsheet
+  ws.columns = [
+    { width: 48.55 }, // A
+    { width: 11.33 }, // B
+    { width: 12.89 }, // C
+    { width: 15.44 }, // D
+    { width: 20.0  }, // E
+    { width: 11.55 }, // F
+    { width: 16.44 }, // G
+  ];
+
+  // ── Shared style constants ─────────────────────────────────────────
+  var baseFont   = { name: 'Calibri', size: 11 };
+  var YELLOW     = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+  var CAT_FILL   = { type: 'pattern', pattern: 'solid', fgColor: { theme: 0, tint: -0.1499984740745262 } };
+  var thin       = { style: 'thin' };
+
+  // Column separator border pattern — identical for category rows AND data rows
+  // B: left only | C: right only | D: left+right | E: left only | F: left only | G: right only
+  var COL_BORDERS = [
+    null,                              // A (col 1) — no borders
+    { left: thin },                    // B (col 2)
+    { right: thin },                   // C (col 3)
+    { left: thin, right: thin },       // D (col 4)
+    { left: thin },                    // E (col 5)
+    { left: thin },                    // F (col 6)
+    { right: thin },                   // G (col 7)
+  ];
+
+  function applyColBorders(row) {
+    COL_BORDERS.forEach(function(b, i) { if (b) row.getCell(i + 1).border = b; });
+  }
+
+  function f(bold) { return Object.assign({ bold: !!bold }, baseFont); }
+
+  function numCell(row, colIdx, val) {
+    if (val > 0) {
+      var cell = row.getCell(colIdx);
+      cell.value  = val;
+      cell.numFmt = '#,##0';
+      cell.alignment = { horizontal: 'center' };
+    }
+  }
+
+  // ── Rows 1 & 2: headers ──────────────────────────────────────────
+  // Row 1 added via addRow; row 2 accessed via ws.getRow(2) because the A1:A2
+  // merge already creates row 2 — using addRow again would push data to row 3.
+  var r1 = ws.addRow([
+    'See Notes at the bottom of this form for guidance on what is required for each total',
+    'Full-grown endorsement', '',
+    'Mist-net endorsement',
+    'Whoosh-net endorsement',
+    'Pullus endorsement', '',
+  ]);
+  ws.mergeCells('A1:A2');
+  ws.mergeCells('B1:C1');
+  ws.mergeCells('F1:G1');
+  r1.height = 29.4;
+
+  r1.getCell(1).fill      = YELLOW;
+  r1.getCell(1).font      = f(true);
+  r1.getCell(1).border    = { right: thin };
+  r1.getCell(1).alignment = { horizontal: 'center', vertical: 'center', wrapText: true };
+
+  // B1 (merged B1:C1), D1, E1, F1 (merged F1:G1) — borders + wrap text
+  ['B','D','E','F'].forEach(function(col) {
+    var cell = r1.getCell(col);
+    cell.font      = f(true);
+    cell.border    = { top: thin, bottom: thin, left: thin, right: thin };
+    cell.alignment = { horizontal: 'center', vertical: 'center', wrapText: true };
+  });
+
+  // Row 2: address directly (already exists due to A1:A2 merge)
+  var r2 = ws.getRow(2);
+  r2.getCell(1).border = { right: thin };
+  ['Processed','Ringed','Extracted','Birds caught','Pulli ringed','Broods assessed'].forEach(function(val, i) {
+    var cell = r2.getCell(i + 2);
+    cell.value     = val;
+    cell.font      = f(true);
+    cell.border    = { top: thin, bottom: thin, left: thin, right: thin };
+    cell.alignment = { horizontal: 'center', vertical: 'center' };
+  });
+  r2.commit();
+
+  // ── Sections ──────────────────────────────────────────────────────
+  // Col G gets CAT_FILL on species rows for these 4 sections (per reference)
+  var G_GREY_SECTIONS = { 'Waterfowl': true, 'Colony-nesting seabirds': true, 'Waders and gamebirds': true };
+  var isFirstSection = true;
+
+  BTO_SECTIONS.forEach(function(section) {
+    var useGGrey = !!G_GREY_SECTIONS[section.name];
+
+    // Category row: CAT_FILL on all 7 cells; from section 2 onwards add top border
+    var rCat = ws.addRow([section.name]);
+    for (var c = 1; c <= 7; c++) rCat.getCell(c).fill = CAT_FILL;
+    rCat.getCell(1).font = f(true);
+    if (isFirstSection) {
+      applyColBorders(rCat);
+    } else {
+      // Top border + same column separators
+      var catBorders = [
+        { top: thin, left: thin },
+        { top: thin, left: thin },
+        { top: thin, right: thin },
+        { top: thin, left: thin, right: thin },
+        { top: thin, left: thin },
+        { top: thin, left: thin },
+        { top: thin, right: thin },
+      ];
+      for (var c = 1; c <= 7; c++) rCat.getCell(c).border = catBorders[c - 1];
+    }
+    isFirstSection = false;
+
+    var firstSpRow = ws.rowCount + 1;
+
+    section.species.forEach(function(sp) {
+      var d = getSpData(sp);
+      var rSp = ws.addRow([sp]);
+      rSp.getCell(1).font = f(false);
+      numCell(rSp, 2, d.proc);
+      numCell(rSp, 3, d.fledgedRinged);
+      numCell(rSp, 4, d.mistNet);
+      numCell(rSp, 5, d.whooshNet);
+      numCell(rSp, 6, d.pulliRinged);
+      numCell(rSp, 7, d.broods);
+      applyColBorders(rSp);
+      // Col G grey shading for applicable sections
+      if (useGGrey) rSp.getCell(7).fill = CAT_FILL;
+    });
+
+    var lastSpRow = ws.rowCount;
+
+    // Total row — SUM formulas always present, no fill, exact border pattern from reference
+    var rTot = ws.addRow([section.name + ' total']);
+    rTot.getCell(1).font   = f(true);
+    rTot.getCell(1).border = { top: thin, bottom: thin };
+    var totBorders = [
+      null,
+      { top: thin, bottom: thin, left: thin },
+      { top: thin },
+      { top: thin, left: thin },
+      { top: thin, bottom: thin, left: thin },
+      { top: thin, bottom: thin, left: thin },
+      { top: thin, right: thin },
+    ];
+    ['B','C','D','E','F','G'].forEach(function(col, i) {
+      var tc = rTot.getCell(col);
+      tc.value     = { formula: 'SUM(' + col + firstSpRow + ':' + col + lastSpRow + ')' };
+      tc.numFmt    = '#,##0';
+      tc.font      = f(false);
+      tc.border    = totBorders[i + 1];
+      tc.alignment = { horizontal: 'center' };
+    });
+
+    // Number of species row — COUNTIF formulas always present
+    var rCount = ws.addRow(['Number of species']);
+    rCount.getCell(1).font   = f(true);
+    rCount.getCell(1).border = { bottom: thin };
+    var cntBorders = [
+      null,
+      { bottom: thin, left: thin },
+      { top: thin, bottom: thin },
+      { top: thin, bottom: thin, left: thin },
+      { top: thin, bottom: thin, left: thin },
+      { top: thin, bottom: thin, left: thin },
+      { top: thin, bottom: thin, right: thin },
+    ];
+    ['B','C','D','E','F','G'].forEach(function(col, i) {
+      var cc = rCount.getCell(col);
+      cc.value     = { formula: 'COUNTIF(' + col + firstSpRow + ':' + col + lastSpRow + ',">0")' };
+      cc.numFmt    = '#,##0';
+      cc.font      = f(false);
+      cc.border    = cntBorders[i + 1];
+      cc.alignment = { horizontal: 'center' };
+    });
+
+    ws.addRow([]); // blank separator
+  });
+
+  // ── Total live firings ────────────────────────────────────────────
+  // E label row (CAT_FILL + all-sides border), E value row (bordered, no fill)
+  var rFireLabel = ws.addRow([]);
+  var eLabelCell = rFireLabel.getCell(5);
+  eLabelCell.value  = 'Total live firings';
+  eLabelCell.font   = f(true);
+  eLabelCell.fill   = CAT_FILL;
+  eLabelCell.border = { top: thin, bottom: thin, left: thin, right: thin };
+
+  var rFireVal = ws.addRow([]);
+  var eValCell = rFireVal.getCell(5);
+  eValCell.border = { top: thin, bottom: thin, left: thin, right: thin };
+  if (whooshFiringsTotal) {
+    eValCell.value     = whooshFiringsTotal;
+    eValCell.font      = f(false);
+    eValCell.numFmt    = '#,##0';
+    eValCell.alignment = { horizontal: 'center' };
+  }
+
+  ws.addRow([]);
+
+  // ── Notes ─────────────────────────────────────────────────────────
+  // Col B uses rich text: first word(s) before ' = ' are bold, rest plain
+  function richNote(text) {
+    var eqIdx = text.indexOf(' = ');
+    if (eqIdx === -1) return text;
+    return {
+      richText: [
+        { font: f(true),  text: text.slice(0, eqIdx) },
+        { font: f(false), text: text.slice(eqIdx) },
+      ]
+    };
+  }
+  function noteRow(col1, col2) {
+    var r = ws.addRow([col1 || null, null]);
+    if (col1) r.getCell(1).font = f(false);
+    if (col2) {
+      var cell2 = r.getCell(2);
+      cell2.value     = richNote(col2);
+      cell2.alignment = { wrapText: true };
+      ws.mergeCells('B' + r.number + ':G' + r.number);
+    }
+    return r;
+  }
+  noteRow('Full-grown endorsement', 'Processed = Fledged birds ringed and retraps processed (so always >= Ringed)');
+  noteRow('', 'Ringed = Fledged birds ringed only (excludes pulli)');
+  ws.addRow([]);
+  noteRow('Pullus endorsement', 'Pulli = Nestlings ringed');
+  noteRow('', 'Broods assessed = Number of broods/nests visited, whether or not pulli were ringed');
+  ws.addRow([]);
+  noteRow('Whoosh-net endorsement', 'Active firings = Number of active firings onto birds where the applicant made the decision to fire');
+
+  // ── Freeze top 2 rows ─────────────────────────────────────────────
+  ws.views = [{ state: 'frozen', ySplit: 2 }];
+
+  // ── Download ──────────────────────────────────────────────────────
+  var buf  = await wb.xlsx.writeBuffer();
+  var blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
-  a.href     = url;
-  a.download = filename;
+  var today    = new Date().toISOString().split('T')[0];
+  var safeName = ringer.replace(/[^a-zA-Z0-9_-]/g, '_');
+  a.href = url;
+  a.download = 'BTO-summary_' + safeName + '_' + today + '.xlsx';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -924,16 +1821,18 @@ function exportCSV() {
 // ─────────────────────────────────────────────
 // Species table sort
 // ─────────────────────────────────────────────
-function buildSortToggle(methodList) {
+function buildSortToggle(fledgedMethodList) {
   var buttons = [
-    { key: 'count', label: 'Extracted' },
-  ].concat(methodList.map(function(m) { return { key: 'method:' + m, label: m }; })).concat([
-    { key: 'proc',  label: 'Processed' },
-    { key: 'alpha', label: 'A\u2013Z'  },
+    { key: 'proc',        label: 'Fl. Processed' },
+    { key: 'fledgedRing', label: 'Fl. Ringed'    },
+  ].concat(fledgedMethodList.map(function(m) { return { key: 'method:' + m, label: m }; })).concat([
+    { key: 'pulliRing',   label: 'Pu. Ringed'    },
+    { key: 'broods',      label: 'Broods Ass.'   },
+    { key: 'alpha',       label: 'A\u2013Z'       },
   ]);
 
   document.getElementById('species-sort-toggle').innerHTML = buttons.map(function(b) {
-    return '<button class="sort-btn' + (b.key === 'count' ? ' active' : '') + '" '
+    return '<button class="sort-btn' + (b.key === 'proc' ? ' active' : '') + '" '
       + 'data-sort="' + b.key + '" '
       + 'onclick="setSpeciesSort(\'' + b.key.replace(/'/g, "\\'") + '\')">'
       + b.label + '</button>';
@@ -952,75 +1851,228 @@ function scrollSpeciesColumnIntoView(order) {
   var wrap = document.querySelector('.species-table-scroll');
   if (!wrap) return;
 
-  if (order === 'alpha') {
-    wrap.scrollLeft = 0;
-    return;
-  }
+  if (order === 'alpha') { wrap.scrollLeft = 0; return; }
 
   requestAnimationFrame(function() {
-    var table = document.getElementById('species-table-wrap').querySelector('table');
+    var table = wrap.querySelector('table');
     if (!table) return;
     var headers = Array.prototype.slice.call(table.querySelectorAll('thead th'));
     if (!headers.length) return;
 
     var targetIndex = -1;
-    if (order === 'count') {
-      targetIndex = 1;
-    } else if (order === 'proc') {
-      targetIndex = headers.length - 1;
-    } else if (order.indexOf('method:') === 0) {
+    if (order === 'proc')             targetIndex = 1;
+    else if (order === 'fledgedRing') targetIndex = 2;
+    else if (order === 'pulliRing')   targetIndex = headers.length - 2;
+    else if (order === 'broods')      targetIndex = headers.length - 1;
+    else if (order.indexOf('method:') === 0) {
       var methodName = order.slice(7);
       headers.forEach(function(th, i) {
         if (th.textContent.trim() === methodName) targetIndex = i;
       });
     }
-
     if (targetIndex < 0) return;
 
     var wrapRect    = wrap.getBoundingClientRect();
     var thRect      = headers[targetIndex].getBoundingClientRect();
     var stickyWidth = headers[0].getBoundingClientRect().width;
-    var scrollTarget = wrap.scrollLeft + (thRect.left - wrapRect.left) - stickyWidth;
-    wrap.scrollLeft = Math.max(0, scrollTarget);
+    wrap.scrollLeft = Math.max(0, wrap.scrollLeft + (thRect.left - wrapRect.left) - stickyWidth);
   });
 }
 
 function buildSpeciesTable(order) {
   var d = window._speciesData;
   if (!d) return;
-  var speciesMap = d.speciesMap;
-  var methodList = d.methodList;
+  var speciesMap        = d.speciesMap;
+  var fledgedMethodList = d.methodList;
 
-  var rows = Object.entries(speciesMap).slice().sort(function(a, b) {
-    if (order === 'alpha') return a[0].localeCompare(b[0]);
-    if (order === 'proc')  return (b[1]._proc || 0) - (a[1]._proc || 0);
+  var allRows = Object.entries(speciesMap).slice().sort(function(a, b) {
+    if (order === 'alpha')       return a[0].localeCompare(b[0]);
+    if (order === 'proc')        return (b[1]._proc          || 0) - (a[1]._proc          || 0);
+    if (order === 'fledgedRing') return (b[1]._fledgedRinged || 0) - (a[1]._fledgedRinged || 0);
+    if (order === 'pulliRing')   return (b[1]._pulliRinged   || 0) - (a[1]._pulliRinged   || 0);
+    if (order === 'broods')      return (b[1]._broodsAssessed|| 0) - (a[1]._broodsAssessed|| 0);
     if (order.indexOf('method:') === 0) return (b[1][order.slice(7)] || 0) - (a[1][order.slice(7)] || 0);
-    return b[1]._total - a[1]._total;
+    return (b[1]._proc || 0) - (a[1]._proc || 0);
   });
 
-  var thCols = methodList.map(function(m) { return '<th class="r">' + m + '</th>'; }).join('');
+  var hasPulliRinged = allRows.some(function(r) { return (r[1]._pulliRinged    || 0) > 0; });
+  var hasBroods      = allRows.some(function(r) { return (r[1]._broodsAssessed || 0) > 0; });
 
-  var tbody = rows.map(function(entry) {
-    var sp = entry[0], v = entry[1];
-    var methodCells = methodList.map(function(m) {
-      var cnt = v[m] || 0;
-      return '<td class="r">' + (cnt > 0 ? cnt : '\u2014') + '</td>';
+  var thCols   = fledgedMethodList.map(function(m) { return '<th class="r">' + m + '</th>'; }).join('');
+  var thPulli  = hasPulliRinged ? '<th class="r">Pu. Ringed</th>'  : '';
+  var thBroods = hasBroods      ? '<th class="r">Broods Ass.</th>' : '';
+
+  var thead = '<thead><tr>'
+    + '<th>Species</th>'
+    + '<th class="r">Fl. Processed</th>'
+    + '<th class="r">Fl. Ringed</th>'
+    + thCols + thPulli + thBroods
+    + '</tr></thead>';
+
+  // Group rows by category
+  var byCategory = {};
+  allRows.forEach(function(entry) {
+    var cat = getSpeciesCategory(entry[0]);
+    if (!byCategory[cat]) byCategory[cat] = [];
+    byCategory[cat].push(entry);
+  });
+
+  function makeRows(rows) {
+    return rows.map(function(entry) {
+      var sp = entry[0], v = entry[1];
+      var methodCells = fledgedMethodList.map(function(m) {
+        var cnt = v[m] || 0;
+        return '<td class="r">' + (cnt > 0 ? cnt : '\u2014') + '</td>';
+      }).join('');
+      var pulliCell  = hasPulliRinged ? '<td class="r">' + ((v._pulliRinged    || 0) > 0 ? v._pulliRinged    : '\u2014') + '</td>' : '';
+      var broodsCell = hasBroods      ? '<td class="r">' + ((v._broodsAssessed || 0) > 0 ? v._broodsAssessed : '\u2014') + '</td>' : '';
+      return '<tr>'
+        + '<td class="primary">' + sp + '</td>'
+        + '<td class="r">' + (v._proc          > 0 ? v._proc          : '\u2014') + '</td>'
+        + '<td class="r">' + (v._fledgedRinged > 0 ? v._fledgedRinged : '\u2014') + '</td>'
+        + methodCells + pulliCell + broodsCell
+        + '</tr>';
     }).join('');
-    return '<tr>'
-      + '<td class="primary">' + sp + '</td>'
-      + '<td class="r">' + v._total + '</td>'
-      + methodCells
-      + '<td class="r">' + (v._proc > 0 ? v._proc : '\u2014') + '</td>'
-      + '</tr>';
-  }).join('');
+  }
+
+  var colCount = 3 + fledgedMethodList.length + (hasPulliRinged ? 1 : 0) + (hasBroods ? 1 : 0);
+  var emptyCells = Array(colCount - 1).fill('<td></td>').join('');
+
+  var tbody = '';
+  CATEGORY_ORDER.forEach(function(cat) {
+    var rows = byCategory[cat];
+    if (!rows || !rows.length) return;
+    tbody += '<tr class="species-cat-row"><td class="species-cat-td">' + cat + '</td>' + emptyCells + '</tr>';
+    tbody += makeRows(rows);
+  });
 
   document.getElementById('species-table-wrap').innerHTML =
-    '<table class="data-table"><thead><tr>'
-    + '<th>Species</th><th class="r">Extracted</th>'
-    + thCols
-    + '<th class="r">Processed</th>'
-    + '</tr></thead><tbody>' + tbody + '</tbody></table>';
+    '<div class="species-table-scroll">'
+    + '<table class="data-table"><thead><tr>'
+    + '<th>Species</th>'
+    + '<th class="r">Fl. Processed</th>'
+    + '<th class="r">Fl. Ringed</th>'
+    + thCols + thPulli + thBroods
+    + '</tr></thead><tbody>' + tbody + '</tbody></table></div>';
 }
+
+// ─────────────────────────────────────────────
+// Settings dropdown & info modals
+// ─────────────────────────────────────────────
+function toggleSettings(e) {
+  e.stopPropagation();
+  const dd  = document.getElementById('settings-dropdown');
+  const btn = document.getElementById('settings-btn');
+  const open = dd.classList.toggle('open');
+  btn.classList.toggle('open', open);
+}
+
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.settings-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('settings-dropdown').classList.remove('open');
+    document.getElementById('settings-btn').classList.remove('open');
+  }
+});
+
+function closeSettings() {
+  document.getElementById('settings-dropdown').classList.remove('open');
+  document.getElementById('settings-btn').classList.remove('open');
+}
+
+function openInfoModal(id) {
+  closeSettings();
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeInfoModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (!document.querySelectorAll('.info-overlay.open').length) {
+    document.body.style.overflow = '';
+  }
+}
+
+function handleInfoOverlayClick(e, id) {
+  if (e.target === document.getElementById(id)) closeInfoModal(id);
+}
+
+// ─────────────────────────────────────────────
+// Escape key handler
+// ─────────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  const openModals = document.querySelectorAll('.info-overlay.open');
+  if (openModals.length) { openModals.forEach(function(m) { closeInfoModal(m.id); }); return; }
+  closeSettings();
+});
+
 </script>
-</body>
-</html>
+
+<!-- ── FAQ modal ── -->
+<div class="info-overlay" id="about-modal" onclick="handleInfoOverlayClick(event,'about-modal')">
+  <div class="info-modal">
+    <div class="info-modal-hd">
+      <h2>FAQ</h2>
+      <button class="info-modal-x" onclick="closeInfoModal('about-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="info-modal-bd">
+      <h3>What can Ringing Tracker do?</h3>
+      <p>Ringing Tracker is primarily for ringing trainees and anyone interested in tracking their ringing data, with a focus on those working towards ringing licence endorsements. Anyone with the website link can start logging their own sessions, upload their old records to be added to the database, and view their compiled stats to see breakdowns across species and catching methods.</p>
+      <h3>How does logging data work?</h3>
+      <p>Ringing data is stored on a Google Sheets spreadsheet, which tracks Ringers, Methods, and Responses to the Log session form. If you are new to the tracker, please write your full name and click "Add new" when logging data — it should then be saved going forward. This should also work for new species and catching methods, in case you catch something outside the UK or with a novel method. Since it needs to update a spreadsheet, it requires an internet connection to work.</p>
+      <h3>How does the dashboard work?</h3>
+      <p>The dashboard reads all data from the spreadsheet for the ringer selected, and breaks it down by species and catching method. The "Species gaps" section shows all the species you haven't logged for a method that other ringers have, sorted in descending order — so you'll quickly see any commonly-handled birds you're missing. This is dependent on other ringers having logged them, though, so if everyone is missing a species it won't appear as a gap.</p>
+      <h3>How do I upload my old data?</h3>
+      <p>Use the "Upload previous records" button at the bottom of the Log session page and upload your old data in whatever format you use. Since the data structures will vary, uploaded files need manual approval, so it may be a few days before they get added to the main database and appear in the dashboard. If you want to be notified when this happens, pop your contact details in the notes section.</p>
+      <h3>Is the data backed up?</h3>
+      <p>Yes — every time you log a new session the responses sheet is backed up to a separate spreadsheet, and there are also regular weekly backups to cover manual edits. It's also worth using the "Export CSV" button on the dashboard to download a spreadsheet of all your data so you have an offline copy.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Changelog modal ── -->
+<div class="info-overlay" id="changelog-modal" onclick="handleInfoOverlayClick(event,'changelog-modal')">
+  <div class="info-modal">
+    <div class="info-modal-hd">
+      <h2>Changelog</h2>
+      <button class="info-modal-x" onclick="closeInfoModal('changelog-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="info-modal-bd">
+      <div class="cl-entry">
+        <span class="vtag vtag-new">v1.1 · Latest</span>
+        <ul>
+          <li>Added extra detail to appropriately track BTO-relevant ringing progress (e.g. number of whoosh net firings, number of broods assessed)</li>
+          <li>Added bird categories (e.g. open-nesting passerines, birds of prey etc.) to the dashboard for clearer reading</li>
+          <li>Added an export option for a BTO-formatted .xlsx ringing progress tracker, alongside the session-level .csv option</li>
+        </ul>
+      </div>
+      <div class="cl-entry">
+        <span class="vtag">v1.0</span>
+        <ul>
+          <li>Log sessions by species, age class, and catching method, with separate counts for extracted and processed birds</li>
+          <li>Searchable species dropdown covering the full BTO list, with 5-letter codes</li>
+          <li>New species, methods, and ringers are added to the sheet automatically</li>
+          <li>Confirmation screen so you can check everything before it gets submitted</li>
+          <li>Per-ringer dashboard with total extractions, processing counts, and a full method breakdown</li>
+          <li>Species gap analysis — see what other ringers have caught that you haven't yet</li>
+          <li>Upload previous records in any format for manual import into the database</li>
+          <li>Works on mobile</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Report issues modal ── -->
+<div class="info-overlay" id="report-modal" onclick="handleInfoOverlayClick(event,'report-modal')">
+  <div class="info-modal">
+    <div class="info-modal-hd">
+      <h2>Report issues</h2>
+      <button class="info-modal-x" onclick="closeInfoModal('report-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="info-modal-bd">
+      <h3>Email</h3>
+      <p><a href="/cdn-cgi/l/email-protection#6e0b180b021700080601190f1a1d01002e09030f0702400d0103"><span class="__cf_email__" data-cfemail="b6d3c0d3dacfd8d0ded9c1d7c2c5d9d8f6d1dbd7dfda98d5d9db">[email&#160;protected]</span></a> — let me know if you have any questions or feedback!</p>
+      <h3>GitHub</h3>
+      <p><a href="https://github.com/evelynfh/lrg" target="_blan

@@ -79,7 +79,7 @@
 
   /* Main layout */
   main {
-    max-width: 900px;
+    max-width: 1260px;
     margin: 40px auto;
     padding: 0 20px 60px;
   }
@@ -90,7 +90,7 @@
     border: 1px solid var(--border);
     border-top: 3px solid var(--accent);
     border-radius: 4px;
-    padding: 28px 32px;
+    padding: 28px 24px;
     margin-bottom: 32px;
     box-shadow: var(--shadow);
   }
@@ -184,7 +184,7 @@
   /* Column headers */
   .col-headers {
     display: grid;
-    grid-template-columns: 2.2fr 1.5fr 1fr 1.4fr 1fr 36px;
+    grid-template-columns: 1.8fr 1.2fr 0.8fr 1.1fr 0.7fr 0.7fr 0.7fr 0.7fr 36px;
     gap: 10px;
     padding: 10px 24px;
     background: var(--accent-light);
@@ -199,18 +199,122 @@
     color: var(--accent);
   }
 
+  /* ── Info icon tooltip ── */
+  .tip-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .tip-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    font-style: normal;
+    font-family: serif;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    user-select: none;
+    border: none;
+    padding: 0;
+    text-transform: none;
+    letter-spacing: 0;
+    /* reset any inherited button styles */
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .tip-icon::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 7px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.68rem;
+    font-weight: 400;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    line-height: 1.45;
+    padding: 6px 10px;
+    border-radius: 3px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 200;
+    box-shadow: var(--shadow-lg);
+    max-width: 260px;
+    white-space: normal;
+    width: max-content;
+    text-align: left;
+  }
+
+  /* Arrow */
+  .tip-icon::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--ink);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 201;
+  }
+
+  .tip-icon:hover::after,
+  .tip-icon:hover::before,
+  .tip-icon.tip-open::after,
+  .tip-icon.tip-open::before {
+    opacity: 1;
+  }
+
   /* Species rows */
   #species-rows { padding: 12px 24px; }
 
   .species-row {
     display: grid;
-    grid-template-columns: 2.2fr 1.5fr 1fr 1.4fr 1fr 36px;
+    grid-template-columns: 1.8fr 1.2fr 0.8fr 1.1fr 0.7fr 0.7fr 0.7fr 0.7fr 36px;
     gap: 10px;
     align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid var(--border);
     animation: slideIn 0.2s ease;
   }
+
+  /* Age-conditional field visibility — display:none removes cells from grid flow
+     so grid-template-columns (set by JS) always matches the number of visible cells.
+     In mixed mode (.age-mixed), switch to visibility:hidden so hidden cells still
+     occupy their designated grid column — spinners align with headers correctly. */
+  .species-row .pullus-only { display: none; }
+  .species-row.age-pullus .fledged-only { display: none; }
+  .species-row.age-pullus .pullus-only  { display: flex; }
+
+  /* Mixed mode: keep cells in flow, just visually hide the inapplicable ones */
+  #species-section.age-mixed .species-row .pullus-only         { display: flex;  visibility: hidden; pointer-events: none; }
+  #species-section.age-mixed .species-row.age-pullus .fledged-only { display: flex;  visibility: hidden; pointer-events: none; }
+  #species-section.age-mixed .species-row.age-pullus .pullus-only  { display: flex;  visibility: visible; pointer-events: auto; }
+
+  #col-headers .fledged-only,
+  #col-headers .pullus-only  { display: none; }
+  #col-headers.col-has-fledged .fledged-only { display: block; }
+  #col-headers.col-has-pullus  .pullus-only  { display: block; }
+
+  /* Prevent header label text from wrapping in tight columns */
+  #col-headers span { white-space: nowrap; overflow: hidden; min-width: 0; }
 
   .species-row:last-child { border-bottom: none; }
 
@@ -365,6 +469,9 @@
     gap: 2px;
   }
 
+  .proc-mob-label, .ringed-mob-label,
+  .pulli-ringed-mob-label, .broods-mob-label { display: none; }
+
   .num-input {
     text-align: center;
     padding: 4px 6px;
@@ -413,6 +520,78 @@
   .add-row-wrap {
     padding: 16px 24px;
     border-top: 1px dashed var(--border);
+  }
+
+  /* Whoosh net firing question */
+  .whoosh-section {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--row-alt);
+  }
+
+  .whoosh-section.visible { display: flex; }
+
+  .whoosh-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    margin: 0;
+  }
+
+  .whoosh-spinner {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .whoosh-spinner .num-btn {
+    width: 36px;
+    height: auto;
+    padding: 0;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    border-radius: 3px;
+  }
+
+  .whoosh-input {
+    width: 64px;
+    height: 36px;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 4px 6px;
+    transition: border-color 0.15s;
+  }
+
+  .whoosh-input:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
+  }
+
+  .whoosh-input.input-error {
+    border-color: var(--danger) !important;
+    box-shadow: 0 0 0 3px rgba(139,46,46,0.15) !important;
+  }
+
+  /* on mobile, centre and stack label above spinner */
+  @media (max-width: 600px) {
+    .whoosh-section { flex-direction: column; align-items: center; gap: 10px; }
   }
 
   .add-row-btn {
@@ -486,7 +665,7 @@
   /* ── Confirmation screen ── */
   #confirm-screen {
     display: none;
-    max-width: 900px;
+    max-width: 1260px;
     margin: 40px auto;
     padding: 0 20px 60px;
   }
@@ -557,7 +736,7 @@
 
   .confirm-table-header {
     display: grid;
-    grid-template-columns: 2fr 1fr 1.2fr 0.7fr 0.8fr;
+    grid-template-columns: 1.5fr 0.85fr 1fr 0.6fr 0.7fr 0.8fr 0.65fr 0.6fr;
     gap: 10px;
     padding: 8px 24px;
     background: var(--accent-light);
@@ -570,11 +749,12 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--accent);
+    white-space: nowrap;
   }
 
   .confirm-table-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1.2fr 0.7fr 0.8fr;
+    grid-template-columns: 1.5fr 0.85fr 1fr 0.6fr 0.7fr 0.8fr 0.65fr 0.6fr;
     gap: 10px;
     padding: 10px 24px;
     border-bottom: 1px solid #f0ebe0;
@@ -586,7 +766,7 @@
 
   .confirm-totals-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1.2fr 0.7fr 0.8fr;
+    grid-template-columns: 1.5fr 0.85fr 1fr 0.6fr 0.7fr 0.8fr 0.65fr 0.6fr;
     gap: 10px;
     padding: 10px 24px;
     background: var(--bg);
@@ -632,7 +812,7 @@
   /* Success screen */
   #success-screen {
     display: none;
-    max-width: 900px;
+    max-width: 1260px;
     margin: 40px auto;
     padding: 0 20px 60px;
   }
@@ -697,49 +877,8 @@
   .status-ok  { color: var(--accent); }
   .status-err { color: var(--danger); }
 
-  /* Config notice */
-  .config-notice {
-    background: #fff8e6;
-    border: 1px solid #e8d88a;
-    border-left: 3px solid #c9a800;
-    border-radius: 3px;
-    padding: 14px 18px;
-    margin-bottom: 28px;
-    font-size: 0.78rem;
-    color: #6b5700;
-    line-height: 1.6;
-  }
-
-  .config-notice strong { color: #4a3c00; }
-  .config-notice code {
-    background: #f0e8c0;
-    padding: 1px 5px;
-    border-radius: 2px;
-    font-family: 'IBM Plex Mono', monospace;
-  }
-
-  /* Trainee fetch spinner */
-  .fetch-spinner {
-    display: none;
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    pointer-events: none;
-  }
-
-  .fetch-spinner.visible { display: block; }
-
-  @keyframes spin       { to { transform: translateY(-50%) rotate(360deg); } }
-  @keyframes spin-plain { to { transform: rotate(360deg); } }
-
-  .dropdown-spinner { animation: spin-plain 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .dropdown-spinner { animation: spin 0.7s linear infinite; }
 
   /* ── Upload previous records button ── */
   .upload-prev-btn {
@@ -865,8 +1004,6 @@
     opacity: 0;
     cursor: pointer;
     width: 100%;
-    height: 100%;
-    /* override general input styles */
     height: 100% !important;
     border: none !important;
     box-shadow: none !important;
@@ -1077,13 +1214,31 @@
     }
     .confirm-cell-num, .confirm-cell-warn, .confirm-cell-total { text-align: left; }
     .confirm-totals-row {
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       padding: 12px 16px;
-      gap: 4px 12px;
+      gap: 6px;
+      border-top: 2px solid var(--border);
     }
-    .confirm-totals-row span:nth-child(1) { grid-column: 1 / -1; }
-    .confirm-totals-row span:nth-child(2),
-    .confirm-totals-row span:nth-child(3) { display: none; }
+    .confirm-totals-row span { display: none; }
+    .confirm-totals-row .confirm-cell-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.82rem;
+    }
+    .confirm-totals-row .confirm-cell-total::before {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+    #confirm-tot-ext::before    { content: 'Extracted'; }
+    #confirm-tot-proc::before   { content: 'Processed'; }
+    #confirm-tot-fringed::before { content: 'Fledged ringed'; }
+    #confirm-tot-pringed::before { content: 'Pulli ringed'; }
+    #confirm-tot-broods::before  { content: 'Broods assessed'; }
     .confirm-meta-grid { grid-template-columns: 1fr; }
     .confirm-actions { flex-direction: column-reverse; }
     .confirm-back-btn, #confirm-submit-btn { width: 100%; text-align: center; }
@@ -1112,7 +1267,10 @@
     .species-row > .age-toggle,
     .species-row > .num-wrap,
     .species-row > .method-wrap,
-    .species-row > .proc-wrap {
+    .species-row > .proc-wrap,
+    .species-row > .ringed-wrap,
+    .species-row > .pulli-ringed-wrap,
+    .species-row > .broods-wrap {
       display: flex !important;
       flex-direction: row !important;
       align-items: center;
@@ -1120,14 +1278,19 @@
       gap: 0;
     }
 
+    /* On mobile, hide non-applicable fields (remove from flex flow).
+       age-mixed is not used on mobile since col-headers is hidden anyway. */
+    .species-row .pullus-only                { display: none !important; }
+    .species-row.age-pullus .fledged-only    { display: none !important; }
+    .species-row.age-pullus .pullus-only     { display: flex !important; visibility: visible !important; }
+
     .species-row > .species-search-wrap::before,
     .species-row > .age-toggle::before,
     .species-row > .num-wrap::before,
-    .species-row > .method-wrap::before,
-    .species-row > .proc-wrap::before {
+    .species-row > .method-wrap::before {
       display: block;
-      width: 80px;
-      min-width: 80px;
+      width: 120px;
+      min-width: 120px;
       font-size: 0.65rem;
       font-weight: 500;
       letter-spacing: 0.08em;
@@ -1138,7 +1301,30 @@
     .species-row > .age-toggle::before          { content: 'Age'; }
     .species-row > .num-wrap::before            { content: 'Extracted'; }
     .species-row > .method-wrap::before         { content: 'Method'; }
-    .species-row > .proc-wrap::before           { content: 'Processed'; }
+    .species-row > .proc-wrap::before           { content: none; }
+    .species-row > .ringed-wrap::before         { content: none; }
+    .species-row > .pulli-ringed-wrap::before   { content: none; }
+    .species-row > .broods-wrap::before         { content: none; }
+
+    /* HTML labels for spinner wraps with tooltips — same width as ::before labels */
+    .proc-mob-label, .ringed-mob-label,
+    .pulli-ringed-mob-label, .broods-mob-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      width: 120px;
+      min-width: 120px;
+      flex-shrink: 0;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+
+    /* Suppress the CSS ::after tooltip on mobile — JS bubble handles it instead */
+    .tip-icon::after,
+    .tip-icon::before { display: none !important; }
 
     input[type="text"],
     input[type="search"],
@@ -1195,11 +1381,20 @@
     }
 
     .num-wrap .num-btn:first-child,
-    .proc-wrap .num-btn:first-child { order: 3; }
+    .proc-wrap .num-btn:first-of-type,
+    .ringed-wrap .num-btn:first-of-type,
+    .pulli-ringed-wrap .num-btn:first-of-type,
+    .broods-wrap .num-btn:first-of-type    { order: 3; }
     .num-wrap .num-input,
-    .proc-wrap .num-input           { order: 2; }
+    .proc-wrap .num-input,
+    .ringed-wrap .num-input,
+    .pulli-ringed-wrap .num-input,
+    .broods-wrap .num-input                { order: 2; }
     .num-wrap .num-btn:last-child,
-    .proc-wrap .num-btn:last-child  { order: 1; }
+    .proc-wrap .num-btn:last-child,
+    .ringed-wrap .num-btn:last-child,
+    .pulli-ringed-wrap .num-btn:last-child,
+    .broods-wrap .num-btn:last-child       { order: 1; }
 
     .remove-row {
       width: 100%;
@@ -1220,7 +1415,198 @@
     .modal { max-height: 92vh; border-radius: 4px; }
     .modal-overlay { padding: 16px; align-items: center; }
     .upload-meta-grid { grid-template-columns: 1fr; }
+    .settings-wrap { margin-left: 0; }
+    .settings-btn .settings-label { display: none; }
+    .settings-dropdown { right: 0; left: auto; min-width: 160px; }
+    .info-modal { max-height: 92vh; }
+    .info-modal-bd { padding: 18px 16px; }
   }
+
+  /* ── Settings button & dropdown ── */
+  .settings-wrap {
+    position: relative;
+    margin-left: auto;
+  }
+
+  .settings-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 3px;
+    color: #9a9480;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    padding: 5px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+
+  .settings-btn:hover,
+  .settings-btn.open {
+    color: var(--bg);
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.3);
+  }
+
+  .settings-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 8px 28px rgba(26,26,20,0.18);
+    min-width: 180px;
+    z-index: 500;
+    overflow: hidden;
+  }
+
+  .settings-dropdown.open {
+    display: block;
+    animation: ddFadeIn 0.15s ease;
+  }
+
+  @keyframes ddFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .settings-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: background 0.1s;
+  }
+
+  .settings-item:last-child { border-bottom: none; }
+  .settings-item:hover { background: var(--accent-light); color: var(--accent); }
+
+  /* ── Info overlays / modals ── */
+  .info-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,20,0.55);
+    z-index: 600;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .info-overlay.open {
+    display: flex;
+    animation: infoOvFade 0.18s ease;
+  }
+
+  @keyframes infoOvFade { from { opacity: 0; } to { opacity: 1; } }
+
+  .info-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 4px;
+    box-shadow: 0 16px 48px rgba(26,26,20,0.22);
+    width: 100%;
+    max-width: 540px;
+    max-height: 88vh;
+    overflow-y: auto;
+    animation: modalIn 0.22s ease;
+  }
+
+  .info-modal-hd {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .info-modal-hd h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .info-modal-x {
+    background: none;
+    border: none;
+    color: #9a9480;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 2px;
+    transition: color 0.12s;
+  }
+
+  .info-modal-x:hover { color: var(--bg); }
+
+  .info-modal-bd {
+    padding: 22px 24px;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--ink-muted);
+  }
+
+  .info-modal-bd h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin: 18px 0 6px;
+    font-weight: 600;
+  }
+
+  .info-modal-bd h3:first-child { margin-top: 0; }
+  .info-modal-bd p { margin-bottom: 8px; }
+  .info-modal-bd a { color: var(--accent); text-decoration: underline; }
+
+  .vtag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 2px;
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid #c8dcc5;
+    margin-bottom: 4px;
+    vertical-align: middle;
+  }
+
+  .vtag-new {
+    background: #fff8e6;
+    color: #6b5700;
+    border-color: #e8d88a;
+  }
+
+  .cl-entry {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cl-entry:last-child { border-bottom: none; }
+  .cl-entry ul { margin: 6px 0 0 16px; }
+  .cl-entry li { margin-bottom: 3px; }
 </style>
 </head>
 <body>
@@ -1230,7 +1616,17 @@
   <nav>
     <a href="index.html" class="active">Log session</a>
     <a href="dashboard.html">Dashboard</a>
-    <span aria-hidden="true" style="font-size:1.4rem;opacity:0.6">🐦</span>
+    <div class="settings-wrap">
+      <button class="settings-btn" id="settings-btn"
+              onclick="toggleSettings(event)" aria-label="Settings">
+        ⚙ <span class="settings-label">Settings</span>
+      </button>
+      <div class="settings-dropdown" id="settings-dropdown">
+        <button class="settings-item" onclick="openInfoModal('about-modal')">FAQ</button>
+        <button class="settings-item" onclick="openInfoModal('changelog-modal')">Changelog</button>
+        <button class="settings-item" onclick="openInfoModal('report-modal')">Report issues</button>
+      </div>
+    </div>
   </nav>
 </header>
 
@@ -1263,18 +1659,21 @@
   </div>
 
   <!-- Species Entries -->
-  <div class="species-section">
+  <div class="species-section" id="species-section">
     <div class="species-section-header">
       <h2>Species Recorded</h2>
       <span>Add one row per species and age class</span>
     </div>
 
-    <div class="col-headers">
+    <div class="col-headers" id="col-headers">
       <span>Species</span>
       <span>Age</span>
       <span>Extracted</span>
       <span>Method</span>
-      <span>Processed</span>
+      <span class="fledged-only tip-wrap">Processed <button class="tip-icon" data-tip="Fledged birds ringed and retraps processed, always >= Ringed" aria-label="Info">i</button></span>
+      <span class="fledged-only tip-wrap" id="hdr-fledged-ringed">Ringed <button class="tip-icon" data-tip="Number of new fledged birds that you ringed, always <= Processed" aria-label="Info">i</button></span>
+      <span class="pullus-only tip-wrap" id="hdr-pulli-ringed">Ringed <button class="tip-icon" data-tip="Number of new pulli that you ringed" aria-label="Info">i</button></span>
+      <span class="pullus-only tip-wrap">Broods Ass. <button class="tip-icon" data-tip="Number of broods/nests visited, whether or not pulli were ringed" aria-label="Info">i</button></span>
       <span></span>
     </div>
 
@@ -1284,6 +1683,22 @@
       <button class="add-row-btn" onclick="addRow()">
         <span>+</span> Add species
       </button>
+    </div>
+
+    <div class="whoosh-section" id="whoosh-section">
+      <label class="whoosh-label">
+        Whoosh net active firings
+        <button class="tip-icon" data-tip="Number of active firings onto birds where you made the decision to fire" aria-label="Info">i</button>
+      </label>
+      <div class="whoosh-spinner">
+        <button type="button" class="num-btn" onmousedown="changeWhoosh(-1)">▼</button>
+        <input type="text" class="whoosh-input" id="whoosh-firings"
+               value="—" data-value="null"
+               onchange="whooshInputChange(this)"
+               onblur="whooshInputBlur(this)"
+               autocomplete="off">
+        <button type="button" class="num-btn" onmousedown="changeWhoosh(1)">▲</button>
+      </div>
     </div>
   </div>
 
@@ -1398,6 +1813,9 @@
       <span class="confirm-col-head">Method</span>
       <span class="confirm-col-head" style="text-align:right">Extracted</span>
       <span class="confirm-col-head" style="text-align:right">Processed</span>
+      <span class="confirm-col-head" style="text-align:right">Fledged Ringed</span>
+      <span class="confirm-col-head" style="text-align:right">Pulli ringed</span>
+      <span class="confirm-col-head" style="text-align:right">Broods Ass.</span>
     </div>
     <div id="confirm-entries"></div>
     <div class="confirm-totals-row">
@@ -1406,6 +1824,21 @@
       <span></span>
       <span class="confirm-cell-total" id="confirm-tot-ext">0</span>
       <span class="confirm-cell-total" id="confirm-tot-proc">0</span>
+      <span class="confirm-cell-total" id="confirm-tot-fringed">0</span>
+      <span class="confirm-cell-total" id="confirm-tot-pringed">0</span>
+      <span class="confirm-cell-total" id="confirm-tot-broods">0</span>
+    </div>
+  </div>
+
+  <div class="confirm-card" id="confirm-whoosh-card" style="display:none">
+    <div class="confirm-card-header">
+      <h2>Whoosh Net</h2>
+    </div>
+    <div class="confirm-meta-grid">
+      <div class="confirm-meta-item">
+        <span class="confirm-meta-label">Active firings</span>
+        <span class="confirm-meta-value" id="confirm-whoosh-firings">—</span>
+      </div>
     </div>
   </div>
 
@@ -1782,6 +2215,77 @@ const SPECIES_LIST = [
 // ─────────────────────────────────────────────
 let rowCount = 0;
 
+function updateHeaderVisibility() {
+  const headers = document.getElementById('col-headers');
+  const section = document.getElementById('species-section');
+  if (!headers) return;
+  const rows = document.querySelectorAll('.species-row');
+  let hasFledged = false, hasPullus = false;
+  rows.forEach(r => {
+    if (r.classList.contains('age-pullus')) hasPullus = true;
+    else hasFledged = true;
+  });
+  // If no rows at all, default to showing fledged headers
+  if (!hasFledged && !hasPullus) hasFledged = true;
+  headers.classList.toggle('col-has-fledged', hasFledged);
+  headers.classList.toggle('col-has-pullus',  hasPullus);
+
+  const both = hasFledged && hasPullus;
+
+  // In mixed mode, hidden cells must hold their column via visibility:hidden
+  if (section) section.classList.toggle('age-mixed', both);
+
+  // Rename the Ringed headers to avoid ambiguity when both ages are shown
+  const hdrFl = document.getElementById('hdr-fledged-ringed');
+  const hdrPu = document.getElementById('hdr-pulli-ringed');
+  if (hdrFl) hdrFl.firstChild.textContent = both ? 'Fl. Ringed ' : 'Ringed ';
+  if (hdrPu) hdrPu.firstChild.textContent = both ? 'Pu. Ringed ' : 'Ringed ';
+
+  // Dynamically fit grid columns to only the visible fields
+  // Always-visible: Species, Age, Extracted, Method, × (5 cols)
+  // Fledged-only: Processed, Ringed (+2)
+  // Pullus-only:  Pulli ringed, Broods Ass. (+2)
+  const grid = both
+    ? '1.4fr 0.9fr 0.7fr 0.9fr 0.7fr 0.7fr 0.7fr 0.7fr 36px'
+    : '2.2fr 1.5fr 0.85fr 1.4fr 0.85fr 0.85fr 36px';
+
+  headers.style.gridTemplateColumns = grid;
+  rows.forEach(r => { r.style.gridTemplateColumns = grid; });
+}
+
+function updateWhooshVisibility() {
+  const section = document.getElementById('whoosh-section');
+  if (!section) return;
+  const hasWhoosh = [...document.querySelectorAll('.method-input')]
+    .some(inp => inp.dataset.selected.toLowerCase().includes('whoosh'));
+  section.classList.toggle('visible', hasWhoosh);
+  if (!hasWhoosh) {
+    // Reset when all whoosh rows removed
+    const inp = document.getElementById('whoosh-firings');
+    if (inp) { inp.value = '—'; inp.dataset.value = 'null'; inp.classList.remove('input-error'); }
+  }
+}
+
+function changeWhoosh(delta) {
+  const inp = document.getElementById('whoosh-firings');
+  const current = inp.dataset.value === 'null' ? null : parseInt(inp.dataset.value);
+  const next = current === null ? (delta > 0 ? 0 : null) : Math.max(0, current + delta);
+  if (next === null) { inp.value = '—'; inp.dataset.value = 'null'; }
+  else { inp.value = next; inp.dataset.value = next; }
+  inp.classList.remove('input-error');
+}
+
+function whooshInputChange(inp) {
+  const raw = inp.value.trim();
+  if (raw === '' || raw === '—') { inp.value = '—'; inp.dataset.value = 'null'; return; }
+  const n = parseInt(raw);
+  if (isNaN(n) || n < 0) { inp.value = inp.dataset.value === 'null' ? '—' : inp.dataset.value; return; }
+  inp.value = n; inp.dataset.value = n;
+  inp.classList.remove('input-error');
+}
+
+function whooshInputBlur(inp) { whooshInputChange(inp); }
+
 function addRow(skipFocus = false) {
   rowCount++;
   const id = rowCount;
@@ -1805,7 +2309,7 @@ function addRow(skipFocus = false) {
     </div>
 
     <div class="age-toggle" id="age-${id}">
-      <button type="button" class="age-btn" onclick="selectAge(${id}, 'Juv/Adult', this)">Juv/Adult</button>
+      <button type="button" class="age-btn" onclick="selectAge(${id}, 'Fledged', this)">Fledged</button>
       <button type="button" class="age-btn" onclick="selectAge(${id}, 'Pullus', this)">Pullus</button>
     </div>
 
@@ -1829,22 +2333,50 @@ function addRow(skipFocus = false) {
       <div class="species-dropdown" id="dd-method-${id}"></div>
     </div>
 
-    <div class="num-wrap proc-wrap">
+    <div class="num-wrap proc-wrap fledged-only">
+      <span class="proc-mob-label">Processed <button class="tip-icon" data-tip="Fledged birds ringed and retraps processed, always >= Ringed" aria-label="Info">i</button></span>
       <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'proc', 1)">▲</button>
       <input type="number" class="row-input num-input" id="proc-${id}"
              min="0" value="0" oninput="sanitiseSpinner(this)">
       <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'proc', -1)">▼</button>
     </div>
 
+    <div class="num-wrap ringed-wrap fledged-only">
+      <span class="ringed-mob-label">Ringed <button class="tip-icon" data-tip="Number of new fledged birds that you ringed, always <= Processed" aria-label="Info">i</button></span>
+      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'ringed', 1)">▲</button>
+      <input type="number" class="row-input num-input" id="ringed-${id}"
+             min="0" value="0" oninput="sanitiseSpinner(this)">
+      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'ringed', -1)">▼</button>
+    </div>
+
+    <div class="num-wrap pulli-ringed-wrap pullus-only">
+      <span class="pulli-ringed-mob-label">Ringed <button class="tip-icon" data-tip="Number of new pulli that you ringed" aria-label="Info">i</button></span>
+      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'pulli-ringed', 1)">▲</button>
+      <input type="number" class="row-input num-input" id="pulli-ringed-${id}"
+             min="0" value="0" oninput="sanitiseSpinner(this)">
+      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'pulli-ringed', -1)">▼</button>
+    </div>
+
+    <div class="num-wrap broods-wrap pullus-only">
+      <span class="broods-mob-label">Broods Ass. <button class="tip-icon" data-tip="Number of broods/nests visited, whether or not pulli were ringed" aria-label="Info">i</button></span>
+      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'broods', 1)">▲</button>
+      <input type="number" class="row-input num-input" id="broods-${id}"
+             min="0" value="0" oninput="sanitiseSpinner(this)">
+      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'broods', -1)">▼</button>
+    </div>
+
     <button class="remove-row" onclick="removeRow(${id})" title="Remove row">×</button>
   `;
   container.appendChild(row);
+  updateHeaderVisibility();
   if (!skipFocus) row.querySelector('.species-input').focus();
 }
 
 function removeRow(id) {
   const row = document.getElementById(`row-${id}`);
   if (row) row.remove();
+  updateHeaderVisibility();
+  updateWhooshVisibility();
 }
 
 // ─────────────────────────────────────────────
@@ -1956,20 +2488,38 @@ function updateHighlight(id, items) {
 // Age selection
 // ─────────────────────────────────────────────
 function selectAge(id, value, btn) {
+  const currentBtn = document.querySelector(`#age-${id} .age-btn.active`);
+  const currentAge = currentBtn ? currentBtn.textContent.trim() : '';
+
   document.querySelectorAll(`#age-${id} .age-btn`).forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(`age-${id}`).classList.remove('input-error');
 
-  if (value === 'Pullus') {
+  const row = document.getElementById(`row-${id}`);
+  const isPullus = value === 'Pullus';
+  row.classList.toggle('age-pullus', isPullus);
+
+  // Only clear method if switching to a different age (Fledged↔Pullus have separate lists)
+  if (currentAge && currentAge !== value) {
     const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
-    const currentMethod = methodInput.dataset.selected || '';
-    if (currentMethod && !currentMethod.toLowerCase().includes('nest')) {
+    if (methodInput && methodInput.dataset.selected) {
       methodInput.value = '';
       methodInput.dataset.selected = '';
       methodInput.dataset.writeIn = 'false';
       methodInput.classList.remove('input-confirmed');
     }
   }
+
+  // Reset fields that belong to the now-hidden age only
+  if (isPullus) {
+    document.getElementById(`proc-${id}`).value = 0;
+    document.getElementById(`ringed-${id}`).value = 0;
+  } else {
+    document.getElementById(`pulli-ringed-${id}`).value = 0;
+    document.getElementById(`broods-${id}`).value = 0;
+  }
+
+  updateHeaderVisibility();
 }
 
 // ─────────────────────────────────────────────
@@ -1978,12 +2528,11 @@ function selectAge(id, value, btn) {
 function getMethodListForRow(id) {
   const ageBtn = document.querySelector(`#age-${id} .age-btn.active`);
   const isPullus = ageBtn && ageBtn.textContent.trim() === 'Pullus';
-  return isPullus
-    ? methodList.filter(m => m.toLowerCase().includes('nest'))
-    : methodList;
+  return isPullus ? pullusMethodList : fledgedMethodList;
 }
 
-let methodList = [];
+let fledgedMethodList = [];
+let pullusMethodList  = [];
 let methodsLoading = false;
 
 function fetchMethods() {
@@ -1992,9 +2541,8 @@ function fetchMethods() {
   fetch(SCRIPT_URL + '?action=getMethods')
     .then(r => r.json())
     .then(data => {
-      if (Array.isArray(data.methods) && data.methods.length) {
-        methodList = data.methods;
-      }
+      if (Array.isArray(data.fledgedMethods)) fledgedMethodList = data.fledgedMethods;
+      if (Array.isArray(data.pullusMethods))  pullusMethodList  = data.pullusMethods;
       document.querySelectorAll('.method-input').forEach(input => {
         const row = input.closest('.species-row');
         if (!row) return;
@@ -2058,12 +2606,19 @@ function selectMethod(id, value, isWriteIn) {
   input.dataset.writeIn = isWriteIn ? 'true' : 'false';
   input.classList.remove('input-error');
   input.classList.add('input-confirmed');
-  if (isWriteIn && !methodList.includes(value)) {
-    methodList = [...methodList, value].sort();
+  if (isWriteIn) {
+    const ageBtn = document.querySelector(`#age-${id} .age-btn.active`);
+    const isPullus = ageBtn && ageBtn.textContent.trim() === 'Pullus';
+    if (isPullus) {
+      if (!pullusMethodList.includes(value)) pullusMethodList = [...pullusMethodList, value].sort();
+    } else {
+      if (!fledgedMethodList.includes(value)) fledgedMethodList = [...fledgedMethodList, value].sort();
+    }
   }
   const dd = document.getElementById(`dd-method-${id}`);
   dd.classList.remove('open');
   dd.innerHTML = '';
+  updateWhooshVisibility();
 }
 
 function handleMethodKey(e, id) {
@@ -2089,12 +2644,25 @@ function handleMethodKey(e, id) {
 }
 
 function sanitiseSpinner(input) {
-  const val = parseInt(input.value);
-  if (isNaN(val) || val < 0) input.value = 0;
-  else input.value = val;
+  let val = parseInt(input.value);
+  if (isNaN(val) || val < 0) val = 0;
+
   const row = input.closest('.species-row');
-  row.querySelector('.num-wrap').classList.remove('input-error');
-  row.querySelector('.proc-wrap').classList.remove('input-error');
+  const id = row.id.replace('row-', '');
+
+  if (input.id === `ringed-${id}`) {
+    const procVal = parseInt(document.getElementById(`proc-${id}`).value) || 0;
+    val = Math.min(val, procVal);
+  } else if (input.id === `proc-${id}`) {
+    const ringedInput = document.getElementById(`ringed-${id}`);
+    if (ringedInput) {
+      const ringedVal = parseInt(ringedInput.value) || 0;
+      if (ringedVal > val) ringedInput.value = val;
+    }
+  }
+
+  input.value = val;
+  row.querySelectorAll('.num-wrap').forEach(w => w.classList.remove('input-error'));
 }
 
 // ─────────────────────────────────────────────
@@ -2201,9 +2769,15 @@ function handleTraineeKey(e) {
 
 function changeSpinner(id, type, delta) {
   const input = document.getElementById(`${type}-${id}`);
-  input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
-  document.querySelector(`#row-${id} .num-wrap`).classList.remove('input-error');
-  document.querySelector(`#row-${id} .proc-wrap`).classList.remove('input-error');
+  let newVal = Math.max(0, (parseInt(input.value) || 0) + delta);
+  if (type === 'ringed') {
+    const procVal = parseInt(document.getElementById(`proc-${id}`).value) || 0;
+    newVal = Math.min(newVal, procVal);
+  }
+  input.value = newVal;
+  // Clear error states for all spinner wraps in this row
+  const row = document.getElementById(`row-${id}`);
+  row.querySelectorAll('.num-wrap').forEach(w => w.classList.remove('input-error'));
 }
 
 function escapeRe(s) {
@@ -2225,7 +2799,22 @@ function submitForm() {
     showStatus('Please enter a name.', false);
     return;
   }
+  // If the user typed a name without picking from the dropdown, confirm it now
+  if (!nameInput.dataset.selected) {
+    const isKnown = traineeList.some(n => n.toLowerCase() === name.toLowerCase());
+    nameInput.dataset.selected = name;
+    nameInput.dataset.isNew = isKnown ? 'false' : 'true';
+    nameInput.classList.add('input-confirmed');
+  }
   nameInput.classList.remove('input-error');
+
+  const dateInput = document.getElementById('session-date');
+  if (!date) {
+    dateInput.classList.add('input-error');
+    showStatus('Please select a session date.', false);
+    return;
+  }
+  dateInput.classList.remove('input-error');
   showStatus('', null);
 
   const rows = document.querySelectorAll('.species-row');
@@ -2240,12 +2829,22 @@ function submitForm() {
     const species = speciesInput.dataset.selected;
     const speciesWriteIn = species && !SPECIES_LIST.some(s => s.name === species) ? 'Yes' : 'No';
     const ageBtn = document.querySelector(`#age-${id} .age-btn.active`);
-    const age = ageBtn ? ageBtn.textContent : '';
+    const age = ageBtn ? ageBtn.textContent.trim() : '';
+    const isPullus = age === 'Pullus';
+
+    // Shared fields (both ages)
     const num = Math.max(0, parseInt(document.getElementById(`num-${id}`).value) || 0);
     const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
     const method = methodInput.dataset.selected || '';
     const methodWriteIn = methodInput.dataset.writeIn === 'true' ? 'Yes' : 'No';
-    const processed = Math.max(0, parseInt(document.getElementById(`proc-${id}`).value) || 0);
+
+    // Fledged-only fields
+    const processed     = isPullus ? 0 : Math.max(0, parseInt(document.getElementById(`proc-${id}`).value) || 0);
+    const fledgedRinged = isPullus ? 0 : Math.max(0, parseInt(document.getElementById(`ringed-${id}`).value) || 0);
+
+    // Pullus-only fields
+    const pulliRinged    = isPullus ? Math.max(0, parseInt(document.getElementById(`pulli-ringed-${id}`).value) || 0) : 0;
+    const broodsAssessed = isPullus ? Math.max(0, parseInt(document.getElementById(`broods-${id}`).value) || 0) : 0;
 
     if (!species) {
       speciesInput.classList.add('input-error');
@@ -2259,30 +2858,55 @@ function submitForm() {
       methodInput.classList.add('input-error');
       valid = false;
     }
-    if (num === 0 && processed === 0) {
-      row.querySelector('.num-wrap').classList.add('input-error');
-      row.querySelector('.proc-wrap').classList.add('input-error');
-      valid = false;
+    if (!isPullus) {
+      if (num === 0 && processed === 0) {
+        row.querySelector('.num-wrap').classList.add('input-error');
+        row.querySelector('.proc-wrap').classList.add('input-error');
+        valid = false;
+      }
     } else {
-      row.querySelector('.num-wrap').classList.remove('input-error');
-      row.querySelector('.proc-wrap').classList.remove('input-error');
+      if (pulliRinged === 0 && broodsAssessed === 0) {
+        row.querySelector('.pulli-ringed-wrap').classList.add('input-error');
+        row.querySelector('.broods-wrap').classList.add('input-error');
+        valid = false;
+      }
     }
 
-    entries.push({ species, speciesWriteIn, age, num, method, methodWriteIn, processed });
+    entries.push({ species, speciesWriteIn, age, num, method, methodWriteIn, processed, fledgedRinged, pulliRinged, broodsAssessed });
   });
 
-  if (!valid) { showStatus('Please fill in species, age, and catching method for all rows, and enter at least one extracted or processed bird.', false); return; }
+  if (!valid) { showStatus('Please check all rows: species and age are required. Fledged rows need a method and at least one extracted or processed bird. Pullus rows need at least one pulli ringed or brood assessed.', false); return; }
+
+  // Whoosh net firings — required if whoosh section is visible
+  const whooshSection = document.getElementById('whoosh-section');
+  const whooshVisible = whooshSection && whooshSection.classList.contains('visible');
+  let whooshFirings = null;
+  if (whooshVisible) {
+    const whooshInp = document.getElementById('whoosh-firings');
+    if (whooshInp.dataset.value === 'null') {
+      whooshInp.classList.add('input-error');
+      showStatus('Please enter the number of whoosh net active firings (0 is a valid answer).', false);
+      return;
+    }
+    whooshFirings = parseInt(whooshInp.dataset.value);
+    whooshInp.classList.remove('input-error');
+  }
 
   const payload = {
     trainee: name,
     isNewTrainee: nameInput.dataset.isNew === 'true',
     date,
-    entries
+    entries,
+    whooshFirings
   };
-  const newMethods = [...new Set(
-    entries.filter(e => e.methodWriteIn === 'Yes' && e.method).map(e => e.method)
+  const newFledgedMethods = [...new Set(
+    entries.filter(e => e.methodWriteIn === 'Yes' && e.method && e.age === 'Fledged').map(e => e.method)
   )];
-  if (newMethods.length) payload.newMethods = newMethods;
+  const newPullusMethods = [...new Set(
+    entries.filter(e => e.methodWriteIn === 'Yes' && e.method && e.age === 'Pullus').map(e => e.method)
+  )];
+  if (newFledgedMethods.length) payload.newFledgedMethods = newFledgedMethods;
+  if (newPullusMethods.length)  payload.newPullusMethods  = newPullusMethods;
 
   pendingPayload = payload;
 
@@ -2303,21 +2927,41 @@ function showConfirmScreen(payload) {
   document.getElementById('confirm-ringer').textContent = payload.trainee;
   document.getElementById('confirm-date').textContent = payload.date || 'Not specified';
 
-  const totalExt = payload.entries.reduce((s, e) => s + e.num, 0);
-  const totalProc = payload.entries.reduce((s, e) => s + e.processed, 0);
-  document.getElementById('confirm-tot-ext').textContent = totalExt;
-  document.getElementById('confirm-tot-proc').textContent = totalProc;
+  const totalExt         = payload.entries.reduce((s, e) => s + (e.num || 0), 0);
+  const totalProc        = payload.entries.reduce((s, e) => s + (e.processed || 0), 0);
+  const totalFledgedRing = payload.entries.reduce((s, e) => s + (e.fledgedRinged || 0), 0);
+  const totalPulliRing   = payload.entries.reduce((s, e) => s + (e.pulliRinged || 0), 0);
+  const totalBroods      = payload.entries.reduce((s, e) => s + (e.broodsAssessed || 0), 0);
+  document.getElementById('confirm-tot-ext').textContent    = totalExt;
+  document.getElementById('confirm-tot-proc').textContent   = totalProc;
+  document.getElementById('confirm-tot-fringed').textContent = totalFledgedRing;
+  document.getElementById('confirm-tot-pringed').textContent = totalPulliRing;
+  document.getElementById('confirm-tot-broods').textContent  = totalBroods;
+
+  const whooshCard = document.getElementById('confirm-whoosh-card');
+  const whooshEl   = document.getElementById('confirm-whoosh-firings');
+  if (payload.whooshFirings !== null && payload.whooshFirings !== undefined) {
+    whooshEl.textContent = payload.whooshFirings;
+    whooshCard.style.display = '';
+  } else {
+    whooshCard.style.display = 'none';
+  }
 
   const container = document.getElementById('confirm-entries');
-  container.innerHTML = payload.entries.map((e, i) => `
+  container.innerHTML = payload.entries.map(e => {
+    const isPullus = e.age === 'Pullus';
+    return `
     <div class="confirm-table-row">
       <span class="confirm-cell-primary">${e.species}${e.speciesWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : ''}</span>
       <span class="confirm-cell">${e.age}</span>
-      <span class="confirm-cell">${e.method}${e.methodWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : ''}</span>
-      <span class="confirm-cell-num"><span class="confirm-mob-label">Extracted</span>${e.num}</span>
-      <span class="confirm-cell-num"><span class="confirm-mob-label">Processed</span>${e.processed}</span>
+      <span class="confirm-cell">${e.method + (e.methodWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : '')}</span>
+      <span class="confirm-cell-num"><span class="confirm-mob-label">Extracted</span>${isPullus ? '—' : e.num}</span>
+      <span class="confirm-cell-num"><span class="confirm-mob-label">Processed</span>${isPullus ? '—' : e.processed}</span>
+      <span class="confirm-cell-num"><span class="confirm-mob-label">Fledged Ringed</span>${isPullus ? '—' : (e.fledgedRinged || 0)}</span>
+      <span class="confirm-cell-num"><span class="confirm-mob-label">Pulli ringed</span>${isPullus ? (e.pulliRinged || 0) : '—'}</span>
+      <span class="confirm-cell-num"><span class="confirm-mob-label">Broods Ass.</span>${isPullus ? (e.broodsAssessed || 0) : '—'}</span>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function goBackToForm() {
@@ -2373,12 +3017,12 @@ function doSubmit() {
     if (data.result === 'success') {
       showSuccessScreen(pendingPayload.entries.length, pendingPayload.trainee);
     } else {
-      showStatus('Submission failed: ' + (data.error || 'unknown error'), false);
+      showStatus('Submission failed — please try again or get in touch if the problem persists.', false);
       goBackToForm();
     }
   })
   .catch(() => {
-    showStatus('Network error — check your connection or Script URL.', false);
+    showStatus('Something went wrong — please check your internet connection and try again.', false);
     goBackToForm();
   })
   .finally(() => {
@@ -2412,6 +3056,9 @@ function resetForm() {
   document.getElementById('species-rows').innerHTML = '';
   showStatus('', null);
   rowCount = 0;
+  const whooshInp = document.getElementById('whoosh-firings');
+  if (whooshInp) { whooshInp.value = '—'; whooshInp.dataset.value = 'null'; whooshInp.classList.remove('input-error'); }
+  document.getElementById('whoosh-section')?.classList.remove('visible');
   addRow(true);
 }
 
@@ -2458,7 +3105,12 @@ function handleOverlayClick(e) {
 
 // Close on Escape key
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeUploadModal();
+  if (e.key === 'Escape') {
+    const openModals = document.querySelectorAll('.info-overlay.open');
+    if (openModals.length) { openModals.forEach(m => closeInfoModal(m.id)); return; }
+    closeSettings();
+    closeUploadModal();
+  }
 });
 
 // ─────────────────────────────────────────────
@@ -2652,7 +3304,7 @@ async function submitUpload() {
 
   } catch (err) {
     setProgress(null);
-    setUploadStatus('Failed to send: ' + err.message, false);
+    setUploadStatus('Upload failed — please check your internet connection and try again.', false);
   } finally {
     btn.disabled = false;
   }
@@ -2669,8 +3321,183 @@ window.addEventListener('DOMContentLoaded', () => {
   fetchTrainees();
   fetchMethods();
   addRow(true);
-});
-</script>
+  updateHeaderVisibility();
 
-</body>
-</html>
+  // ── Tooltip: CSS hover on desktop, JS fixed-bubble on mobile touch ──
+  const jsTip = document.getElementById('js-tip');
+  let activeTipIcon = null;
+
+  function positionBubble(icon) {
+    const tip = icon.dataset.tip;
+    if (!tip) return;
+    jsTip.textContent = tip;
+    jsTip.style.display = 'block';
+    jsTip.setAttribute('aria-hidden', 'false');
+
+    // Measure after display so offsetWidth is correct
+    requestAnimationFrame(() => {
+      const r   = icon.getBoundingClientRect();
+      const bw  = jsTip.offsetWidth;
+      const bh  = jsTip.offsetHeight;
+      const gap = 8;
+
+      // Centre above the icon; clamp 8 px from each edge
+      let left = r.left + r.width / 2 - bw / 2;
+      left = Math.max(8, Math.min(left, window.innerWidth - bw - 8));
+
+      // Prefer above; fall back to below if no room
+      let top = r.top - bh - gap;
+      if (top < 8) top = r.bottom + gap;
+
+      jsTip.style.left = left + 'px';
+      jsTip.style.top  = top  + 'px';
+    });
+  }
+
+  function hideBubble() {
+    jsTip.style.display = 'none';
+    jsTip.setAttribute('aria-hidden', 'true');
+    activeTipIcon = null;
+  }
+
+  document.addEventListener('touchstart', e => {
+    const icon = e.target.closest('.tip-icon');
+    if (icon) {
+      e.preventDefault(); // prevent ghost click & scroll
+      if (activeTipIcon === icon) {
+        hideBubble();
+      } else {
+        activeTipIcon = icon;
+        positionBubble(icon);
+      }
+    } else {
+      hideBubble();
+    }
+  }, { passive: false });
+
+  // Desktop: close when clicking away
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.tip-icon')) {
+      document.querySelectorAll('.tip-icon.tip-open').forEach(el => el.classList.remove('tip-open'));
+    }
+  });
+});
+
+// ─────────────────────────────────────────────
+// Settings dropdown & info modals
+// ─────────────────────────────────────────────
+function toggleSettings(e) {
+  e.stopPropagation();
+  const dd  = document.getElementById('settings-dropdown');
+  const btn = document.getElementById('settings-btn');
+  const open = dd.classList.toggle('open');
+  btn.classList.toggle('open', open);
+}
+
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.settings-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('settings-dropdown').classList.remove('open');
+    document.getElementById('settings-btn').classList.remove('open');
+  }
+});
+
+function closeSettings() {
+  document.getElementById('settings-dropdown').classList.remove('open');
+  document.getElementById('settings-btn').classList.remove('open');
+}
+
+function openInfoModal(id) {
+  closeSettings();
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeInfoModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (!document.querySelectorAll('.info-overlay.open').length) {
+    document.body.style.overflow = '';
+  }
+}
+
+function handleInfoOverlayClick(e, id) {
+  if (e.target === document.getElementById(id)) closeInfoModal(id);
+}
+</script>
+<div id="js-tip"
+     role="tooltip"
+     aria-hidden="true"
+     style="display:none;position:fixed;z-index:9999;pointer-events:none;
+            background:#1a1a14;color:#f5f0e8;font-family:'IBM Plex Mono',monospace;
+            font-size:0.72rem;line-height:1.5;padding:7px 11px;border-radius:4px;
+            max-width:min(260px,calc(100vw - 24px));white-space:normal;
+            box-shadow:0 6px 20px rgba(26,26,20,0.28);">
+</div>
+
+<!-- ── FAQ modal ── -->
+<div class="info-overlay" id="about-modal" onclick="handleInfoOverlayClick(event,'about-modal')">
+  <div class="info-modal">
+    <div class="info-modal-hd">
+      <h2>FAQ</h2>
+      <button class="info-modal-x" onclick="closeInfoModal('about-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="info-modal-bd">
+      <h3>What can Ringing Tracker do?</h3>
+      <p>Ringing Tracker is primarily for ringing trainees and anyone interested in tracking their ringing data, with a focus on those working towards ringing licence endorsements. Anyone with the website link can start logging their own sessions, upload their old records to be added to the database, and view their compiled stats to see breakdowns across species and catching methods.</p>
+      <h3>How does logging data work?</h3>
+      <p>Ringing data is stored on a Google Sheets spreadsheet, which tracks Ringers, Methods, and Responses to the Log session form. If you are new to the tracker, please write your full name and click "Add new" when logging data — it should then be saved going forward. This should also work for new species and catching methods, in case you catch something outside the UK or with a novel method. Since it needs to update a spreadsheet, it requires an internet connection to work.</p>
+      <h3>How does the dashboard work?</h3>
+      <p>The dashboard reads all data from the spreadsheet for the ringer selected, and breaks it down by species and catching method. The "Species gaps" section shows all the species you haven't logged for a method that other ringers have, sorted in descending order — so you'll quickly see any commonly-handled birds you're missing. This is dependent on other ringers having logged them, though, so if everyone is missing a species it won't appear as a gap.</p>
+      <h3>How do I upload my old data?</h3>
+      <p>Use the "Upload previous records" button at the bottom of the Log session page and upload your old data in whatever format you use. Since the data structures will vary, uploaded files need manual approval, so it may be a few days before they get added to the main database and appear in the dashboard. If you want to be notified when this happens, pop your contact details in the notes section.</p>
+      <h3>Is the data backed up?</h3>
+      <p>Yes — every time you log a new session the responses sheet is backed up to a separate spreadsheet, and there are also regular weekly backups to cover manual edits. It's also worth using the "Export CSV" button on the dashboard to download a spreadsheet of all your data so you have an offline copy.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Changelog modal ── -->
+<div class="info-overlay" id="changelog-modal" onclick="handleInfoOverlayClick(event,'changelog-modal')">
+  <div class="info-modal">
+    <div class="info-modal-hd">
+      <h2>Changelog</h2>
+      <button class="info-modal-x" onclick="closeInfoModal('changelog-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="info-modal-bd">
+      <div class="cl-entry">
+        <span class="vtag vtag-new">v1.1 · Latest</span>
+        <ul>
+          <li>Added extra detail to appropriately track BTO-relevant ringing progress (e.g. number of whoosh net firings, number of broods assessed)</li>
+          <li>Added bird categories (e.g. open-nesting passerines, birds of prey etc.) to the dashboard for clearer reading</li>
+          <li>Added an export option for a BTO-formatted .xlsx ringing progress tracker, alongside the session-level .csv option</li>
+        </ul>
+      </div>
+      <div class="cl-entry">
+        <span class="vtag">v1.0</span>
+        <ul>
+          <li>Log sessions by species, age class, and catching method, with separate counts for extracted and processed birds</li>
+          <li>Searchable species dropdown covering the full BTO list, with 5-letter codes</li>
+          <li>New species, methods, and ringers are added to the sheet automatically</li>
+          <li>Confirmation screen so you can check everything before it gets submitted</li>
+          <li>Per-ringer dashboard with total extractions, processing counts, and a full method breakdown</li>
+          <li>Species gap analysis — see what other ringers have caught that you haven't yet</li>
+          <li>Upload previous records in any format for manual import into the database</li>
+          <li>Works on mobile</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Report issues modal ── -->
+<div class="info-overlay" id="report-modal" onclick="handleInfoOverlayClick(event,'report-modal')">
+  <div class="info-modal">
+    <div class="info-modal-hd">
+      <h2>Report issues</h2>
+      <button class="info-modal-x" onclick="closeInfoModal('report-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="info-modal-bd">
+      <h3>Email</h3>
+      <p><a href="/cdn-cgi/l/email-protection#523724373e2b3c343a3d253326213d3c12353f333b3e7c313d3f"><span class="__cf_email__" data-cfemail="7e1b081b120710181611091f0a0d11103e19131f1712501d1113">[email&#160;protected]</span></a> — let me know if you have any questions or feedback!</p>
+      <h3>GitHub</h3>
+      <p><a href="https://github.com/evelynfh/lrg" target="_blank
