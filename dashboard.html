@@ -1454,6 +1454,8 @@ function renderDashboard(data, ringer) {
     ? 'Totals of species recorded by other ringers'
     : 'no gaps \u2713';
 
+  _chipData  = {};
+  _chipIndex = 0;
   var methodSections = siteMethods.map(function(m) {
     var hasMissing = Object.keys(siteFreqByMethod[m]).some(function(sp) {
       var total = typeof siteFreqByMethod[m][sp] === 'object' ? Object.values(siteFreqByMethod[m][sp]).reduce(function(s,n){return s+n;},0) : 0;
@@ -1480,8 +1482,6 @@ function renderDashboard(data, ringer) {
   document.getElementById('missing-area').innerHTML = allMissingSpecies.size
     ? methodSections + procSection
     : '<div class="missing-empty">\u2713 This ringer has handled every species logged by other ringers.</div>';
-  _chipData  = {};
-  _chipIndex = 0;
   _initGapPopup();
   _attachChipListener();
 
