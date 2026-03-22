@@ -518,41 +518,24 @@
   .gap-popup-overlay.open { display: block; }
   .gap-popup {
     display: none;
-    position: fixed;
+    position: absolute;
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--accent);
+    border: 0.5px solid var(--border);
+    border-top: 2px solid var(--ink);
     border-radius: 4px;
-    box-shadow: 0 8px 28px rgba(26,26,20,0.18);
-    min-width: 200px;
-    max-width: 280px;
+    width: max-content;
+    min-width: 120px;
+    max-width: 260px;
     z-index: 701;
     overflow: hidden;
   }
-  .gap-popup-hd {
-    background: var(--ink);
-    color: var(--bg);
-    padding: 8px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-  }
-  .gap-popup-title { font-size: 0.78rem; font-weight: 600; font-family: 'Playfair Display', serif; }
-  .gap-popup-x {
-    background: none; border: none; color: #9a9480;
-    font-size: 1.1rem; line-height: 1; cursor: pointer; padding: 0 2px;
-  }
-  .gap-popup-x:hover { color: var(--bg); }
-  .gap-popup-bd { padding: 10px 14px 12px; }
   .gap-popup-row {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 4px 0; font-size: 0.76rem;
-    border-bottom: 1px solid var(--border); gap: 16px;
+    padding: 5px 12px; font-size: 0.72rem; gap: 12px;
   }
-  .gap-popup-row:last-child { border-bottom: none; }
+  .gap-popup-row:nth-child(even) { background: var(--surface-alt, rgba(0,0,0,0.03)); }
   .gap-popup-name { color: var(--ink); }
-  .gap-popup-num { font-weight: 600; color: var(--accent); flex-shrink: 0; }
+  .gap-popup-num { color: var(--ink-muted); font-weight: 500; flex-shrink: 0; }
 
   /* ── Session history ── */
   .session-item {
@@ -601,6 +584,7 @@
     .session-item { flex-wrap: wrap; }
     .ringer-strip { flex-wrap: wrap; }
     .export-btn { font-size: 0.72rem; padding: 7px 12px; }
+    .section-header { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
 
     /* Method table: compress padding and font so it fits without scrolling */
     .method-table th,
@@ -1202,6 +1186,79 @@ function getSpeciesCategory(sp) {
 window._exportSessions = [];
 window._exportRinger   = '';
 
+var _gapListenerAttached = false;
+var _chipData = {};
+var _chipIndex = 0;
+var _gapOverlay = null;
+var _gapPopup   = null;
+var _currentChip = null;
+
+function _positionPopup(chip, rowCount) {
+  var rect = chip.getBoundingClientRect();
+  var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+  var scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+  var pw = _gapPopup.offsetWidth || 200;
+  var estimatedHeight = rowCount * 31 + 12;
+  var left = rect.left + scrollX;
+  if (left + pw > scrollX + window.innerWidth - 12) left = scrollX + window.innerWidth - pw - 12;
+  if (left < scrollX + 8) left = scrollX + 8;
+  var top = rect.bottom + scrollY + 6;
+  if (rect.bottom + estimatedHeight > window.innerHeight - 8) top = rect.top + scrollY - estimatedHeight - 6;
+  if (top < scrollY + 8) top = scrollY + 8;
+  _gapPopup.style.left = left + 'px';
+  _gapPopup.style.top  = top  + 'px';
+}
+
+function _initGapPopup() {
+  if (_gapOverlay) return;
+  _gapOverlay = document.createElement('div');
+  _gapOverlay.className = 'gap-popup-overlay';
+  _gapOverlay.addEventListener('click', closeGapPopup);
+  _gapPopup = document.createElement('div');
+  _gapPopup.className = 'gap-popup';
+  document.body.appendChild(_gapOverlay);
+  document.body.appendChild(_gapPopup);
+  window.addEventListener('scroll', function() {
+    if (!_currentChip || _gapPopup.style.display !== 'block') return;
+    var rect = _currentChip.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > window.innerHeight) {
+      closeGapPopup();
+    }
+  }, { passive: true });
+}
+
+function closeGapPopup() {
+  if (!_gapOverlay) return;
+  _currentChip = null;
+  _gapOverlay.classList.remove('open');
+  _gapPopup.style.display = 'none';
+}
+
+function _attachChipListener() {
+  if (_gapListenerAttached) return;
+  _gapListenerAttached = true;
+  document.addEventListener('click', function(ev) {
+    var chip = ev.target.closest('.missing-chip');
+    if (!chip) return;
+    var entry = _chipData[chip.getAttribute('data-chip')];
+    if (!entry) return;
+    var ringerRows = Object.entries(entry.ringerMap).sort(function(a, b) { return b[1] - a[1]; });
+    _gapPopup.innerHTML =
+      '<div style="padding: 6px 0;">'
+      + ringerRows.map(function(r) {
+          return '<div class="gap-popup-row">'
+            + '<span class="gap-popup-name">' + r[0] + '</span>'
+            + '<span class="gap-popup-num">' + r[1] + '</span>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+    _currentChip = chip;
+    _positionPopup(chip, ringerRows.length);
+    _gapOverlay.classList.add('open');
+    _gapPopup.style.display = 'block';
+  });
+}
+
 function renderDashboard(data, ringer) {
   var sessions = (data.sessions || []).slice().sort(function(a, b) {
     return b.date.localeCompare(a.date);
@@ -1341,69 +1398,7 @@ function renderDashboard(data, ringer) {
   // ── Gap breakdown popup ──────────────────────────────────────────
   // Chip data stored in a JS map by index; chips carry only a data-chip
   // attribute — no inline onclick strings, no escaping issues.
-  var _chipData   = {};
-  var _chipIndex  = 0;
-  var _gapOverlay = null;
-  var _gapPopup   = null;
-  var _gapListenerAttached = false;
 
-  function _initGapPopup() {
-    if (_gapOverlay) return;
-    _gapOverlay = document.createElement('div');
-    _gapOverlay.className = 'gap-popup-overlay';
-    _gapOverlay.addEventListener('click', closeGapPopup);
-    _gapPopup = document.createElement('div');
-    _gapPopup.className = 'gap-popup';
-    document.body.appendChild(_gapOverlay);
-    document.body.appendChild(_gapPopup);
-  }
-
-  function closeGapPopup() {
-    if (!_gapOverlay) return;
-    _gapOverlay.classList.remove('open');
-    _gapPopup.style.display = 'none';
-  }
-
-  function _attachChipListener() {
-    if (_gapListenerAttached) return;
-    _gapListenerAttached = true;
-    document.getElementById('missing-area').addEventListener('click', function(ev) {
-      var chip = ev.target.closest('.missing-chip');
-      if (!chip) return;
-      ev.stopPropagation();
-      var entry = _chipData[chip.getAttribute('data-chip')];
-      if (!entry) return;
-      _initGapPopup();
-      var ringerRows = Object.entries(entry.ringerMap).sort(function(a, b) { return b[1] - a[1]; });
-      _gapPopup.innerHTML =
-        '<div class="gap-popup-hd">'
-        + '<span class="gap-popup-title">' + entry.species + '</span>'
-        + '<button class="gap-popup-x">&#x2715;</button>'
-        + '</div>'
-        + '<div class="gap-popup-bd">'
-        + ringerRows.map(function(r) {
-            return '<div class="gap-popup-row">'
-              + '<span class="gap-popup-name">' + r[0] + '</span>'
-              + '<span class="gap-popup-num">' + r[1] + '</span>'
-              + '</div>';
-          }).join('')
-        + '</div>';
-      _gapPopup.querySelector('.gap-popup-x').addEventListener('click', closeGapPopup);
-
-      var rect = chip.getBoundingClientRect();
-      var pw = 220;
-      var left = Math.min(rect.left, window.innerWidth - pw - 12);
-      if (left < 8) left = 8;
-      var top = rect.bottom + 6;
-      var estimatedHeight = ringerRows.length * 33 + 48;
-      if (top + estimatedHeight > window.innerHeight - 8) top = rect.top - estimatedHeight - 6;
-      if (top < 8) top = 8;
-      _gapPopup.style.left = left + 'px';
-      _gapPopup.style.top  = top  + 'px';
-      _gapOverlay.classList.add('open');
-      _gapPopup.style.display = 'block';
-    });
-  }
 
   function missingChips(freqMap, mySet) {
     // freqMap[species] is a per-ringer object: { ringerName: count }
