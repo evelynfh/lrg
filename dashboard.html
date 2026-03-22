@@ -1456,7 +1456,8 @@ function renderDashboard(data, ringer) {
 
   var methodSections = siteMethods.map(function(m) {
     var hasMissing = Object.keys(siteFreqByMethod[m]).some(function(sp) {
-      return !mySpecies.has(sp) && siteFreqByMethod[m][sp] > 0;
+      var total = typeof siteFreqByMethod[m][sp] === 'object' ? Object.values(siteFreqByMethod[m][sp]).reduce(function(s,n){return s+n;},0) : 0;
+      return !mySpecies.has(sp) && total > 0;
     });
     if (!hasMissing) return '';
     return '<div class="missing-method-block">'
@@ -1466,7 +1467,8 @@ function renderDashboard(data, ringer) {
   }).join('');
 
   var procHasMissing = Object.keys(siteProcessedFreq).some(function(sp) {
-    return !myProcessedSpecies.has(sp) && siteProcessedFreq[sp] > 0;
+    var total = typeof siteProcessedFreq[sp] === 'object' ? Object.values(siteProcessedFreq[sp]).reduce(function(s,n){return s+n;},0) : 0;
+    return !myProcessedSpecies.has(sp) && total > 0;
   });
   var procSection = procHasMissing
     ? '<div class="missing-method-block">'
