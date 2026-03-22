@@ -772,8 +772,9 @@
     .settings-wrap { margin-left: 0; }
     .settings-btn .settings-label { display: none; }
     .settings-dropdown { right: 0; left: auto; min-width: 160px; }
-    .info-modal { max-height: 92vh; }
+    .info-modal { max-height: calc(100vh - 40px); }
     .info-modal-bd { padding: 18px 16px; }
+    .info-overlay { align-items: flex-start; padding: 20px 16px; }
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
@@ -2040,15 +2041,7 @@ document.addEventListener('keydown', function(e) {
     </div>
     <div class="info-modal-bd">
       <div class="cl-entry">
-        <span class="vtag vtag-new">v1.1 · Latest</span>
-        <ul>
-          <li>Added extra detail to appropriately track BTO-relevant ringing progress (e.g. number of whoosh net firings, number of broods assessed)</li>
-          <li>Added bird categories (e.g. open-nesting passerines, birds of prey etc.) to the dashboard for clearer reading</li>
-          <li>Added an export option for a BTO-formatted .xlsx ringing progress tracker, alongside the session-level .csv option</li>
-        </ul>
-      </div>
-      <div class="cl-entry">
-        <span class="vtag">v1.0</span>
+        <span class="vtag vtag-new">v1.0 · Latest</span>
         <ul>
           <li>Log sessions by species, age class, and catching method, with separate counts for extracted and processed birds</li>
           <li>Searchable species dropdown covering the full BTO list, with 5-letter codes</li>
@@ -2073,6 +2066,9 @@ document.addEventListener('keydown', function(e) {
     </div>
     <div class="info-modal-bd">
       <h3>Email</h3>
-      <p><a href="/cdn-cgi/l/email-protection#6e0b180b021700080601190f1a1d01002e09030f0702400d0103"><span class="__cf_email__" data-cfemail="b6d3c0d3dacfd8d0ded9c1d7c2c5d9d8f6d1dbd7dfda98d5d9db">[email&#160;protected]</span></a> — let me know if you have any questions or feedback!</p>
+      <p><a href="#" id="contact-email">— loading —</a><script>(function(){var e="evelynfhowatson"+"@"+"gmail.com";var a=document.getElementById("contact-email");a.href="mailto:"+e;a.textContent=e;})();</script> — let me know if you have any questions or feedback!</p>
       <h3>GitHub</h3>
-      <p><a href="https://github.com/evelynfh/lrg" target="_blan
+      <p><a href="https://github.com/evelynfh/lrg" target="_blank" rel="noopener">https://github.com/evelynfh/lrg</a> — please report any bugs or issues here!</p>
+    </div>
+  </div>
+</div>
