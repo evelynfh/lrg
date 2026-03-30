@@ -280,12 +280,10 @@
     z-index: 201;
   }
 
-  .tip-icon:hover::after,
-  .tip-icon:hover::before,
-  .tip-icon.tip-open::after,
-  .tip-icon.tip-open::before {
-    opacity: 1;
-  }
+  /* Tooltips rendered by #js-tip across all screen sizes —
+     prevents clipping by grid/overflow containers on desktop */
+  .tip-icon::after,
+  .tip-icon::before { display: none !important; }
 
   /* Species rows */
   #species-rows { padding: 12px 24px; }
@@ -1328,8 +1326,6 @@
     }
 
     /* Suppress the CSS ::after tooltip on mobile — JS bubble handles it instead */
-    .tip-icon::after,
-    .tip-icon::before { display: none !important; }
 
     input[type="text"],
     input[type="search"],
@@ -3380,6 +3376,21 @@ window.addEventListener('DOMContentLoaded', () => {
       hideBubble();
     }
   }, { passive: false });
+
+  // Desktop: show tooltip on mouse hover
+  document.addEventListener('mouseover', e => {
+    const icon = e.target.closest('.tip-icon');
+    if (icon) {
+      activeTipIcon = icon;
+      positionBubble(icon);
+    }
+  });
+
+  document.addEventListener('mouseout', e => {
+    if (e.target.closest('.tip-icon')) {
+      hideBubble();
+    }
+  });
 
   // Desktop: close when clicking away
   document.addEventListener('click', e => {
