@@ -10,6 +10,7 @@
 <link rel="manifest" href="site.webmanifest">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
 <style>
   :root {
     --bg: #f5f0e8;
@@ -818,27 +819,7 @@
 <script src="theme.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </head>
-<body>
-
-<header>
-  <h1>Ringing Tracker</h1>
-  <nav>
-    <a href="index.html">Log session</a>
-    <a href="dashboard.html" class="active">Dashboard</a>
-    <div class="settings-wrap">
-      <button class="settings-btn" id="settings-btn"
-              onclick="toggleSettings(event)" aria-label="Settings">
-        ⚙ <span class="settings-label">Settings</span>
-      </button>
-      <div class="settings-dropdown" id="settings-dropdown">
-        <button class="settings-item" id="theme-toggle" onclick="toggleTheme()">Dark mode: off</button>
-        <button class="settings-item" onclick="openInfoModal('about-modal')">FAQ</button>
-        <button class="settings-item" onclick="openInfoModal('changelog-modal')">Changelog</button>
-        <button class="settings-item" onclick="openInfoModal('report-modal')">Report issues</button>
-      </div>
-    </div>
-  </nav>
-</header>
+<body data-page="dashboard">
 
 <main>
 
@@ -2141,77 +2122,10 @@ document.addEventListener('keydown', function(e) {
   closeSettings();
 });
 
+  closeSettings();
+});
+
 </script>
-
-<!-- ── FAQ modal ── -->
-<div class="info-overlay" id="about-modal" onclick="handleInfoOverlayClick(event,'about-modal')">
-  <div class="info-modal">
-    <div class="info-modal-hd">
-      <h2>FAQ</h2>
-      <button class="info-modal-x" onclick="closeInfoModal('about-modal')" aria-label="Close">×</button>
-    </div>
-    <div class="info-modal-bd">
-      <h3>What can Ringing Tracker do?</h3>
-      <p>Ringing Tracker is primarily for ringing trainees and anyone interested in tracking their ringing data, with a focus on those working towards ringing licence endorsements. Anyone with the website link can start logging their own sessions, upload their old records to be added to the database, and view their compiled stats to see breakdowns across species and catching methods.</p>
-      <h3>How does logging data work?</h3>
-      <p>Ringing data is stored on a Google Sheets spreadsheet, which tracks Ringers, Methods, and Responses to the Log session form. If you are new to the tracker, please write your full name and click "Add new" when logging data — it should then be saved going forward. This should also work for new species and catching methods, in case you catch something outside the UK or with a novel method. Since it needs to update a spreadsheet, it requires an internet connection to work.</p>
-      <h3>How does the dashboard work?</h3>
-      <p>The dashboard reads all data from the spreadsheet for the ringer selected, and breaks it down by species and catching method. The "Species gaps" section shows all the species you haven't logged for a method that other ringers have, sorted in descending order — so you'll quickly see any commonly-handled birds you're missing. This is dependent on other ringers having logged them, though, so if everyone is missing a species it won't appear as a gap.</p>
-      <h3>How do I upload my old data?</h3>
-      <p>Use the "Upload previous records" button at the bottom of the Log session page and upload your old data in whatever format you use. Since the data structures will vary, uploaded files need manual approval, so it may be a few days before they get added to the main database and appear in the dashboard. If you want to be notified when this happens, pop your contact details in the notes section.</p>
-      <h3>Is the data backed up?</h3>
-      <p>Yes — every time you log a new session the responses sheet is backed up to a separate spreadsheet, and there are also regular weekly backups to cover manual edits. It's also worth using the "Export CSV" button on the dashboard to download a spreadsheet of all your data so you have an offline copy.</p>
-    </div>
-  </div>
-</div>
-
-<!-- ── Changelog modal ── -->
-<div class="info-overlay" id="changelog-modal" onclick="handleInfoOverlayClick(event,'changelog-modal')">
-  <div class="info-modal">
-    <div class="info-modal-hd">
-      <h2>Changelog</h2>
-      <button class="info-modal-x" onclick="closeInfoModal('changelog-modal')" aria-label="Close">×</button>
-    </div>
-    <div class="info-modal-bd">
-      <div class="cl-entry">
-        <span class="vtag vtag-new">v1.1 · Latest</span>
-        <ul>
-          <li>Added extra detail to appropriately track BTO-relevant ringing progress (e.g. number of whoosh net firings, number of broods assessed)</li>
-          <li>Added bird categories (e.g. open-nesting passerines, birds of prey etc.) to the dashboard for clearer reading</li>
-          <li>Added an export option for a BTO-formatted .xlsx ringing progress tracker, alongside the session-level .csv option</li>
-          <li>Can now click on a species gap to view ringers who have logged that species</li>
-          <li>Fixed mobile padding issue with the settings button</li>
-        </ul>
-      </div>
-      <div class="cl-entry">
-        <span class="vtag">v1.0</span>
-        <ul>
-          <li>Log sessions by species, age class, and catching method, with separate counts for extracted and processed birds</li>
-          <li>Searchable species dropdown covering the full BTO list, with 5-letter codes</li>
-          <li>New species, methods, and ringers are added to the sheet automatically</li>
-          <li>Confirmation screen so you can check everything before it gets submitted</li>
-          <li>Per-ringer dashboard with total extractions, processing counts, and a full method breakdown</li>
-          <li>Species gap analysis — see what other ringers have caught that you haven't yet</li>
-          <li>Upload previous records in any format for manual import into the database</li>
-          <li>Works on mobile</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── Report issues modal ── -->
-<div class="info-overlay" id="report-modal" onclick="handleInfoOverlayClick(event,'report-modal')">
-  <div class="info-modal">
-    <div class="info-modal-hd">
-      <h2>Report issues</h2>
-      <button class="info-modal-x" onclick="closeInfoModal('report-modal')" aria-label="Close">×</button>
-    </div>
-    <div class="info-modal-bd">
-      <h3>Email</h3>
-      <p><a href="#" id="contact-email">— loading —</a><script>(function(){var e="evelynfhowatson"+"@"+"gmail.com";var a=document.getElementById("contact-email");a.href="mailto:"+e;a.textContent=e;})();</script> — let me know if you have any questions or feedback!</p>
-      <h3>GitHub</h3>
-      <p><a href="https://github.com/evelynfh/lrg" target="_blank" rel="noopener">https://github.com/evelynfh/lrg</a> — please report any bugs or issues here!</p>
-    </div>
-  </div>
-</div>
+<script src="shared.js"></script>
+</body>
+</html>
