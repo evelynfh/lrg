@@ -120,11 +120,16 @@ window.highlight = function (text, q) {
     if (e.target === document.getElementById(id)) window.closeInfoModal(id);
   };
 
+  // Single, shared Escape handler for every page. Pages can opt in to extra
+  // Escape behaviour (e.g. closing a page-specific modal) by defining
+  // window.closeOnEscape — called last, only once info modals/settings are
+  // already handled.
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
     var open = document.querySelectorAll('.info-overlay.open');
     if (open.length) { open.forEach(function (m) { window.closeInfoModal(m.id); }); return; }
     window.closeSettings();
+    if (typeof window.closeOnEscape === 'function') window.closeOnEscape();
   });
 
   // theme.js ran in <head> before the toggle button existed: sync its label now

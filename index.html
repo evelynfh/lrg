@@ -13,24 +13,8 @@
 <link rel="stylesheet" href="shared.css">
 <style>
   :root {
-    --bg: #f5f0e8;
-    --surface: #fffdf7;
-    --ink: #1a1a14;
-    --ink-muted: #6b6657;
-    --accent: #2d5a27;
-    --accent-light: #e8f0e6;
-    --accent-hover: #1e3e1b;
-    --border: #d4ccb8;
-    --border-focus: #2d5a27;
-    --danger: #8b2e2e;
-    --row-alt: #faf7f0;
-    --shadow: 0 2px 8px rgba(26,26,20,0.08);
-    --shadow-lg: 0 8px 32px rgba(26,26,20,0.12);
-    --amber: #c9a800;
-    --amber-bg: #fff8e6;
-    --amber-border: #e8d88a;
-    --amber-ink: #6b5700;
     --modal-overlay: rgba(26,26,20,0.55);
+    --amber: #c9a800;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,46 +26,6 @@
     min-height: 100vh;
     padding: 0;
   }
-
-  /* Header */
-  header {
-    background: var(--ink);
-    color: var(--bg);
-    padding: 28px 40px;
-    display: flex;
-    align-items: center;
-    border-bottom: 3px solid var(--accent);
-  }
-
-  header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.7rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: #f5f0e8;
-    margin-right: 16px;
-  }
-
-  header nav {
-    display: flex;
-    flex: 1;
-    gap: 4px;
-    align-items: center;
-  }
-
-  header nav a {
-    color: #9a9480;
-    text-decoration: none;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    padding: 8px 12px 4px;
-    border-radius: 3px;
-    transition: color 0.15s, background 0.15s;
-  }
-
-  header nav a:hover { color: var(--bg); background: rgba(255,255,255,0.08); }
-  header nav a.active { color: var(--bg); }
-  header nav span { margin-left: auto; }
 
   /* Main layout */
   main {
@@ -412,9 +356,8 @@
     border-top-color: var(--accent);
     border-radius: 50%;
     flex-shrink: 0;
+    animation: spin 0.7s linear infinite;
   }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Row inputs */
   .row-input {
@@ -881,9 +824,6 @@
   .status-ok  { color: var(--accent); }
   .status-err { color: var(--danger); }
 
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .dropdown-spinner { animation: spin 0.7s linear infinite; }
-
   /* ── Upload previous records button ── */
   .upload-prev-btn {
     background: none;
@@ -938,11 +878,6 @@
     max-height: 90vh;
     overflow-y: auto;
     animation: modalIn 0.22s ease;
-  }
-
-  @keyframes modalIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: none; }
   }
 
   .modal-header {
@@ -1248,11 +1183,6 @@
     .confirm-back-btn, #confirm-submit-btn { width: 100%; text-align: center; }
     .success-card { padding: 36px 24px; }
 
-    header { padding: 14px 16px; display: flex; flex-direction: row; align-items: center; gap: 0; }
-    header h1 { font-size: 1.3rem; width: 88px; flex-shrink: 0; margin-right: 8px; }
-    header nav { display: flex; flex: 1; justify-content: space-evenly; align-items: center; }
-    header nav a { padding: 4px 0; white-space: nowrap; flex: 1; text-align: center; }
-    header nav span { margin-left: 0 !important; flex: 1; text-align: center; }
     main { margin: 16px auto; padding: 0 12px 40px; }
     .session-card { padding: 20px 16px; margin-bottom: 20px; }
     .session-grid { grid-template-columns: 1fr; }
@@ -1417,199 +1347,7 @@
     .modal { max-height: 92vh; border-radius: 4px; }
     .modal-overlay { padding: 16px; align-items: center; }
     .upload-meta-grid { grid-template-columns: 1fr; }
-    .settings-wrap { margin-left: 0; }
-    .settings-btn .settings-label { display: none; }
-    .settings-dropdown { right: 0; left: auto; min-width: 160px; }
-    .info-modal { max-height: calc(100vh - 40px); }
-    .info-modal-bd { padding: 18px 16px; }
-    .info-overlay { align-items: flex-start; padding: 20px 16px; }
   }
-
-  /* ── Settings button & dropdown ── */
-  .settings-wrap {
-    position: relative;
-    margin-left: auto;
-  }
-
-  .settings-btn {
-    background: none;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 3px;
-    color: #9a9480;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    padding: 5px 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
-    white-space: nowrap;
-  }
-
-  .settings-btn:hover,
-  .settings-btn.open {
-    color: var(--bg);
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(255,255,255,0.3);
-  }
-
-  .settings-dropdown {
-    display: none;
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    box-shadow: 0 8px 28px rgba(26,26,20,0.18);
-    min-width: 180px;
-    z-index: 500;
-    overflow: hidden;
-  }
-
-  .settings-dropdown.open {
-    display: block;
-    animation: ddFadeIn 0.15s ease;
-  }
-
-  @keyframes ddFadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: none; }
-  }
-
-  .settings-item {
-    display: block;
-    width: 100%;
-    padding: 10px 16px;
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--ink);
-    cursor: pointer;
-    text-align: left;
-    text-decoration: none;
-    letter-spacing: 0.02em;
-    transition: background 0.1s;
-  }
-
-  .settings-item:last-child { border-bottom: none; }
-  .settings-item:hover { background: var(--accent-light); color: var(--accent); }
-
-  /* ── Info overlays / modals ── */
-  .info-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(26,26,20,0.55);
-    z-index: 600;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-
-  .info-overlay.open {
-    display: flex;
-    animation: infoOvFade 0.18s ease;
-  }
-
-  @keyframes infoOvFade { from { opacity: 0; } to { opacity: 1; } }
-
-  .info-modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--accent);
-    border-radius: 4px;
-    box-shadow: 0 16px 48px rgba(26,26,20,0.22);
-    width: 100%;
-    max-width: 540px;
-    max-height: 88vh;
-    overflow-y: auto;
-    animation: modalIn 0.22s ease;
-  }
-
-  .info-modal-hd {
-    background: var(--ink);
-    color: var(--bg);
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-
-  .info-modal-hd h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .info-modal-x {
-    background: none;
-    border: none;
-    color: #9a9480;
-    font-size: 1.3rem;
-    line-height: 1;
-    cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 2px;
-    transition: color 0.12s;
-  }
-
-  .info-modal-x:hover { color: var(--bg); }
-
-  .info-modal-bd {
-    padding: 22px 24px;
-    font-size: 0.82rem;
-    line-height: 1.7;
-    color: var(--ink-muted);
-  }
-
-  .info-modal-bd h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 0.92rem;
-    color: var(--ink);
-    margin: 18px 0 6px;
-    font-weight: 600;
-  }
-
-  .info-modal-bd h3:first-child { margin-top: 0; }
-  .info-modal-bd p { margin-bottom: 8px; }
-  .info-modal-bd a { color: var(--accent); text-decoration: underline; }
-
-  .vtag {
-    display: inline-block;
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    padding: 2px 7px;
-    border-radius: 2px;
-    background: var(--accent-light);
-    color: var(--accent);
-    border: 1px solid #c8dcc5;
-    margin-bottom: 4px;
-    vertical-align: middle;
-  }
-
-  .vtag-new {
-    background: #fff8e6;
-    color: #6b5700;
-    border-color: #e8d88a;
-  }
-
-  .cl-entry {
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .cl-entry:last-child { border-bottom: none; }
-  .cl-entry ul { margin: 6px 0 0 16px; }
-  .cl-entry li { margin-bottom: 3px; }
 </style>
 <link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
@@ -1844,357 +1582,14 @@
   </div>
 </div>
 
+<script src="species.js"></script>
 <script>
 // ─────────────────────────────────────────────
 // CONFIGURATION — edit these values
 // ─────────────────────────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_325ASJS3a7eWO0SF1VKzMLJyePOAVuk46kxnRf6voyz_u1lIBJYvnZ9gbkczMrpH/exec';
 
-const SPECIES_LIST = [
-  { name: "Mute Swan", code: "MUTSW" },
-  { name: "Bewick's Swan", code: "BEWSW" },
-  { name: "Whooper Swan", code: "WHOSW" },
-  { name: "Black Swan", code: "" },
-  { name: "Bar-headed Goose", code: "" },
-  { name: "Bean Goose", code: "BEAGO" },
-  { name: "Bean Goose (Taiga)", code: "" },
-  { name: "Bean Goose (Tundra)", code: "" },
-  { name: "Pink-footed Goose", code: "PIFGO" },
-  { name: "White-fronted Goose", code: "WHFGO" },
-  { name: "White-fronted Goose (Greenland)", code: "" },
-  { name: "White-fronted Goose (European)", code: "" },
-  { name: "Greylag Goose", code: "GREGO" },
-  { name: "Greylag Goose (domestic)", code: "" },
-  { name: "Snow Goose", code: "SNOGO" },
-  { name: "Canada Goose", code: "CANGO" },
-  { name: "Barnacle Goose", code: "BARGO" },
-  { name: "Brent Goose", code: "BREGO" },
-  { name: "Brent Goose (Dark-bellied)", code: "" },
-  { name: "Brent Goose (Light-bellied)", code: "" },
-  { name: "Brent Goose (Black Brant)", code: "" },
-  { name: "Egyptian Goose", code: "EGYGO" },
-  { name: "Ruddy Shelduck", code: "RUDSH" },
-  { name: "Shelduck", code: "SHELD" },
-  { name: "Mandarin Duck", code: "MANDA" },
-  { name: "Wood Duck", code: "WOODU" },
-  { name: "Wigeon", code: "WIGEO" },
-  { name: "American Wigeon", code: "AMEWI" },
-  { name: "Gadwall", code: "GADWA" },
-  { name: "Teal", code: "TEAL." },
-  { name: "Green-winged Teal", code: "GRWTE" },
-  { name: "Mallard", code: "MALLA" },
-  { name: "Mallard (domestic)", code: "" },
-  { name: "Pintail", code: "PINTA" },
-  { name: "Garganey", code: "GARGA" },
-  { name: "Shoveler", code: "SHOVE" },
-  { name: "Red-crested Pochard", code: "RECPO" },
-  { name: "Pochard", code: "POCHA" },
-  { name: "Ring-necked Duck", code: "RINDU" },
-  { name: "Ferruginous Duck", code: "FERDU" },
-  { name: "Tufted Duck", code: "TUFDU" },
-  { name: "Scaup", code: "SCAUP" },
-  { name: "Eider", code: "EIDER" },
-  { name: "Long-tailed Duck", code: "LOTDU" },
-  { name: "Common Scoter", code: "COMSC" },
-  { name: "Surf Scoter", code: "SURSC" },
-  { name: "Velvet Scoter", code: "VELSC" },
-  { name: "Goldeneye", code: "GOLDE" },
-  { name: "Smew", code: "SMEW." },
-  { name: "Red-breasted Merganser", code: "REBME" },
-  { name: "Goosander", code: "GOOSA" },
-  { name: "Ruddy Duck", code: "RUDDU" },
-  { name: "Muscovy Duck", code: "MUSDU" },
-  { name: "Red Grouse", code: "REDGR" },
-  { name: "Ptarmigan", code: "PTARM" },
-  { name: "Black Grouse", code: "BLAGR" },
-  { name: "Capercaillie", code: "CAPER" },
-  { name: "Red-legged Partridge", code: "RELPA" },
-  { name: "Grey Partridge", code: "GREPA" },
-  { name: "Quail", code: "QUAIL" },
-  { name: "Pheasant", code: "PHEAS" },
-  { name: "Golden Pheasant", code: "GOLPH" },
-  { name: "Lady Amherst's Pheasant", code: "LAAPH" },
-  { name: "Chukar", code: "" },
-  { name: "Indian Peafowl", code: "" },
-  { name: "Red-throated Diver", code: "RETDI" },
-  { name: "Black-throated Diver", code: "BLTDI" },
-  { name: "Great Northern Diver", code: "GRNDI" },
-  { name: "Little Grebe", code: "LITGR" },
-  { name: "Great Crested Grebe", code: "GRCGR" },
-  { name: "Red-necked Grebe", code: "RENGR" },
-  { name: "Slavonian Grebe", code: "SLAGR" },
-  { name: "Black-necked Grebe", code: "BLNGR" },
-  { name: "Bittern", code: "BITTE" },
-  { name: "Night-heron", code: "NIGHE" },
-  { name: "Little Egret", code: "LITEG" },
-  { name: "Great White Egret", code: "GRWEG" },
-  { name: "Grey Heron", code: "GREHE" },
-  { name: "Purple Heron", code: "PURHE" },
-  { name: "White Stork", code: "WHIST" },
-  { name: "Glossy Ibis", code: "GLOIB" },
-  { name: "Spoonbill", code: "SPOON" },
-  { name: "Honey-buzzard", code: "HONBU" },
-  { name: "Black Kite", code: "BLAKI" },
-  { name: "Red Kite", code: "REDKI" },
-  { name: "White-tailed Eagle", code: "WHTEA" },
-  { name: "Marsh Harrier", code: "MARHA" },
-  { name: "Hen Harrier", code: "HENHA" },
-  { name: "Montagu's Harrier", code: "MONHA" },
-  { name: "Goshawk", code: "GOSHA" },
-  { name: "Sparrowhawk", code: "SPARR" },
-  { name: "Buzzard", code: "BUZZA" },
-  { name: "Rough-legged Buzzard", code: "ROLBU" },
-  { name: "Golden Eagle", code: "GOLEA" },
-  { name: "Osprey", code: "OSPRE" },
-  { name: "Kestrel", code: "KESTR" },
-  { name: "Red-footed Falcon", code: "REFFA" },
-  { name: "Merlin", code: "MERLI" },
-  { name: "Hobby", code: "HOBBY" },
-  { name: "Peregrine", code: "PEREG" },
-  { name: "Water Rail", code: "WATRA" },
-  { name: "Spotted Crake", code: "SPOCR" },
-  { name: "Corncrake", code: "CORNC" },
-  { name: "Moorhen", code: "MOORH" },
-  { name: "Coot", code: "COOT." },
-  { name: "Crane", code: "CRANE" },
-  { name: "Oystercatcher", code: "OYSTE" },
-  { name: "Black-winged Stilt", code: "BLWST" },
-  { name: "Avocet", code: "AVOCE" },
-  { name: "Stone-curlew", code: "STOCU" },
-  { name: "Little Ringed Plover", code: "LIRPL" },
-  { name: "Ringed Plover", code: "RINPL" },
-  { name: "Kentish Plover", code: "KENPL" },
-  { name: "Dotterel", code: "DOTTE" },
-  { name: "American Golden Plover", code: "AMGPL" },
-  { name: "Golden Plover", code: "GOLPL" },
-  { name: "Grey Plover", code: "GREPL" },
-  { name: "Lapwing", code: "LAPWI" },
-  { name: "Knot", code: "KNOT." },
-  { name: "Sanderling", code: "SANDE" },
-  { name: "Little Stint", code: "LITST" },
-  { name: "Temminck's Stint", code: "TEMST" },
-  { name: "White-rumped Sandpiper", code: "WHRSA" },
-  { name: "Pectoral Sandpiper", code: "PECSA" },
-  { name: "Curlew Sandpiper", code: "CURSA" },
-  { name: "Purple Sandpiper", code: "PURSA" },
-  { name: "Dunlin", code: "DUNLI" },
-  { name: "Buff-breasted Sandpiper", code: "BUBSA" },
-  { name: "Ruff", code: "RUFF." },
-  { name: "Jack Snipe", code: "JACSN" },
-  { name: "Snipe", code: "SNIPE" },
-  { name: "Woodcock", code: "WOODC" },
-  { name: "Black-tailed Godwit", code: "BLTGO" },
-  { name: "Bar-tailed Godwit", code: "BATGO" },
-  { name: "Whimbrel", code: "WHIMB" },
-  { name: "Curlew", code: "CURLE" },
-  { name: "Spotted Redshank", code: "SPORE" },
-  { name: "Redshank", code: "REDSH" },
-  { name: "Greenshank", code: "GRESH" },
-  { name: "Lesser Yellowlegs", code: "LESYE" },
-  { name: "Green Sandpiper", code: "GRESA" },
-  { name: "Wood Sandpiper", code: "WOOSA" },
-  { name: "Common Sandpiper", code: "COMSA" },
-  { name: "Turnstone", code: "TURNS" },
-  { name: "Red-necked Phalarope", code: "RENPH" },
-  { name: "Grey Phalarope", code: "GREPH" },
-  { name: "Pomarine Skua", code: "POMSK" },
-  { name: "Arctic Skua", code: "ARCSK" },
-  { name: "Long-tailed Skua", code: "LOTSK" },
-  { name: "Great Skua", code: "GRESK" },
-  { name: "Mediterranean Gull", code: "MEDGU" },
-  { name: "Little Gull", code: "LITGU" },
-  { name: "Sabine's Gull", code: "SABGU" },
-  { name: "Black-headed Gull", code: "BLHGU" },
-  { name: "Ring-billed Gull", code: "RIBGU" },
-  { name: "Common Gull", code: "COMGU" },
-  { name: "Lesser Black-backed Gull", code: "LBBGU" },
-  { name: "Herring Gull", code: "HERGU" },
-  { name: "Yellow-legged Gull", code: "YELGU" },
-  { name: "Caspian Gull", code: "" },
-  { name: "Iceland Gull", code: "ICEGU" },
-  { name: "Glaucous Gull", code: "GLAGU" },
-  { name: "Great Black-backed Gull", code: "GBBGU" },
-  { name: "Kittiwake", code: "KITTI" },
-  { name: "Sandwich Tern", code: "SANTE" },
-  { name: "Roseate Tern", code: "ROSTE" },
-  { name: "Common Tern", code: "COMTE" },
-  { name: "Arctic Tern", code: "ARCTE" },
-  { name: "Little Tern", code: "LITTE" },
-  { name: "Black Tern", code: "BLATE" },
-  { name: "White-winged Black Tern", code: "WWBTE" },
-  { name: "Guillemot", code: "GUILL" },
-  { name: "Razorbill", code: "RAZOR" },
-  { name: "Black Guillemot", code: "BLAGU" },
-  { name: "Little Auk", code: "LITAU" },
-  { name: "Puffin", code: "PUFFI" },
-  { name: "Fulmar", code: "FULMA" },
-  { name: "Cory's Shearwater", code: "CORSH" },
-  { name: "Great Shearwater", code: "GRTSH" },
-  { name: "Sooty Shearwater", code: "SOOSH" },
-  { name: "Manx Shearwater", code: "MANSH" },
-  { name: "Balearic Shearwater", code: "BALSH" },
-  { name: "Wilson's Petrel", code: "WILPE" },
-  { name: "Storm Petrel", code: "STOPE" },
-  { name: "Leach's Petrel", code: "LEAPE" },
-  { name: "Gannet", code: "GANNE" },
-  { name: "Cormorant", code: "CORMO" },
-  { name: "Cormorant (Continental)", code: "" },
-  { name: "Shag", code: "SHAG." },
-  { name: "Rock Dove", code: "ROCDO" },
-  { name: "Feral Pigeon", code: "" },
-  { name: "Stock Dove", code: "STODO" },
-  { name: "Woodpigeon", code: "WOODP" },
-  { name: "Collared Dove", code: "COLDO" },
-  { name: "Turtle Dove", code: "TURDO" },
-  { name: "Ring-necked Parakeet", code: "RINPA" },
-  { name: "Cuckoo", code: "CUCKO" },
-  { name: "Barn Owl", code: "BAROW" },
-  { name: "Little Owl", code: "LITOW" },
-  { name: "Tawny Owl", code: "TAWOW" },
-  { name: "Long-eared Owl", code: "LOEOW" },
-  { name: "Short-eared Owl", code: "SHEOW" },
-  { name: "Nightjar", code: "NIJAR" },
-  { name: "Swift", code: "SWIFT" },
-  { name: "Alpine Swift", code: "ALPSW" },
-  { name: "Kingfisher", code: "KINGF" },
-  { name: "Bee-eater", code: "BEEEA" },
-  { name: "Hoopoe", code: "HOOPO" },
-  { name: "Wryneck", code: "WRYNE" },
-  { name: "Green Woodpecker", code: "GREWO" },
-  { name: "Great Spotted Woodpecker", code: "GRSWO" },
-  { name: "Lesser Spotted Woodpecker", code: "LESWO" },
-  { name: "Short-toed Lark", code: "SHTLA" },
-  { name: "Woodlark", code: "WOODL" },
-  { name: "Skylark", code: "SKYLA" },
-  { name: "Shore Lark", code: "SHOLA" },
-  { name: "Sand Martin", code: "SANMA" },
-  { name: "Swallow", code: "SWALL" },
-  { name: "Red-rumped Swallow", code: "RERSW" },
-  { name: "House Martin", code: "HOUMA" },
-  { name: "Richard's Pipit", code: "RICPI" },
-  { name: "Tawny Pipit", code: "TAWPI" },
-  { name: "Tree Pipit", code: "TREPI" },
-  { name: "Meadow Pipit", code: "MEAPI" },
-  { name: "Red-throated Pipit", code: "RETPI" },
-  { name: "Rock Pipit", code: "ROCPI" },
-  { name: "Water Pipit", code: "WATPI" },
-  { name: "Yellow Wagtail", code: "YELWA" },
-  { name: "Yellow Wagtail (Blue-headed)", code: "" },
-  { name: "Yellow Wagtail (Grey-headed)", code: "" },
-  { name: "Grey Wagtail", code: "GREWA" },
-  { name: "Pied/White Wagtail", code: "PIEWA" },
-  { name: "Pied Wagtail (yarrellii)", code: "" },
-  { name: "White Wagtail (alba)", code: "" },
-  { name: "Waxwing", code: "WAXWI" },
-  { name: "Dipper", code: "DIPPE" },
-  { name: "Wren", code: "WREN." },
-  { name: "Dunnock", code: "DUNNO" },
-  { name: "Robin", code: "ROBIN" },
-  { name: "Nightingale", code: "NIGAL" },
-  { name: "Bluethroat", code: "BLUTH" },
-  { name: "Bluethroat (White-spotted)", code: "" },
-  { name: "Bluethroat (Red-spotted)", code: "" },
-  { name: "Black Redstart", code: "BLARE" },
-  { name: "Redstart", code: "REDST" },
-  { name: "Whinchat", code: "WHINC" },
-  { name: "Stonechat", code: "STOCH" },
-  { name: "Wheatear", code: "WHEAT" },
-  { name: "Wheatear (Greenland)", code: "" },
-  { name: "Ring Ouzel", code: "RINOU" },
-  { name: "Blackbird", code: "BLABI" },
-  { name: "Fieldfare", code: "FIELD" },
-  { name: "Song Thrush", code: "SONTH" },
-  { name: "Redwing", code: "REDWI" },
-  { name: "Mistle Thrush", code: "MISTH" },
-  { name: "Cetti's Warbler", code: "CETWA" },
-  { name: "Grasshopper Warbler", code: "GRAWA" },
-  { name: "Savi's Warbler", code: "SAVWA" },
-  { name: "Aquatic Warbler", code: "AQUWA" },
-  { name: "Sedge Warbler", code: "SEDWA" },
-  { name: "Marsh Warbler", code: "MARWA" },
-  { name: "Reed Warbler", code: "REEWA" },
-  { name: "Icterine Warbler", code: "ICTWA" },
-  { name: "Melodious Warbler", code: "MELWA" },
-  { name: "Blackcap", code: "BLACA" },
-  { name: "Garden Warbler", code: "GARWA" },
-  { name: "Barred Warbler", code: "BARWA" },
-  { name: "Lesser Whitethroat", code: "LESWH" },
-  { name: "Whitethroat", code: "WHITE" },
-  { name: "Dartford Warbler", code: "DARWA" },
-  { name: "Subalpine Warbler", code: "SUBWA" },
-  { name: "Greenish Warbler", code: "GSHWA" },
-  { name: "Arctic Warbler", code: "ARCWA" },
-  { name: "Pallas's Warbler", code: "PALWA" },
-  { name: "Yellow-browed Warbler", code: "YEBWA" },
-  { name: "Radde's Warbler", code: "RADWA" },
-  { name: "Dusky Warbler", code: "DUSWA" },
-  { name: "Wood Warbler", code: "WOOWA" },
-  { name: "Chiffchaff", code: "CHIFF" },
-  { name: "Willow Warbler", code: "WILWA" },
-  { name: "Goldcrest", code: "GOLDC" },
-  { name: "Firecrest", code: "FIREC" },
-  { name: "Spotted Flycatcher", code: "SPOFL" },
-  { name: "Red-breasted Flycatcher", code: "REBFL" },
-  { name: "Pied Flycatcher", code: "PIEFL" },
-  { name: "Bearded Tit", code: "BEATI" },
-  { name: "Long-tailed Tit", code: "LOTTI" },
-  { name: "Long-tailed Tit (Northern)", code: "" },
-  { name: "Marsh Tit", code: "MARTI" },
-  { name: "Willow Tit", code: "WILTI" },
-  { name: "Crested Tit", code: "CRETI" },
-  { name: "Coal Tit", code: "COATI" },
-  { name: "Coal Tit (Continental)", code: "" },
-  { name: "Blue Tit", code: "BLUTI" },
-  { name: "Great Tit", code: "GRETI" },
-  { name: "Nuthatch", code: "NUTHA" },
-  { name: "Treecreeper", code: "TREEC" },
-  { name: "Golden Oriole", code: "GOLOR" },
-  { name: "Red-backed Shrike", code: "REBSH" },
-  { name: "Great Grey Shrike", code: "GRGSH" },
-  { name: "Woodchat Shrike", code: "WOOSH" },
-  { name: "Jay", code: "JAY.." },
-  { name: "Magpie", code: "MAGPI" },
-  { name: "Chough", code: "CHOUG" },
-  { name: "Jackdaw", code: "JACKD" },
-  { name: "Rook", code: "ROOK." },
-  { name: "Carrion Crow", code: "CARCR" },
-  { name: "Hooded Crow", code: "HOOCR" },
-  { name: "Carrion/Hooded Crow hybrid", code: "INTCR" },
-  { name: "Raven", code: "RAVEN" },
-  { name: "Starling", code: "STARL" },
-  { name: "Rose-coloured Starling", code: "ROCST" },
-  { name: "House Sparrow", code: "HOUSP" },
-  { name: "Tree Sparrow", code: "TRESP" },
-  { name: "Chaffinch", code: "CHAFF" },
-  { name: "Brambling", code: "BRAMB" },
-  { name: "Serin", code: "SERIN" },
-  { name: "Greenfinch", code: "GREFI" },
-  { name: "Goldfinch", code: "GOLDF" },
-  { name: "Siskin", code: "SISKI" },
-  { name: "Linnet", code: "LINNE" },
-  { name: "Twite", code: "TWITE" },
-  { name: "Common Redpoll", code: "COMRE" },
-  { name: "Lesser Redpoll", code: "LESRE" },
-  { name: "Common Redpoll (Mealy)", code: "" },
-  { name: "Common Redpoll (Greenland)", code: "" },
-  { name: "Redpoll (Common/Lesser)", code: "REDPO" },
-  { name: "Arctic Redpoll", code: "ARCRE" },
-  { name: "Common Crossbill", code: "CROSS" },
-  { name: "Scottish Crossbill", code: "SCOCR" },
-  { name: "Parrot Crossbill", code: "PARCR" },
-  { name: "Common Rosefinch", code: "SCARO" },
-  { name: "Bullfinch", code: "BULLF" },
-  { name: "Hawfinch", code: "HAWFI" },
-  { name: "Lapland Bunting", code: "LAPBU" },
-  { name: "Snow Bunting", code: "SNOBU" },
-  { name: "Yellowhammer", code: "YELHA" },
-  { name: "Cirl Bunting", code: "CIRBU" },
-  { name: "Ortolan Bunting", code: "ORTBU" },
-  { name: "Rustic Bunting", code: "RUSBU" },
-  { name: "Little Bunting", code: "LITBU" },
-  { name: "Reed Bunting", code: "REEBU" },
-  { name: "Corn Bunting", code: "CORBU" }
-];
+// SPECIES_LIST (name, code, category) comes from species.js, shared with dashboard.html.
 
 // ─────────────────────────────────────────────
 // Row management
@@ -2409,9 +1804,9 @@ function filterSpecies(id, query) {
   }
 
   dd.innerHTML = matches.map((s, i) => {
-    const nameHl = s.name.replace(new RegExp(`(${escapeRe(q)})`, 'gi'), '<span class="match">$1</span>');
+    const nameHl = highlight(s.name, q);
     const codeDisplay = s.code
-      ? `<span style="color:var(--ink-muted);font-size:0.72rem;margin-left:6px;">${s.code.replace(new RegExp(`(${escapeRe(q.toUpperCase())})`, 'g'), '<span class="match">$1</span>')}</span>`
+      ? `<span style="color:var(--ink-muted);font-size:0.72rem;margin-left:6px;">${highlight(s.code, q.toUpperCase())}</span>`
       : '';
     return `<div class="species-option${i === 0 && !writeIn ? ' highlighted' : ''}"
       onmousedown="selectSpecies(${id}, '${s.name.replace(/'/g,"\\'")}', false)">
@@ -2771,10 +2166,6 @@ function changeSpinner(id, type, delta) {
   row.querySelectorAll('.num-wrap').forEach(w => w.classList.remove('input-error'));
 }
 
-function escapeRe(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 // ─────────────────────────────────────────────
 // Session form submission
 // ─────────────────────────────────────────────
@@ -3094,15 +2485,9 @@ function handleOverlayClick(e) {
   if (e.target === document.getElementById('upload-modal')) closeUploadModal();
 }
 
-// Close on Escape key
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    const openModals = document.querySelectorAll('.info-overlay.open');
-    if (openModals.length) { openModals.forEach(m => closeInfoModal(m.id)); return; }
-    closeSettings();
-    closeUploadModal();
-  }
-});
+// Give shared.js's single Escape-key handler a hook to close this page's
+// upload modal too (see the closeOnEscape call in shared.js).
+window.closeOnEscape = function () { closeUploadModal(); };
 
 // ─────────────────────────────────────────────
 // File upload — historical data
@@ -3388,47 +2773,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
-// ─────────────────────────────────────────────
-// Settings dropdown & info modals
-// ─────────────────────────────────────────────
-function toggleSettings(e) {
-  e.stopPropagation();
-  const dd  = document.getElementById('settings-dropdown');
-  const btn = document.getElementById('settings-btn');
-  const open = dd.classList.toggle('open');
-  btn.classList.toggle('open', open);
-}
-
-document.addEventListener('click', function(e) {
-  const wrap = document.querySelector('.settings-wrap');
-  if (wrap && !wrap.contains(e.target)) {
-    document.getElementById('settings-dropdown').classList.remove('open');
-    document.getElementById('settings-btn').classList.remove('open');
-  }
-});
-
-function closeSettings() {
-  document.getElementById('settings-dropdown').classList.remove('open');
-  document.getElementById('settings-btn').classList.remove('open');
-}
-
-function openInfoModal(id) {
-  closeSettings();
-  document.getElementById(id).classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeInfoModal(id) {
-  document.getElementById(id).classList.remove('open');
-  if (!document.querySelectorAll('.info-overlay.open').length) {
-    document.body.style.overflow = '';
-  }
-}
-
-function handleInfoOverlayClick(e, id) {
-  if (e.target === document.getElementById(id)) closeInfoModal(id);
-}
 </script>
 <div id="js-tip"
      role="tooltip"

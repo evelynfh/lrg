@@ -12,70 +12,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-  :root {
-    --bg: #f5f0e8;
-    --surface: #fffdf7;
-    --ink: #1a1a14;
-    --ink-muted: #6b6657;
-    --accent: #2d5a27;
-    --accent-light: #e8f0e6;
-    --accent-hover: #1e3e1b;
-    --border: #d4ccb8;
-    --row-alt: #faf7f0;
-    --shadow: 0 2px 8px rgba(26,26,20,0.08);
-    --warn-bg: #fff8e6;
-    --warn-border: #e8d88a;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    font-family: 'IBM Plex Mono', monospace;
-    color: var(--ink);
-    min-height: 100vh;
-  }
-
-  /* ── Header ── */
-  header {
-    background: var(--ink);
-    color: var(--bg);
-    padding: 28px 40px;
-    display: flex;
-    align-items: center;
-    border-bottom: 3px solid var(--accent);
-  }
-
-  header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.7rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: #f5f0e8;
-    margin-right: 16px;
-  }
-
-  header nav {
-    display: flex;
-    flex: 1;
-    gap: 4px;
-    align-items: center;
-  }
-
-  header nav a {
-    color: #9a9480;
-    text-decoration: none;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    padding: 8px 12px 4px;
-    border-radius: 3px;
-    transition: color 0.15s, background 0.15s;
-  }
-
-  header nav a:hover { color: var(--bg); background: rgba(255,255,255,0.08); }
-  header nav a.active { color: var(--bg); }
-  header nav span { margin-left: auto; }
-
   /* ── Loading spinner ── */
   .spinner {
     display: inline-block;
@@ -88,8 +24,6 @@
     vertical-align: middle;
     margin-right: 6px;
   }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
 
   .loading-state {
     display: flex;
@@ -579,11 +513,6 @@
 
   /* ── Responsive ── */
   @media (max-width: 640px) {
-    header { padding: 14px 16px; display: flex; flex-direction: row; align-items: center; gap: 0; }
-    header h1 { font-size: 1.3rem; width: 88px; flex-shrink: 0; margin-right: 8px; }
-    header nav { display: flex; flex: 1; justify-content: space-evenly; align-items: center; }
-    header nav a { padding: 4px 0; white-space: nowrap; flex: 1; text-align: center; }
-    header nav span { margin-left: 0 !important; flex: 1; text-align: center; }
     main { margin: 16px auto; padding: 0 12px 60px; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
     select.ringer-select { max-width: 100%; }
@@ -618,201 +547,6 @@
       left: 0;
       z-index: 2;
     }
-  }
-
-  /* ── Settings button & dropdown ── */
-  .settings-wrap {
-    position: relative;
-    margin-left: auto;
-  }
-
-  .settings-btn {
-    background: none;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 3px;
-    color: #9a9480;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    padding: 5px 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
-    white-space: nowrap;
-  }
-
-  .settings-btn:hover,
-  .settings-btn.open {
-    color: var(--bg);
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(255,255,255,0.3);
-  }
-
-  .settings-dropdown {
-    display: none;
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    box-shadow: 0 8px 28px rgba(26,26,20,0.18);
-    min-width: 180px;
-    z-index: 500;
-    overflow: hidden;
-  }
-
-  .settings-dropdown.open {
-    display: block;
-    animation: ddFadeIn 0.15s ease;
-  }
-
-  @keyframes ddFadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: none; }
-  }
-
-  .settings-item {
-    display: block;
-    width: 100%;
-    padding: 10px 16px;
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--ink);
-    cursor: pointer;
-    text-align: left;
-    text-decoration: none;
-    letter-spacing: 0.02em;
-    transition: background 0.1s;
-  }
-
-  .settings-item:last-child { border-bottom: none; }
-  .settings-item:hover { background: var(--accent-light); color: var(--accent); }
-
-  /* ── Info overlays / modals ── */
-  .info-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(26,26,20,0.55);
-    z-index: 600;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-
-  .info-overlay.open {
-    display: flex;
-    animation: infoOvFade 0.18s ease;
-  }
-
-  @keyframes infoOvFade { from { opacity: 0; } to { opacity: 1; } }
-
-  .info-modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--accent);
-    border-radius: 4px;
-    box-shadow: 0 16px 48px rgba(26,26,20,0.22);
-    width: 100%;
-    max-width: 540px;
-    max-height: 88vh;
-    overflow-y: auto;
-    animation: modalIn 0.22s ease;
-  }
-
-  .info-modal-hd {
-    background: var(--ink);
-    color: var(--bg);
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-
-  .info-modal-hd h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .info-modal-x {
-    background: none;
-    border: none;
-    color: #9a9480;
-    font-size: 1.3rem;
-    line-height: 1;
-    cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 2px;
-    transition: color 0.12s;
-  }
-
-  .info-modal-x:hover { color: var(--bg); }
-
-  .info-modal-bd {
-    padding: 22px 24px;
-    font-size: 0.82rem;
-    line-height: 1.7;
-    color: var(--ink-muted);
-  }
-
-  .info-modal-bd h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 0.92rem;
-    color: var(--ink);
-    margin: 18px 0 6px;
-    font-weight: 600;
-  }
-
-  .info-modal-bd h3:first-child { margin-top: 0; }
-  .info-modal-bd p { margin-bottom: 8px; }
-  .info-modal-bd a { color: var(--accent); text-decoration: underline; }
-
-  .vtag {
-    display: inline-block;
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    padding: 2px 7px;
-    border-radius: 2px;
-    background: var(--accent-light);
-    color: var(--accent);
-    border: 1px solid #c8dcc5;
-    margin-bottom: 4px;
-    vertical-align: middle;
-  }
-
-  .vtag-new {
-    background: #fff8e6;
-    color: #6b5700;
-    border-color: #e8d88a;
-  }
-
-  .cl-entry {
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .cl-entry:last-child { border-bottom: none; }
-  .cl-entry ul { margin: 6px 0 0 16px; }
-  .cl-entry li { margin-bottom: 3px; }
-
-  @media (max-width: 600px) {
-    .settings-wrap { margin-left: 0; }
-    .settings-btn .settings-label { display: none; }
-    .settings-dropdown { right: 0; left: auto; min-width: 160px; }
-    .info-modal { max-height: calc(100vh - 40px); }
-    .info-modal-bd { padding: 18px 16px; }
-    .info-overlay { align-items: flex-start; padding: 20px 16px; }
   }
 </style>
 <link rel="stylesheet" href="theme.css">
@@ -928,6 +662,7 @@
 
 </main>
 
+<script src="species.js"></script>
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_325ASJS3a7eWO0SF1VKzMLJyePOAVuk46kxnRf6voyz_u1lIBJYvnZ9gbkczMrpH/exec';
 
@@ -1009,163 +744,9 @@ function loadDashboard(ringer) {
 
 // ─────────────────────────────────────────────
 // Species category lookup
+// SPECIES_LIST and CATEGORY_ORDER come from species.js, shared with index.html.
+// getSpeciesCategory(sp) is also defined there.
 // ─────────────────────────────────────────────
-var SPECIES_CATEGORIES = (function() {
-  var map = {};
-  function add(cat, names) { names.forEach(function(n) { map[n] = cat; }); }
-
-  add('Open-nesting passerines and near-passerines', [
-    'Nightjar','Cuckoo','Woodpigeon','Turtle Dove','Collared Dove',
-    'Red-backed Shrike','Jay','Magpie','Rook','Carrion Crow','Raven',
-    'Waxwing','Woodlark','Skylark','Short-toed Lark','Shore Lark','Bearded Tit','Swallow',
-    'Wren','Cetti\'s Warbler','Long-tailed Tit','Wood Warbler',
-    'Yellow-browed Warbler','Willow Warbler','Chiffchaff',
-    'Sedge Warbler','Reed Warbler','Grasshopper Warbler',
-    'Blackcap','Garden Warbler','Lesser Whitethroat','Whitethroat',
-    'Dartford Warbler','Firecrest','Goldcrest',
-    'Ring Ouzel','Blackbird','Fieldfare','Redwing','Song Thrush','Mistle Thrush',
-    'Spotted Flycatcher','Robin','Bluethroat','Nightingale',
-    'Black Redstart','Whinchat','Stonechat','Dunnock',
-    'Yellow Wagtail','Grey Wagtail','Pied/White Wagtail',
-    'Meadow Pipit','Tree Pipit','Rock Pipit',
-    'Chaffinch','Brambling','Hawfinch','Bullfinch','Greenfinch','Serin',
-    'Twite','Linnet',
-    'Redpoll (Common/Lesser)','Common Redpoll','Lesser Redpoll','Arctic Redpoll',
-    'Scottish Crossbill','Common Crossbill','Parrot Crossbill',
-    'Goldfinch','Siskin',
-    'Snow Bunting','Corn Bunting','Yellowhammer','Reed Bunting','Lapland Bunting',
-    // extra warbler variants
-    'Marsh Warbler','Savi\'s Warbler','Aquatic Warbler','Barred Warbler',
-    'Icterine Warbler','Melodious Warbler','Subalpine Warbler',
-    'Greenish Warbler','Arctic Warbler','Pallas\'s Warbler',
-    'Radde\'s Warbler','Dusky Warbler',
-    'Red-breasted Flycatcher','Pied Flycatcher',
-    'Long-tailed Tit (Northern)',
-    'Yellow Wagtail (Blue-headed)','Yellow Wagtail (Grey-headed)',
-    'Pied Wagtail (yarrellii)','White Wagtail (alba)',
-    'Bluethroat (White-spotted)','Bluethroat (Red-spotted)',
-    'Wheatear (Greenland)',
-    'Common Redpoll (Mealy)','Common Redpoll (Greenland)',
-    'Common Rosefinch',
-    'Ortolan Bunting','Rustic Bunting','Little Bunting','Cirl Bunting',
-    'Tawny Pipit','Richard\'s Pipit','Red-throated Pipit','Water Pipit',
-    'Red-rumped Swallow','House Martin','Sand Martin',
-    // corvids
-    'Hooded Crow','Carrion/Hooded Crow hybrid','Jackdaw',
-    // wagtail/pipit extras
-    'Golden Oriole','Woodchat Shrike','Great Grey Shrike',
-  ]);
-
-  add('Cavity-nesting passerines and near-passerines', [
-    'Swift','Alpine Swift','Stock Dove','Rock Dove','Feral Pigeon','Kingfisher','Bee-eater','Hoopoe','Wryneck',
-    'Great Spotted Woodpecker','Green Woodpecker','Lesser Spotted Woodpecker',
-    'Ring-necked Parakeet','Chough','Jackdaw',
-    'Coal Tit','Coal Tit (Continental)','Crested Tit','Marsh Tit','Willow Tit',
-    'Blue Tit','Great Tit',
-    'Nuthatch','Treecreeper',
-    'Starling','Rose-coloured Starling',
-    'Pied Flycatcher','Redstart','Wheatear','Dipper',
-    'House Sparrow','Tree Sparrow',
-  ]);
-
-  add('Birds of prey', [
-    'Osprey','Golden Eagle','White-tailed Eagle',
-    'Sparrowhawk','Goshawk',
-    'Marsh Harrier','Hen Harrier','Montagu\'s Harrier',
-    'Red Kite','Black Kite',
-    'Buzzard','Rough-legged Buzzard','Honey-buzzard',
-    'Barn Owl','Tawny Owl','Little Owl',
-    'Long-eared Owl','Short-eared Owl',
-    'Kestrel','Red-footed Falcon','Merlin','Hobby','Peregrine',
-  ]);
-
-  add('Waders and gamebirds', [
-    'Red Grouse','Ptarmigan','Black Grouse','Capercaillie',
-    'Red-legged Partridge','Grey Partridge','Quail','Pheasant',
-    'Golden Pheasant','Lady Amherst\'s Pheasant','Chukar','Indian Peafowl',
-    'Stone-curlew','Oystercatcher','Avocet',
-    'Black-winged Stilt','Dotterel',
-    'Lapwing','Golden Plover','Grey Plover',
-    'Ringed Plover','Little Ringed Plover','Kentish Plover','American Golden Plover',
-    'Whimbrel','Curlew',
-    'Bar-tailed Godwit','Black-tailed Godwit',
-    'Turnstone','Knot','Ruff',
-    'Curlew Sandpiper','Sanderling','Dunlin','Purple Sandpiper',
-    'Little Stint','Temminck\'s Stint','White-rumped Sandpiper',
-    'Pectoral Sandpiper','Buff-breasted Sandpiper',
-    'Woodcock','Jack Snipe','Snipe',
-    'Common Sandpiper','Green Sandpiper','Wood Sandpiper',
-    'Redshank','Spotted Redshank','Greenshank','Lesser Yellowlegs',
-    'Red-necked Phalarope','Grey Phalarope',
-    'Corncrake','Spotted Crake',
-    'Water Rail','Moorhen','Coot','Crane',
-  ]);
-
-  add('Waterfowl', [
-    'Brent Goose','Brent Goose (Dark-bellied)','Brent Goose (Light-bellied)','Brent Goose (Black Brant)',
-    'Canada Goose','Barnacle Goose','Greylag Goose','Greylag Goose (domestic)',
-    'White-fronted Goose','White-fronted Goose (Greenland)','White-fronted Goose (European)',
-    'Pink-footed Goose','Bean Goose','Bean Goose (Taiga)','Bean Goose (Tundra)',
-    'Snow Goose','Bar-headed Goose','Black Swan',
-    'Mute Swan','Bewick\'s Swan','Whooper Swan',
-    'Egyptian Goose','Ruddy Shelduck','Shelduck',
-    'Mandarin Duck','Wood Duck',
-    'Wigeon','American Wigeon','Gadwall','Teal','Green-winged Teal',
-    'Mallard','Mallard (domestic)','Pintail','Garganey','Shoveler',
-    'Red-crested Pochard','Pochard','Ring-necked Duck','Ferruginous Duck',
-    'Tufted Duck','Scaup','Eider','Long-tailed Duck',
-    'Common Scoter','Surf Scoter','Velvet Scoter',
-    'Goldeneye','Smew','Red-breasted Merganser','Goosander',
-    'Ruddy Duck','Muscovy Duck',
-    'Little Grebe','Great Crested Grebe','Red-necked Grebe',
-    'Slavonian Grebe','Black-necked Grebe',
-    'Red-throated Diver','Black-throated Diver','Great Northern Diver',
-  ]);
-
-  add('Colony-nesting seabirds', [
-    'Black-headed Gull','Mediterranean Gull','Common Gull','Little Gull',
-    'Ring-billed Gull','Sabine\'s Gull',
-    'Herring Gull','Lesser Black-backed Gull','Great Black-backed Gull',
-    'Yellow-legged Gull','Caspian Gull','Iceland Gull','Glaucous Gull','Kittiwake',
-    'Sandwich Tern','Little Tern','Roseate Tern','Common Tern','Arctic Tern',
-    'Black Tern','White-winged Black Tern',
-    'Great Skua','Arctic Skua','Pomarine Skua','Long-tailed Skua',
-    'Puffin','Little Auk',
-    'Storm Petrel','Leach\'s Petrel','Wilson\'s Petrel',
-    'Fulmar','Manx Shearwater','Balearic Shearwater',
-    'Cory\'s Shearwater','Great Shearwater','Sooty Shearwater',
-    'Gannet',
-  ]);
-
-  add('Cliff-nesting seabirds', [
-    'Kittiwake','Guillemot','Black Guillemot','Razorbill','Shag','Cormorant',
-    'Cormorant (Continental)',
-  ]);
-
-  add('Herons and egrets', [
-    'Grey Heron','Purple Heron','Little Egret','Great White Egret',
-    'Bittern','Night-heron',
-    'White Stork','Glossy Ibis','Spoonbill',
-  ]);
-
-  return map;
-})();
-
-var CATEGORY_ORDER = [
-  'Open-nesting passerines and near-passerines',
-  'Cavity-nesting passerines and near-passerines',
-  'Birds of prey',
-  'Waders and gamebirds',
-  'Waterfowl',
-  'Colony-nesting seabirds',
-  'Cliff-nesting seabirds',
-  'Herons and egrets',
-  'Other',
-];
-
-function getSpeciesCategory(sp) {
-  return SPECIES_CATEGORIES[sp] || 'Other';
-}
 
 // ─────────────────────────────────────────────
 // Render
@@ -1604,6 +1185,12 @@ async function exportBTOSummary() {
     });
   });
 
+  // NOTE: this BTO export uses its own curated, officially-formatted species
+  // groupings (BTO_SECTIONS below) rather than the shared SPECIES_LIST
+  // categories — the two serve different purposes (an official endorsement
+  // form vs. the dashboard's "species gaps" view) and aren't guaranteed to
+  // list the same species or group them identically, so they're kept
+  // deliberately separate rather than merged.
   var BTO_MAP = {
     'Redpoll':   ['Common Redpoll','Lesser Redpoll','Redpoll (Common/Lesser)',
                   'Arctic Redpoll','Common Redpoll (Mealy)','Common Redpoll (Greenland)'],
@@ -2071,58 +1658,6 @@ function buildSpeciesTable(order) {
     + thCols + thPulli + thBroods
     + '</tr></thead><tbody>' + tbody + '</tbody></table></div>';
 }
-
-// ─────────────────────────────────────────────
-// Settings dropdown & info modals
-// ─────────────────────────────────────────────
-function toggleSettings(e) {
-  e.stopPropagation();
-  const dd  = document.getElementById('settings-dropdown');
-  const btn = document.getElementById('settings-btn');
-  const open = dd.classList.toggle('open');
-  btn.classList.toggle('open', open);
-}
-
-document.addEventListener('click', function(e) {
-  const wrap = document.querySelector('.settings-wrap');
-  if (wrap && !wrap.contains(e.target)) {
-    document.getElementById('settings-dropdown').classList.remove('open');
-    document.getElementById('settings-btn').classList.remove('open');
-  }
-});
-
-function closeSettings() {
-  document.getElementById('settings-dropdown').classList.remove('open');
-  document.getElementById('settings-btn').classList.remove('open');
-}
-
-function openInfoModal(id) {
-  closeSettings();
-  document.getElementById(id).classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeInfoModal(id) {
-  document.getElementById(id).classList.remove('open');
-  if (!document.querySelectorAll('.info-overlay.open').length) {
-    document.body.style.overflow = '';
-  }
-}
-
-function handleInfoOverlayClick(e, id) {
-  if (e.target === document.getElementById(id)) closeInfoModal(id);
-}
-
-// ─────────────────────────────────────────────
-// Escape key handler
-// ─────────────────────────────────────────────
-document.addEventListener('keydown', function(e) {
-  if (e.key !== 'Escape') return;
-  const openModals = document.querySelectorAll('.info-overlay.open');
-  if (openModals.length) { openModals.forEach(function(m) { closeInfoModal(m.id); }); return; }
-  closeSettings();
-});
-
 </script>
 <script src="shared.js"></script>
 </body>
