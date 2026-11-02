@@ -1236,7 +1236,7 @@ function _attachChipListener() {
       '<div style="padding: 6px 0;">'
       + ringerRows.map(function(r) {
           return '<div class="gap-popup-row">'
-            + '<span class="gap-popup-name">' + r[0] + '</span>'
+            + '<span class="gap-popup-name">' + esc(r[0]) + '</span>'
             + '<span class="gap-popup-num">' + r[1] + '</span>'
             + '</div>';
         }).join('')
@@ -1363,7 +1363,7 @@ function renderDashboard(data, ringer) {
   document.getElementById('method-tbody').innerHTML = methodList.map(function(m) {
     var v = methodMap[m];
     return '<tr>'
-      + '<td class="primary">' + m + '</td>'
+      + '<td class="primary">' + esc(m) + '</td>'
       + '<td class="r">' + v.extracted + '</td>'
       + '<td class="r">' + v.species.size + '</td>'
       + '<td class="r">' + v.dates.size + '</td>'
@@ -1417,7 +1417,7 @@ function renderDashboard(data, ringer) {
             var idx = _chipIndex++;
             _chipData[idx] = { species: e[0], ringerMap: e[2] };
             return '<span class="missing-chip" data-chip="' + idx + '">'
-              + e[0]
+              + esc(e[0])
               + ' <span class="chip-count">' + e[1] + '</span></span>';
           }).join('')
         + '</div></div>';
@@ -1447,7 +1447,7 @@ function renderDashboard(data, ringer) {
     });
     if (!hasMissing) return '';
     return '<div class="missing-method-block">'
-      + '<div class="missing-method-label">' + m + '</div>'
+      + '<div class="missing-method-label">' + esc(m) + '</div>'
       + missingChips(siteFreqByMethod[m], mySpecies)
       + '</div>';
   }).join('');
@@ -1478,10 +1478,10 @@ function renderDashboard(data, ringer) {
     var methods = [...new Set(entries.map(function(e) { return e.method; }).filter(Boolean))];
     var species = [...new Set(entries.map(function(e) { return e.species; }).filter(Boolean))];
     return '<div class="session-item">'
-      + '<span class="session-date">' + s.date + '</span>'
+      + '<span class="session-date">' + esc(s.date) + '</span>'
       + '<div class="session-pills">'
-      + methods.map(function(m) { return '<span class="pill pill-method">' + m + '</span>'; }).join('')
-      + species.map(function(sp) { return '<span class="pill pill-species">' + sp + '</span>'; }).join('')
+      + methods.map(function(m) { return '<span class="pill pill-method">' + esc(m) + '</span>'; }).join('')
+      + species.map(function(sp) { return '<span class="pill pill-species">' + esc(sp) + '</span>'; }).join('')
       + '</div>'
       + '<span class="session-totals">' + ext + ' ext \u00b7 ' + proc + ' proc</span>'
       + '</div>';
@@ -1510,6 +1510,7 @@ document.addEventListener('click', function(e) {
 
 function csvCell(value) {
   var s = value === null || value === undefined ? '' : String(value);
+  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
   if (s.includes(',') || s.includes('"') || s.includes('\n')) {
     return '"' + s.replace(/"/g, '""') + '"';
   }
@@ -1948,9 +1949,9 @@ function buildSortToggle(fledgedMethodList) {
 
   document.getElementById('species-sort-toggle').innerHTML = buttons.map(function(b) {
     return '<button class="sort-btn' + (b.key === 'proc' ? ' active' : '') + '" '
-      + 'data-sort="' + b.key + '" '
-      + 'onclick="setSpeciesSort(\'' + b.key.replace(/'/g, "\\'") + '\')">'
-      + b.label + '</button>';
+      + 'data-sort="' + esc(b.key) + '" '
+      + 'onclick="setSpeciesSort(this.dataset.sort)">'
+      + esc(b.label) + '</button>';
   }).join('');
 }
 
@@ -2013,7 +2014,7 @@ function buildSpeciesTable(order) {
   var hasPulliRinged = allRows.some(function(r) { return (r[1]._pulliRinged    || 0) > 0; });
   var hasBroods      = allRows.some(function(r) { return (r[1]._broodsAssessed || 0) > 0; });
 
-  var thCols   = fledgedMethodList.map(function(m) { return '<th class="r">' + m + '</th>'; }).join('');
+  var thCols   = fledgedMethodList.map(function(m) { return '<th class="r">' + esc(m) + '</th>'; }).join('');
   var thPulli  = hasPulliRinged ? '<th class="r">Pu. Ringed</th>'  : '';
   var thBroods = hasBroods      ? '<th class="r">Broods Ass.</th>' : '';
 
@@ -2042,7 +2043,7 @@ function buildSpeciesTable(order) {
       var pulliCell  = hasPulliRinged ? '<td class="r">' + ((v._pulliRinged    || 0) > 0 ? v._pulliRinged    : '\u2014') + '</td>' : '';
       var broodsCell = hasBroods      ? '<td class="r">' + ((v._broodsAssessed || 0) > 0 ? v._broodsAssessed : '\u2014') + '</td>' : '';
       return '<tr>'
-        + '<td class="primary">' + sp + '</td>'
+        + '<td class="primary">' + esc(sp) + '</td>'
         + '<td class="r">' + (v._proc          > 0 ? v._proc          : '\u2014') + '</td>'
         + '<td class="r">' + (v._fledgedRinged > 0 ? v._fledgedRinged : '\u2014') + '</td>'
         + methodCells + pulliCell + broodsCell
