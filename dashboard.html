@@ -9,7 +9,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="manifest" href="site.webmanifest">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f5f0e8;
@@ -814,6 +814,8 @@
     .info-overlay { align-items: flex-start; padding: 20px 16px; }
   }
 </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </head>
 <body>
@@ -829,6 +831,7 @@
         ⚙ <span class="settings-label">Settings</span>
       </button>
       <div class="settings-dropdown" id="settings-dropdown">
+        <button class="settings-item" id="theme-toggle" onclick="toggleTheme()">Dark mode: off</button>
         <button class="settings-item" onclick="openInfoModal('about-modal')">FAQ</button>
         <button class="settings-item" onclick="openInfoModal('changelog-modal')">Changelog</button>
         <button class="settings-item" onclick="openInfoModal('report-modal')">Report issues</button>
