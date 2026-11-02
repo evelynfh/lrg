@@ -2397,8 +2397,9 @@ function filterSpecies(id, query) {
   const exactMatch = alreadySelected || SPECIES_LIST.some(s => s.name.toLowerCase() === q);
   const writeIn = !exactMatch
     ? `<div class="species-option write-in-option"
-         onmousedown="selectSpecies(${id}, '${query.trim().replace(/'/g,"\\'")}', true)">
-         <span style="color:var(--ink-muted);font-size:0.72rem;">Use as written: </span>${query.trim()}
+         data-name="${esc(query.trim())}"
+           onmousedown="selectSpecies(${id}, this.dataset.name, true)">
+         <span style="color:var(--ink-muted);font-size:0.72rem;">Use as written: </span>${esc(query.trim())}
        </div>` : '';
 
   if (!matches.length && !writeIn) {
@@ -2566,8 +2567,9 @@ function filterMethod(id, query) {
   const exactMatch = activeList.some(m => m.toLowerCase() === q);
   const writeIn = q && !exactMatch
     ? `<div class="species-option write-in-option"
-         onmousedown="selectMethod(${id}, '${query.trim().replace(/'/g,"\\'")}', true)">
-         <span style="color:var(--ink-muted);font-size:0.72rem;">Use as written: </span>${query.trim()}
+         data-name="${esc(query.trim())}"
+           onmousedown="selectMethod(${id}, this.dataset.name, true)">
+         <span style="color:var(--ink-muted);font-size:0.72rem;">Use as written: </span>${esc(query.trim())}
        </div>` : '';
 
   if (!matches.length && !writeIn) {
@@ -2577,9 +2579,10 @@ function filterMethod(id, query) {
   }
 
   dd.innerHTML = matches.map((m, i) => {
-    const hl = q ? m.replace(new RegExp(`(${escapeRe(q)})`, 'gi'), '<span class="match">$1</span>') : m;
+    const hl = highlight(m, q);
     return `<div class="species-option${i === 0 && !writeIn ? ' highlighted' : ''}"
-      onmousedown="selectMethod(${id}, '${m.replace(/'/g,"\\'")}', false)">${hl}</div>`;
+      data-name="${esc(m)}"
+        onmousedown="selectMethod(${id}, this.dataset.name, false)">${hl}</div>`;
   }).join('') + writeIn;
 
   dd.classList.add('open');
@@ -2701,8 +2704,9 @@ function filterTrainees(query) {
   const exactMatch = traineeList.some(n => n.toLowerCase() === q);
   const newOption = !exactMatch
     ? `<div class="species-option new-trainee-option"
-         onmousedown="selectTrainee('${query.trim().replace(/'/g,"\\'")}', true)">
-         <span style="color:var(--ink-muted);font-size:0.72rem;">Add new: </span>${query.trim()}
+         data-name="${esc(query.trim())}"
+           onmousedown="selectTrainee(this.dataset.name, true)">
+         <span style="color:var(--ink-muted);font-size:0.72rem;">Add new: </span>${esc(query.trim())}
        </div>` : '';
 
   if (!matches.length && exactMatch) {
@@ -2710,9 +2714,10 @@ function filterTrainees(query) {
   }
 
   dd.innerHTML = matches.map((n, i) => {
-    const hl = n.replace(new RegExp(`(${escapeRe(q)})`, 'gi'), '<span class="match">$1</span>');
+    const hl = highlight(n, q);
     return `<div class="species-option${i === 0 && !newOption ? ' highlighted' : ''}"
-      onmousedown="selectTrainee('${n.replace(/'/g,"\\'")}', false)">${hl}</div>`;
+      data-name="${esc(n)}"
+        onmousedown="selectTrainee(this.dataset.name, false)">${hl}</div>`;
   }).join('') + newOption;
 
   dd.classList.add('open');
@@ -2938,9 +2943,9 @@ function showConfirmScreen(payload) {
     const isPullus = e.age === 'Pullus';
     return `
     <div class="confirm-table-row">
-      <span class="confirm-cell-primary">${e.species}${e.speciesWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : ''}</span>
+      <span class="confirm-cell-primary">${esc(e.species)}${e.speciesWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : ''}</span>
       <span class="confirm-cell">${e.age}</span>
-      <span class="confirm-cell">${e.method + (e.methodWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : '')}</span>
+      <span class="confirm-cell">${esc(e.method) + (e.methodWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : '')}</span>
       <span class="confirm-cell-num"><span class="confirm-mob-label">Extracted</span>${isPullus ? '—' : e.num}</span>
       <span class="confirm-cell-num"><span class="confirm-mob-label">Processed</span>${isPullus ? '—' : e.processed}</span>
       <span class="confirm-cell-num"><span class="confirm-mob-label">Fledged Ringed</span>${isPullus ? '—' : (e.fledgedRinged || 0)}</span>
@@ -3150,7 +3155,7 @@ function renderUploadList() {
   list.innerHTML = entries.map(([uid, file]) => `
     <div class="upload-file-item" id="upload-item-${uid}">
       <span class="upload-file-icon">${fileIcon(file.type, file.name)}</span>
-      <span class="upload-file-name" title="${file.name}">${file.name}</span>
+      <span class="upload-file-name" title="${esc(file.name)}">${esc(file.name)}</span>
       <span class="upload-file-size">${formatBytes(file.size)}</span>
       <button class="upload-file-remove" onclick="removeUploadFile('${uid}')" title="Remove">×</button>
     </div>
