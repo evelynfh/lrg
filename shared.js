@@ -1,6 +1,23 @@
 // Ringing Tracker: behaviour and markup shared by every page.
 // Load at the END of <body>, after the page's own scripts.
 // Set <body data-page="log"> or <body data-page="dashboard"> to mark the active nav link.
+// ── Safety helpers: use esc() on ANY text that came from a user or the spreadsheet
+// before putting it into innerHTML or an HTML attribute.
+window.esc = function (s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+};
+
+// Like esc(), but wraps every case-insensitive match of q in <span class="match">.
+window.highlight = function (text, q) {
+  if (!q) return window.esc(text);
+  var re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i');
+  return String(text).split(re).map(function (part, i) {
+    return i % 2 ? '<span class="match">' + window.esc(part) + '</span>' : window.esc(part);
+  }).join('');
+};
+
 (function () {
   var page = document.body.dataset.page || '';
   var email = 'evelynfhowatson' + '@' + 'gmail.com'; // split to deter scrapers
