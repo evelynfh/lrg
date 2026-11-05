@@ -846,7 +846,6 @@ function renderDashboard(data, ringer) {
   var speciesMap = {}, methodMap = {};
   // fledgedMethodSet tracks methods used by fledged rows only (for species table columns)
   var fledgedMethodSet = {};
-  var whooshFiringsByDate = {};
 
   sessions.forEach(function(s) {
     (s.entries || []).forEach(function(e) {
@@ -864,10 +863,6 @@ function renderDashboard(data, ringer) {
 
       if (mt.toLowerCase().includes('whoosh')) {
         whooshExt += ext;
-      }
-
-      if (e.whooshFirings !== null && e.whooshFirings !== undefined && !(s.date in whooshFiringsByDate)) {
-        whooshFiringsByDate[s.date] = e.whooshFirings;
       }
 
       if (!speciesMap[sp]) speciesMap[sp] = { _total: 0, _proc: 0, _fledgedRinged: 0, _pulliRinged: 0, _broodsAssessed: 0 };
@@ -891,7 +886,7 @@ function renderDashboard(data, ringer) {
     });
   });
 
-  Object.values(whooshFiringsByDate).forEach(function(f) { whooshFiringsTotal += (f || 0); });
+  whooshFiringsTotal = sumWhooshFirings(sessions);
 
   // Build ordered fledged method list: Mist net first, Whoosh net second, then others by total
   var PRIORITY = { 'Mist net': 0, 'Whoosh net': 1 };
@@ -1074,6 +1069,33 @@ function renderDashboard(data, ringer) {
 }
 
 // ─────────────────────────────────────────────
+// Whoosh firings — one value per SUBMISSION
+// The backend stores firings on the first row of each submission only. All rows of one
+// submission share a "Submitted at" timestamp, so (date + submittedAt) identifies a
+// submission. Taking the first non-null value per key counts every submission once —
+// including two on the same day — and still gives the right answer for older rows that
+// repeat the value on every row. Rows with no timestamp (added by hand) fall back to
+// one value per date.
+// ─────────────────────────────────────────────
+function whooshFiringKey(date, entry) {
+  return date + '|' + (entry.submittedAt || '');
+}
+
+function sumWhooshFirings(sessions) {
+  var seen = {}, total = 0;
+  sessions.forEach(function(s) {
+    (s.entries || []).forEach(function(e) {
+      if (e.whooshFirings === null || e.whooshFirings === undefined) return;
+      var key = whooshFiringKey(s.date, e);
+      if (key in seen) return;
+      seen[key] = true;
+      total += e.whooshFirings || 0;
+    });
+  });
+  return total;
+}
+  
+// ─────────────────────────────────────────────
 // CSV export
 // ─────────────────────────────────────────────
 function toggleExportMenu(e) {
@@ -1120,15 +1142,15 @@ function exportSessionData() {
                'Fledged ringed','Pulli ringed','Broods assessed',
                'Whoosh net firings','Submitted at']];
 
-  // Track whoosh firings already written per date (session-level field)
-  var whooshWritten = {};
+  // Whoosh firings are per submission: write each submission's value once
+  var whooshSeen = {};
 
   sessions.forEach(function(s) {
     (s.entries || []).forEach(function(e) {
       var whoosh = '';
-      if (e.whooshFirings !== null && e.whooshFirings !== undefined && !whooshWritten[s.date]) {
-        whoosh = e.whooshFirings;
-        whooshWritten[s.date] = true;
+      if (e.whooshFirings !== null && e.whooshFirings !== undefined) {
+        var wKey = whooshFiringKey(s.date, e);
+        if (!whooshSeen[wKey]) { whoosh = e.whooshFirings; whooshSeen[wKey] = true; }
       }
       rows.push([
         s.date,
@@ -1158,114 +1180,55 @@ async function exportBTOSummary() {
   if (!sessions || !sessions.length) return;
   document.getElementById('export-dropdown').classList.remove('open');
 
-  // ── Aggregate ──────────────────────────────────────────────────────
-  var spData = {};
-  var whooshFiringsTotal = 0;
-
+  // ── Aggregate by BTO form row ──────────────────────────────────────
+  // species.js decides where each logged species counts: getBTORow(name) returns the BTO form
+  // section (= the species' category) and the row it counts towards (its `parent` if it has one,
+  // e.g. "Brent Goose (Dark-bellied)" -> "Brent Goose", "Lesser Redpoll" -> "Redpoll").
+  // Pullus extractions are deliberately NOT counted in the mist-net / whoosh-net columns.
+  
+  var rowData = {};   // section -> { row name -> totals }
   sessions.forEach(function(s) {
     (s.entries || []).forEach(function(e) {
-      var sp  = e.species || 'Unknown';
-      var mt  = e.method  || '';
+      var loc = getBTORow(e.species || 'Unknown');
+      if (!rowData[loc.section]) rowData[loc.section] = {};
+      var d = rowData[loc.section][loc.row];
+      if (!d) d = rowData[loc.section][loc.row] = { proc: 0, fledgedRinged: 0, mistNet: 0, whooshNet: 0, pulliRinged: 0, broods: 0 };
+
+      var mt  = e.method || '';
       var ext = e.extracted || 0;
-      var isPullus = e.age === 'Pullus';
-
-      if (!spData[sp]) spData[sp] = { proc: 0, fledgedRinged: 0, mistNet: 0, whooshNet: 0, pulliRinged: 0, broods: 0 };
-      if (!isPullus) {
-        spData[sp].proc          += e.processed     || 0;
-        spData[sp].fledgedRinged += e.fledgedRinged || 0;
-        if (mt === 'Mist net')                   spData[sp].mistNet   += ext;
-        if (mt.toLowerCase().includes('whoosh')) spData[sp].whooshNet += ext;
+      if (e.age !== 'Pullus') {
+        d.proc          += e.processed     || 0;
+        d.fledgedRinged += e.fledgedRinged || 0;
+        if (mt === 'Mist net')                   d.mistNet   += ext;
+        if (mt.toLowerCase().includes('whoosh')) d.whooshNet += ext;
       }
-      spData[sp].pulliRinged += e.pulliRinged    || 0;
-      spData[sp].broods      += e.broodsAssessed || 0;
-
-      if (e.whooshFirings !== null && e.whooshFirings !== undefined) {
-        whooshFiringsTotal += e.whooshFirings;
-      }
+      d.pulliRinged += e.pulliRinged    || 0;
+      d.broods      += e.broodsAssessed || 0;
     });
   });
 
-  // NOTE: this BTO export uses its own curated, officially-formatted species
-  // groupings (BTO_SECTIONS below) rather than the shared SPECIES_LIST
-  // categories — the two serve different purposes (an official endorsement
-  // form vs. the dashboard's "species gaps" view) and aren't guaranteed to
-  // list the same species or group them identically, so they're kept
-  // deliberately separate rather than merged.
-  var BTO_MAP = {
-    'Redpoll':   ['Common Redpoll','Lesser Redpoll','Redpoll (Common/Lesser)',
-                  'Arctic Redpoll','Common Redpoll (Mealy)','Common Redpoll (Greenland)'],
-    'Crossbill': ['Common Crossbill','Parrot Crossbill'],
-  };
+  var whooshFiringsTotal = sumWhooshFirings(sessions);
 
-  function getSpData(btoName) {
-    var names = BTO_MAP[btoName] || [btoName];
-    var agg = { proc: 0, fledgedRinged: 0, mistNet: 0, whooshNet: 0, pulliRinged: 0, broods: 0 };
-    names.forEach(function(n) {
-      var d = spData[n]; if (!d) return;
-      agg.proc          += d.proc;
-      agg.fledgedRinged += d.fledgedRinged;
-      agg.mistNet       += d.mistNet;
-      agg.whooshNet     += d.whooshNet;
-      agg.pulliRinged   += d.pulliRinged;
-      agg.broods        += d.broods;
-    });
-    return agg;
+  var EMPTY = { proc: 0, fledgedRinged: 0, mistNet: 0, whooshNet: 0, pulliRinged: 0, broods: 0 };
+  function getSpData(sectionKey, row) {
+    return (rowData[sectionKey] && rowData[sectionKey][row]) || EMPTY;
   }
 
-  // ── BTO sections ───────────────────────────────────────────────────
-  var BTO_SECTIONS = [
-    { name: 'Open-nesting passerines and near-passerines', species: [
-      'Nightjar','Cuckoo','Woodpigeon','Turtle Dove','Collared Dove',
-      'Red-backed Shrike','Jay','Magpie','Rook','Carrion Crow','Raven',
-      'Waxwing','Woodlark','Skylark','Bearded Tit','Swallow','Wren',
-      "Cetti's Warbler",'Long-tailed Tit','Wood Warbler','Yellow-browed Warbler',
-      'Willow Warbler','Chiffchaff','Sedge Warbler','Reed Warbler',
-      'Grasshopper Warbler','Blackcap','Garden Warbler','Lesser Whitethroat',
-      'Whitethroat','Dartford Warbler','Firecrest','Goldcrest',
-      'Ring Ouzel','Blackbird','Fieldfare','Redwing','Song Thrush','Mistle Thrush',
-      'Spotted Flycatcher','Robin','Bluethroat','Nightingale','Black Redstart',
-      'Whinchat','Stonechat','Dunnock','Yellow Wagtail','Grey Wagtail',
-      'Pied/White Wagtail','Meadow Pipit','Tree Pipit','Rock Pipit',
-      'Chaffinch','Brambling','Hawfinch','Bullfinch','Greenfinch','Twite','Linnet',
-      'Redpoll','Scottish Crossbill','Crossbill','Goldfinch','Siskin',
-      'Snow Bunting','Corn Bunting','Yellowhammer','Reed Bunting',
-    ]},
-    { name: 'Cavity-nesting passerines and near-passerines', species: [
-      'Swift','Stock Dove','Kingfisher','Great Spotted Woodpecker','Green Woodpecker',
-      'Ring-necked Parakeet','Chough','Jackdaw','Coal Tit','Crested Tit','Marsh Tit',
-      'Willow Tit','Blue Tit','Great Tit','Sand Martin','House Martin','Nuthatch',
-      'Treecreeper','Starling','Pied Flycatcher','Redstart','Wheatear','Dipper',
-      'House Sparrow','Tree Sparrow',
-    ]},
-    { name: 'Birds of prey', species: [
-      'Osprey','Golden Eagle','Sparrowhawk','Goshawk','Marsh Harrier','Hen Harrier',
-      'Red Kite','Buzzard','Barn Owl','Tawny Owl','Little Owl','Long-eared Owl',
-      'Short-eared Owl','Kestrel','Merlin','Hobby','Peregrine',
-    ]},
-    { name: 'Waders and gamebirds', species: [
-      'Grey Partridge','Quail','Stone-curlew','Oystercatcher','Avocet','Lapwing',
-      'Golden Plover','Grey Plover','Ringed Plover','Little Ringed Plover','Whimbrel',
-      'Curlew','Bar-tailed Godwit','Black-tailed Godwit','Turnstone','Knot','Ruff',
-      'Curlew Sandpiper','Sanderling','Dunlin','Purple Sandpiper','Woodcock',
-      'Jack Snipe','Snipe','Common Sandpiper','Green Sandpiper','Redshank',
-      'Spotted Redshank','Greenshank',
-    ]},
-    { name: 'Waterfowl', species: [
-      'Brent Goose','Canada Goose','Greylag Goose','White-fronted Goose',
-      'Mute Swan',"Bewick's Swan",'Whooper Swan','Egyptian Goose','Shelduck',
-      'Mandarin Duck','Shoveler','Gadwall','Wigeon','Mallard','Pintail','Teal',
-      'Pochard','Tufted Duck','Eider','Goldeneye','Water Rail','Moorhen','Coot',
-      'Little Grebe','Red-throated Diver',
-    ]},
-    { name: 'Colony-nesting seabirds', species: [
-      'Black-headed Gull','Mediterranean Gull','Common Gull','Great Black-backed Gull',
-      'Herring Gull','Lesser Black-backed Gull','Sandwich Tern','Little Tern',
-      'Roseate Tern','Common Tern','Arctic Tern','Great Skua','Arctic Skua',
-      'Puffin','Storm Petrel',"Leach's Petrel",'Fulmar','Manx Shearwater','Gannet',
-    ]},
-    { name: 'Cliff-nesting seabirds', species: ['Kittiwake','Guillemot','Razorbill','Shag','Cormorant'] },
-    { name: 'Herons and egrets',      species: ['Grey Heron','Little Egret'] },
-  ];
+  // Sections in form order. Each lists the official form rows first (BTO_FORM, in form order),
+  // then any other species that was logged in that section (rarities, escapes), alphabetically,
+  // so nothing is dropped. Write-ins and unknown names go in a final "Other" section.
+  var BTO_SECTIONS = CATEGORY_ORDER.map(function(key) {
+    var formRows = BTO_FORM[key] || [];
+    var extras = Object.keys(rowData[key] || {})
+      .filter(function(r) { return formRows.indexOf(r) === -1; })
+      .sort();
+    return {
+      key: key,
+      name: key === 'Other' ? 'Other species (not on the BTO form)' : key,
+      species: formRows.concat(extras)
+    };
+  }).filter(function(sec) { return sec.species.length; });
+  
 
   // ── Build workbook ─────────────────────────────────────────────────
   var wb = new ExcelJS.Workbook();
@@ -1388,7 +1351,7 @@ async function exportBTOSummary() {
     var firstSpRow = ws.rowCount + 1;
 
     section.species.forEach(function(sp) {
-      var d = getSpData(sp);
+      var d = getSpData(section.key, sp);
       var rSp = ws.addRow([sp]);
       rSp.getCell(1).font = f(false);
       numCell(rSp, 2, d.proc);
