@@ -1,42 +1,183 @@
-/* Ringing Tracker: styles shared by every page.
-   Load FIRST, before the page's own <style>. Colours come from theme.css variables. */
+/* Ringing Tracker: styles shared by every page — themes (white, cream, dark), base, page layout,
+   header, settings menu and the info modals. Load FIRST, before the page's own <style>.
+   Themes are just sets of variables on <html data-theme="light|cream|dark"> (see theme.js);
+   "light" is the White theme and is the default. */
 
+/* ── Themes ── */
+:root {
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --ink: #14181c;
+  --ink-muted: #5a6270;
+  --accent: #1f5fd6;
+  --accent-hover: #174bb0;
+  --accent-light: #e8f0fe;
+  --on-accent: #ffffff;
+  --border: #d9dce0;
+  --border-soft: #eceef1;
+  --border-focus: #1f5fd6;
+  --row-alt: #f9fafb;
+  --th: #eef0f3;
+  --danger: #b3261e;
+  --warn-bg: #fff8e6;
+  --warn-border: #e8d88a;
+  --warn-ink: #6b5700;
+  --warn-strong: #c9a800;
+  --shadow: 0 1px 2px rgba(20,24,28,0.06);
+  --shadow-lg: 0 8px 24px rgba(20,24,28,0.14);
+
+  /* Fonts (cream swaps in the original mono body + serif headings) */
+  --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-head: var(--font-body);
+
+  /* Page header strip */
+  --hdr-bg: #ffffff;
+  --hdr-ink: var(--ink);
+  --hdr-muted: var(--ink-muted);
+  --hdr-border: var(--border);
+  --hdr-hover-bg: var(--th);
+  --hdr-underline: var(--accent);
+
+  /* Card title bars (section headers, modal headers) and the small buttons inside them */
+  --bar-bg: var(--th);
+  --bar-ink: var(--ink);
+  --bar-muted: var(--ink-muted);
+  --bar-border: var(--border);
+  --bar-btn-border: var(--border);
+  --bar-btn-hover-bg: var(--accent-light);
+  --bar-btn-hover-ink: var(--accent);
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f1316;
+  --surface: #171c21;
+  --ink: #e6eaee;
+  --ink-muted: #9aa5b1;
+  --accent: #6ea0ff;
+  --accent-hover: #8db4ff;
+  --accent-light: #1c2a40;
+  --on-accent: #0b1220;
+  --border: #2e373f;
+  --border-soft: #242c33;
+  --border-focus: #6ea0ff;
+  --row-alt: #1b2127;
+  --th: #212830;
+  --danger: #ff8a8a;
+  --warn-bg: #2b2410;
+  --warn-border: #5c4d1a;
+  --warn-ink: #f0d88a;
+  --warn-strong: #e0bd1a;
+  --shadow: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --hdr-bg: #0b0e11;
+  color-scheme: dark;
+}
+
+/* Cream = the original look: warm paper, green accent, dark header and title bars,
+   serif headings, monospace body, small uppercase labels. */
+:root[data-theme="cream"] {
+  --bg: #f5f0e8;
+  --surface: #fffdf8;
+  --ink: #1a1a14;
+  --ink-muted: #6b6657;
+  --accent: #2d5a27;
+  --accent-hover: #234a1f;
+  --accent-light: #e8f0e6;
+  --on-accent: #ffffff;
+  --border: #d9d2c0;
+  --border-soft: #f0ebe0;
+  --border-focus: #2d5a27;
+  --row-alt: #faf7f0;
+  --th: #ece6d8;
+  --danger: #8b2e2e;
+  --shadow: 0 1px 3px rgba(26,26,20,0.08);
+  --shadow-lg: 0 8px 24px rgba(26,26,20,0.18);
+
+  --font-body: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-head: 'Playfair Display', Georgia, 'Times New Roman', serif;
+
+  --hdr-bg: #1a1a14;
+  --hdr-ink: #f5f0e8;
+  --hdr-muted: #9a9480;
+  --hdr-border: #1a1a14;
+  --hdr-hover-bg: rgba(255,255,255,0.08);
+  --hdr-underline: #8fc487;
+
+  --bar-bg: #1a1a14;
+  --bar-ink: #f5f0e8;
+  --bar-muted: #9a9480;
+  --bar-border: #1a1a14;
+  --bar-btn-border: rgba(255,255,255,0.18);
+  --bar-btn-hover-bg: rgba(255,255,255,0.08);
+  --bar-btn-hover-ink: #f5f0e8;
+
+  color-scheme: light;
+}
+
+/* ── Base ── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-@keyframes spin      { to { transform: rotate(360deg); } }
-@keyframes ddFadeIn  { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+h1, h2, h3, .tile-value { font-family: var(--font-head); }
+
+button, input, select, textarea { font-family: inherit; }
+
+/* Focus ring for every text-like control */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* Page container. .screen is the same container for pages that swap between screens (the log page). */
+main, .screen {
+  max-width: 1260px;
+  margin: 40px auto;
+  padding: 0 20px 60px;
+}
+
+@keyframes spin       { to { transform: rotate(360deg); } }
+@keyframes ddFadeIn   { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 @keyframes infoOvFade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes modalIn   { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes modalIn    { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 /* ── Header ── */
 header {
   background: var(--hdr-bg);
-  color: var(--ink);
+  color: var(--hdr-ink);
   padding: 18px 40px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--hdr-border);
 }
-header h1 { font-size: 1.25rem; font-weight: 700; color: var(--ink); margin-right: 16px; }
+header h1 { font-size: 1.25rem; font-weight: 700; color: var(--hdr-ink); margin-right: 16px; }
 header nav { display: flex; flex: 1; gap: 4px; align-items: center; }
 header nav a {
-  color: var(--ink-muted);
+  color: var(--hdr-muted);
   text-decoration: none;
   font-size: 0.85rem;
   padding: 8px 12px 4px;
   transition: color 0.15s, background 0.15s;
 }
-header nav a:hover { color: var(--ink); background: var(--th); }
-header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
+header nav a:hover { color: var(--hdr-ink); background: var(--hdr-hover-bg); }
+header nav a.active { color: var(--hdr-ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--hdr-underline); }
 
 /* ── Settings button & dropdown ── */
 .settings-wrap { position: relative; margin-left: auto; }
 
 .settings-btn {
   background: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--hdr-border);
   border-radius: 3px;
-  color: var(--ink-muted);
+  color: var(--hdr-muted);
   font-size: 0.8rem;
   padding: 5px 10px;
   cursor: pointer;
@@ -46,7 +187,8 @@ header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -
   white-space: nowrap;
   transition: color 0.15s, background 0.15s;
 }
-.settings-btn:hover, .settings-btn.open { color: var(--ink); background: var(--th); }
+.settings-btn:hover, .settings-btn.open { color: var(--hdr-ink); background: var(--hdr-hover-bg); }
+:root[data-theme="cream"] .settings-btn { border-color: rgba(255,255,255,0.18); }
 
 .settings-dropdown {
   display: none;
@@ -57,7 +199,7 @@ header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -
   border: 1px solid var(--border);
   border-radius: 4px;
   box-shadow: var(--shadow-lg);
-  min-width: 180px;
+  min-width: 220px;
   z-index: 500;
   overflow: hidden;
 }
@@ -78,6 +220,24 @@ header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -
 }
 .settings-item:last-child { border-bottom: none; }
 .settings-item:hover { background: var(--accent-light); color: var(--accent); }
+
+/* Theme picker: White | Cream | Dark */
+.settings-theme { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.settings-theme-label { display: block; font-size: 0.72rem; color: var(--ink-muted); margin-bottom: 6px; }
+.theme-options { display: flex; gap: 4px; }
+.theme-opt {
+  flex: 1;
+  padding: 6px 4px;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.theme-opt:hover { background: var(--accent-light); color: var(--accent); }
+.theme-opt[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
 /* ── Info modals (FAQ, changelog, report issues) ── */
 .info-overlay {
@@ -104,9 +264,9 @@ header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -
   animation: modalIn 0.22s ease;
 }
 .info-modal-hd {
-  background: var(--th);
-  color: var(--ink);
-  border-bottom: 1px solid var(--border);
+  background: var(--bar-bg);
+  color: var(--bar-ink);
+  border-bottom: 1px solid var(--bar-border);
   padding: 14px 20px;
   display: flex;
   justify-content: space-between;
@@ -119,13 +279,13 @@ header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -
 .info-modal-x {
   background: none;
   border: none;
-  color: var(--ink-muted);
+  color: var(--bar-muted);
   font-size: 1.3rem;
   line-height: 1;
   cursor: pointer;
   padding: 2px 4px;
 }
-.info-modal-x:hover { color: var(--ink); }
+.info-modal-x:hover { color: var(--bar-ink); }
 
 .info-modal-bd { padding: 22px 24px; font-size: 0.85rem; line-height: 1.7; color: var(--ink-muted); }
 .info-modal-bd h3 { font-size: 0.95rem; color: var(--ink); margin: 18px 0 6px; font-weight: 600; }
@@ -152,8 +312,50 @@ header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -
 .cl-entry ul { margin: 6px 0 0 16px; }
 .cl-entry li { margin-bottom: 3px; }
 
+/* ── Cream extras: the original accents that aren't just colours ── */
+:root[data-theme="cream"] .session-card,
+:root[data-theme="cream"] .selector-card,
+:root[data-theme="cream"] .confirm-card,
+:root[data-theme="cream"] .success-card,
+:root[data-theme="cream"] .info-modal { border-top: 3px solid var(--accent); }
+
+/* Upload dialog keeps its amber/brown treatment */
+:root[data-theme="cream"] .modal { border-color: var(--warn-border); border-top: 3px solid var(--warn-strong); }
+:root[data-theme="cream"] .modal-header { background: #4a3c00; color: #fff8e6; border-bottom-color: #4a3c00; }
+:root[data-theme="cream"] .modal-close { color: var(--warn-strong); }
+:root[data-theme="cream"] .modal-close:hover { color: #fff8e6; }
+:root[data-theme="cream"] .upload-btn { background: #4a3c00; color: #fff8e6; }
+:root[data-theme="cream"] .upload-btn:hover { background: #332900; }
+:root[data-theme="cream"] .upload-btn:disabled { background: var(--ink-muted); }
+
+/* Small uppercase labels */
+:root[data-theme="cream"] label,
+:root[data-theme="cream"] .col-headers span,
+:root[data-theme="cream"] .confirm-meta-label,
+:root[data-theme="cream"] .confirm-col-head,
+:root[data-theme="cream"] .confirm-cell-label,
+:root[data-theme="cream"] .confirm-mob-label,
+:root[data-theme="cream"] .proc-mob-label,
+:root[data-theme="cream"] .ringed-mob-label,
+:root[data-theme="cream"] .pulli-ringed-mob-label,
+:root[data-theme="cream"] .broods-mob-label,
+:root[data-theme="cream"] .data-table th,
+:root[data-theme="cream"] .tile-label,
+:root[data-theme="cream"] .missing-method-label,
+:root[data-theme="cream"] .missing-cat-label,
+:root[data-theme="cream"] .species-cat-td,
+:root[data-theme="cream"] .section-header .badge,
+:root[data-theme="cream"] .species-section-header span,
+:root[data-theme="cream"] .settings-theme-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.66rem;
+}
+
 /* ── Mobile ── */
 @media (max-width: 640px) {
+  main, .screen { margin: 16px auto; padding: 0 12px 40px; }
+
   header { padding: 14px 16px; gap: 0; }
   header h1 { font-size: 1.3rem; width: 88px; flex-shrink: 0; margin-right: 8px; }
   header nav { justify-content: space-evenly; }
@@ -161,7 +363,7 @@ header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -
   .settings-wrap { margin-left: 0; flex: 1; text-align: center; }
   .settings-btn { margin: 0 auto; }
   .settings-btn .settings-label { display: none; }
-  .settings-dropdown { right: 0; left: auto; min-width: 160px; text-align: left; }
+  .settings-dropdown { right: 0; left: auto; min-width: 210px; text-align: left; }
   .info-modal { max-height: calc(100vh - 40px); }
   .info-modal-bd { padding: 18px 16px; }
   .info-overlay { align-items: flex-start; padding: 20px 16px; }

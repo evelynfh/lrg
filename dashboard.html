@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f6f7f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1316" media="(prefers-color-scheme: dark)">
 <title>Ringing Tracker</title>
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -12,19 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
-  /* ── Loading spinner ── */
-  .spinner {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255,255,255,0.15);
-    border-top-color: var(--accent-light);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    vertical-align: middle;
-    margin-right: 6px;
-  }
-
+  /* ── Loading state ── */
   .loading-state {
     display: flex;
     align-items: center;
@@ -32,45 +22,34 @@
     justify-content: center;
     color: var(--ink-muted);
     font-size: 0.82rem;
-    letter-spacing: 0.04em;
   }
-
-  .loading-state .spinner {
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
+  .spinner {
+    display: inline-block;
     width: 18px;
     height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
     margin-right: 10px;
-  }
-
-  /* ── Layout ── */
-  main {
-    max-width: 1260px;
-    margin: 40px auto;
-    padding: 0 20px 80px;
   }
 
   /* ── Selector ── */
   .selector-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-top: 3px solid var(--accent);
     border-radius: 4px;
     padding: 24px 28px;
     margin-bottom: 28px;
     box-shadow: var(--shadow);
   }
-
   label.field-label {
     display: block;
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     color: var(--ink-muted);
     margin-bottom: 6px;
   }
-
   select.ringer-select {
     width: 100%;
     max-width: 360px;
@@ -79,7 +58,6 @@
     border: 1px solid var(--border);
     border-radius: 3px;
     background: var(--surface);
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.85rem;
     color: var(--ink);
     appearance: none;
@@ -90,37 +68,27 @@
     transition: border-color 0.15s;
   }
 
-  select.ringer-select:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
-  }
-
-  /* ── Error banner ── */
+  /* ── Error banner / placeholder ── */
   .error-banner {
-    background: #fdf0f0;
-    border: 1px solid #e8b8b8;
-    border-left: 3px solid #8b2e2e;
+    background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+    border: 1px solid var(--danger);
+    border-left: 3px solid var(--danger);
     border-radius: 3px;
     padding: 12px 16px;
     margin-bottom: 20px;
     font-size: 0.78rem;
-    color: #8b2e2e;
+    color: var(--danger);
   }
-
-  /* ── Placeholder ── */
   .state-placeholder {
     text-align: center;
     padding: 80px 20px;
     color: var(--ink-muted);
     font-size: 0.82rem;
-    letter-spacing: 0.04em;
   }
 
   /* ── Dashboard ── */
   #dashboard { display: none; }
   #dashboard.visible { display: block; animation: fadeIn 0.25s ease; }
-
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: none; }
@@ -134,15 +102,10 @@
     gap: 12px;
     margin-bottom: 20px;
   }
-
-  .ringer-strip h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.45rem;
-    font-weight: 600;
-    color: var(--ink);
-  }
+  .ringer-strip h2 { font-size: 1.45rem; font-weight: 600; color: var(--ink); }
 
   /* ── Export button ── */
+  .export-wrap { position: relative; flex-shrink: 0; }
   .export-btn {
     display: flex;
     align-items: center;
@@ -151,30 +114,15 @@
     border: 1px solid var(--border);
     border-radius: 3px;
     padding: 8px 16px;
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.75rem;
-    letter-spacing: 0.05em;
     color: var(--ink-muted);
     cursor: pointer;
     white-space: nowrap;
     transition: border-color 0.15s, color 0.15s, background 0.15s;
     flex-shrink: 0;
   }
-
-  .export-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-light);
-  }
-
-  .export-btn:active {
-    transform: scale(0.97);
-  }
-
-  .export-wrap {
-    position: relative;
-    flex-shrink: 0;
-  }
+  .export-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .export-btn:active { transform: scale(0.97); }
 
   .export-dropdown {
     display: none;
@@ -184,15 +132,13 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 4px;
-    box-shadow: 0 8px 28px rgba(26,26,20,0.14);
+    box-shadow: var(--shadow-lg);
     min-width: 220px;
     z-index: 100;
     overflow: hidden;
     animation: ddFadeIn 0.15s ease;
   }
-
   .export-dropdown.open { display: block; }
-
   .export-item {
     display: block;
     width: 100%;
@@ -200,26 +146,22 @@
     background: none;
     border: none;
     border-bottom: 1px solid var(--border);
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem;
     color: var(--ink);
     cursor: pointer;
     text-align: left;
-    letter-spacing: 0.02em;
     transition: background 0.1s;
   }
-
   .export-item:last-child { border-bottom: none; }
   .export-item:hover { background: var(--accent-light); color: var(--accent); }
 
   /* ── Stat tiles ── */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 14px;
     margin-bottom: 22px;
   }
-
   .stat-tile {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -227,29 +169,9 @@
     padding: 20px 18px 16px;
     box-shadow: var(--shadow);
   }
-
-  .stat-tile .tile-label {
-    font-size: 0.62rem;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-muted);
-    margin-bottom: 8px;
-  }
-
-  .stat-tile .tile-value {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.9rem;
-    font-weight: 700;
-    color: var(--ink);
-    line-height: 1;
-  }
-
-  .stat-tile .tile-sub {
-    font-size: 0.68rem;
-    color: var(--ink-muted);
-    margin-top: 5px;
-  }
+  .stat-tile .tile-label { font-size: 0.7rem; font-weight: 500; color: var(--ink-muted); margin-bottom: 8px; }
+  .stat-tile .tile-value { font-size: 1.9rem; font-weight: 700; color: var(--ink); line-height: 1; }
+  .stat-tile .tile-sub { font-size: 0.7rem; color: var(--ink-muted); margin-top: 5px; }
 
   /* ── Section cards ── */
   .section-card {
@@ -260,201 +182,120 @@
     margin-bottom: 20px;
     overflow: hidden;
   }
-
   .section-header {
-    background: var(--ink);
-    color: var(--bg);
+    background: var(--bar-bg);
+    color: var(--bar-ink);
+    border-bottom: 1px solid var(--bar-border);
     padding: 12px 22px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-
-  .section-header h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 0.95rem;
-    font-weight: 600;
-  }
-
-  .section-header .badge {
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    color: #9a9480;
-  }
+  .section-header h3 { font-size: 0.95rem; font-weight: 600; }
+  .section-header .badge { font-size: 0.7rem; color: var(--bar-muted); }
 
   /* ── Tables ── */
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .data-table thead tr {
-    background: var(--accent-light);
-    border-bottom: 1px solid var(--border);
-  }
-
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table thead tr { background: var(--accent-light); border-bottom: 1px solid var(--border); }
   .data-table th {
     padding: 8px 22px;
-    font-size: 0.62rem;
+    font-size: 0.7rem;
     font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     color: var(--accent);
     text-align: left;
   }
-
   .data-table th.r { text-align: right; }
-
   .data-table td {
     padding: 10px 22px;
     font-size: 0.82rem;
     color: var(--ink-muted);
-    border-bottom: 1px solid #f0ebe0;
+    border-bottom: 1px solid var(--border-soft);
     vertical-align: middle;
   }
-
   .data-table td.primary { color: var(--ink); }
   .data-table td.r { text-align: right; color: var(--ink); font-weight: 500; }
   .data-table tbody tr:last-child td { border-bottom: none; }
   .data-table tbody tr:nth-child(even) { background: var(--row-alt); }
 
   /* ── Sort toggle ── */
-  .sort-toggle {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
+  .sort-toggle { display: flex; flex-wrap: wrap; gap: 4px; }
   .sort-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.06em;
+    font-size: 0.7rem;
     padding: 4px 10px;
     border-radius: 2px;
-    border: 1px solid rgba(255,255,255,0.18);
+    border: 1px solid var(--bar-btn-border);
     background: transparent;
-    color: #9a9480;
+    color: var(--bar-muted);
     cursor: pointer;
     transition: background 0.12s, color 0.12s;
   }
+  .sort-btn:hover { background: var(--bar-btn-hover-bg); color: var(--bar-btn-hover-ink); }
+  .sort-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
-  .sort-btn:hover { background: rgba(255,255,255,0.08); color: var(--bg); }
-  .sort-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-
-  /* ── Species table scroll wrapper ── */
-  .species-table-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
+  /* ── Species table ── */
+  .species-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .species-table-scroll .data-table { min-width: 480px; }
 
-  /* ── Species table category headers ── */
-  .species-cat-label {
-    padding: 6px 22px 5px;
-    font-size: 0.62rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--accent);
-    background: var(--accent-light);
-    border-bottom: 1px solid var(--border);
-    border-top: 1px solid var(--border);
-  }
-
-  /* Desktop: category row is a normal in-table row */
-  /* All cells in a category row get the green background — this covers
-     the empty cells to the right on desktop with no extra markup needed.
-     !important beats the .data-table tbody tr:nth-child(even) rule. */
+  /* Category rows: every cell gets the tinted background (covers the empty cells to the right
+     with no extra markup). !important beats the striping rules, including the mobile sticky-column ones. */
   .species-cat-row td {
     background: var(--accent-light) !important;
     border-bottom: 1px solid var(--border);
     border-top: 1px solid var(--border);
     padding: 0;
   }
-
-  /* Only the label cell gets text styling */
   .species-cat-row .species-cat-td {
     padding: 6px 22px 5px;
-    font-size: 0.62rem;
+    font-size: 0.7rem;
     font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     color: var(--accent);
   }
 
-  /* ── Missing species category subheadings ── */
-  .missing-cat-label {
-    padding: 5px 22px 4px 32px;
-    font-size: 0.6rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-muted);
-    border-bottom: 1px solid #f0ebe0;
-  }
-
-  .missing-cat-block:last-child .missing-grid { padding-bottom: 14px; }
-
-  /* ── Missing species ── */
+  /* ── Species gaps ── */
   .missing-method-block { border-bottom: 1px solid var(--border); }
   .missing-method-block:last-child { border-bottom: none; }
-
   .missing-method-label {
     padding: 8px 22px;
-    font-size: 0.62rem;
+    font-size: 0.7rem;
     font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     color: var(--accent);
     background: var(--accent-light);
     border-bottom: 1px solid var(--border);
   }
-
-  .missing-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 16px 22px 18px;
+  .missing-cat-label {
+    padding: 5px 22px 4px 32px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+    border-bottom: 1px solid var(--border-soft);
   }
-
+  .missing-cat-block:last-child .missing-grid { padding-bottom: 14px; }
+  .missing-grid { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 22px 18px; }
   .missing-chip {
     padding: 5px 10px;
     border-radius: 3px;
     font-size: 0.72rem;
     background: var(--warn-bg);
     border: 1px solid var(--warn-border);
-    color: #6b5700;
+    color: var(--warn-ink);
+    cursor: pointer;
   }
-
+  .missing-chip:hover { background: var(--warn-border); }
   .chip-count {
     display: inline-block;
     margin-left: 5px;
-    background: #e8d88a;
-    color: #4a3c00;
+    background: var(--warn-border);
+    color: var(--warn-ink);
     border-radius: 2px;
     padding: 0 5px;
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     font-weight: 500;
     vertical-align: middle;
   }
+  .missing-empty { padding: 18px 22px; font-size: 0.78rem; color: var(--accent); font-style: italic; }
 
-  .missing-empty {
-    padding: 18px 22px;
-    font-size: 0.78rem;
-    color: var(--accent);
-    font-style: italic;
-  }
-
-  /* ── Gap breakdown popup ── */
-  .missing-chip { cursor: pointer; }
-  .missing-chip:hover { background: #f5e89a; border-color: #c8a800; }
-  .gap-popup-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 700;
-  }
+  /* Gap breakdown popup */
+  .gap-popup-overlay { display: none; position: fixed; inset: 0; z-index: 700; }
   .gap-popup-overlay.open { display: block; }
   .gap-popup {
     display: none;
@@ -469,11 +310,8 @@
     z-index: 701;
     overflow: hidden;
   }
-  .gap-popup-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 5px 12px; font-size: 0.72rem; gap: 12px;
-  }
-  .gap-popup-row:nth-child(even) { background: var(--surface-alt, rgba(0,0,0,0.03)); }
+  .gap-popup-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 12px; font-size: 0.72rem; gap: 12px; }
+  .gap-popup-row:nth-child(even) { background: var(--row-alt); }
   .gap-popup-name { color: var(--ink); }
   .gap-popup-num { color: var(--ink-muted); font-weight: 500; flex-shrink: 0; }
 
@@ -483,38 +321,20 @@
     align-items: center;
     gap: 14px;
     padding: 10px 22px;
-    border-bottom: 1px solid #f0ebe0;
+    border-bottom: 1px solid var(--border-soft);
     font-size: 0.8rem;
   }
-
   .session-item:last-child { border-bottom: none; }
   .session-item:nth-child(even) { background: var(--row-alt); }
-
   .session-date { color: var(--ink); min-width: 96px; font-size: 0.82rem; }
-
-  .session-pills {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-    flex: 1;
-  }
-
-  .pill {
-    padding: 2px 8px;
-    border-radius: 2px;
-    font-size: 0.67rem;
-    letter-spacing: 0.02em;
-  }
-
-  .pill-method  { background: var(--accent-light); color: var(--accent); border: 1px solid #c8dcc5; }
-  .pill-species { background: #f5f0e8; color: var(--ink-muted); border: 1px solid var(--border); }
-
+  .session-pills { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; }
+  .pill { padding: 2px 8px; border-radius: 2px; font-size: 0.7rem; }
+  .pill-method  { background: var(--accent-light); color: var(--accent); border: 1px solid var(--border); }
+  .pill-species { background: var(--th); color: var(--ink-muted); border: 1px solid var(--border); }
   .session-totals { color: var(--ink-muted); font-size: 0.72rem; white-space: nowrap; }
 
   /* ── Responsive ── */
   @media (max-width: 640px) {
-    main { margin: 16px auto; padding: 0 12px 60px; }
-    .stats-grid { grid-template-columns: 1fr 1fr; }
     select.ringer-select { max-width: 100%; }
     .session-item { flex-wrap: wrap; }
     .ringer-strip { flex-wrap: wrap; }
@@ -532,16 +352,12 @@
       left: 0;
       background: var(--surface);
       z-index: 1;
-      box-shadow: 2px 0 4px rgba(26,26,20,0.06);
+      box-shadow: 2px 0 4px rgba(20,24,28,0.06);
     }
-    .species-table-scroll .data-table tr:nth-child(even) td:first-child {
-      background: var(--row-alt);
-    }
-    .species-table-scroll .data-table thead th:first-child {
-      background: var(--accent-light);
-    }
-    /* Category rows: all cells already green; pin the label cell so it
-       stays visible as the (empty, green) cells behind it scroll away */
+    .species-table-scroll .data-table tr:nth-child(even) td:first-child { background: var(--row-alt); }
+    .species-table-scroll .data-table thead th:first-child { background: var(--accent-light); }
+    /* Category rows: all cells already tinted; pin the label cell so it stays visible
+       as the (empty) cells behind it scroll away */
     .species-table-scroll .data-table .species-cat-row .species-cat-td {
       position: sticky;
       left: 0;
@@ -549,16 +365,14 @@
     }
   }
 </style>
-<link rel="stylesheet" href="theme.css">
 <script src="theme.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </head>
 <body data-page="dashboard">
 
 <main>
 
   <div class="selector-card">
-    <label class="field-label">Ringer</label>
+    <label class="field-label" for="ringer-select">Ringer</label>
     <select class="ringer-select" id="ringer-select" onchange="loadDashboard(this.value)">
       <option value="">— Select a ringer —</option>
     </select>
@@ -636,9 +450,7 @@
     <div class="section-card">
       <div class="section-header">
         <h3>Species breakdown</h3>
-        <div style="display:flex;align-items:center;gap:12px">
-          <div id="species-sort-toggle" class="sort-toggle"></div>
-        </div>
+        <div id="species-sort-toggle" class="sort-toggle"></div>
       </div>
       <div id="species-table-wrap"></div>
     </div>
@@ -664,7 +476,8 @@
 
 <script src="species.js"></script>
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_325ASJS3a7eWO0SF1VKzMLJyePOAVuk46kxnRf6voyz_u1lIBJYvnZ9gbkczMrpH/exec';
+// SCRIPT_URL, esc(), isWhoosh(), isMistNet(), downloadBlob() and downloadCSV() come from shared.js.
+// SPECIES_LIST, CATEGORY_ORDER, BTO_FORM, getSpeciesCategory() and getBTORow() come from species.js.
 
 // ─────────────────────────────────────────────
 // Init — populate ringer dropdown
@@ -676,7 +489,7 @@ window.addEventListener('DOMContentLoaded', function() {
     .then(function(d) {
       hideLoading();
       const sel = document.getElementById('ringer-select');
-      (d.trainees || []).sort().forEach(function(n) {
+      (d.trainees || []).sort(function(a, b) { return a.localeCompare(b); }).forEach(function(n) {
         const o = document.createElement('option');
         o.value = n; o.textContent = n;
         sel.appendChild(o);
@@ -689,7 +502,7 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 // ─────────────────────────────────────────────
-// Error display
+// Error / loading display
 // ─────────────────────────────────────────────
 function showError(msg) {
   const el = document.getElementById('error-banner');
@@ -718,7 +531,10 @@ function hideLoading() {
 // ─────────────────────────────────────────────
 // Load — fires on select change
 // ─────────────────────────────────────────────
+var _loadSeq = 0;   // bumped on every ringer change; a response only renders if it is still the latest
+
 function loadDashboard(ringer) {
+  var seq = ++_loadSeq;
   clearError();
   if (!ringer) {
     hideLoading();
@@ -732,30 +548,50 @@ function loadDashboard(ringer) {
   fetch(SCRIPT_URL + '?action=getRingerData&ringer=' + encodeURIComponent(ringer))
     .then(function(r) { return r.json(); })
     .then(function(d) {
+      if (seq !== _loadSeq) return;   // the person has already picked someone else
       hideLoading();
       if (d.error) { showError(d.error); return; }
       renderDashboard(d, ringer);
     })
     .catch(function() {
+      if (seq !== _loadSeq) return;
       hideLoading();
       showError('Could not load data for ' + ringer + ' — please check your internet connection and try again.');
     });
 }
 
 // ─────────────────────────────────────────────
-// Species category lookup
-// SPECIES_LIST and CATEGORY_ORDER come from species.js, shared with index.html.
-// getSpeciesCategory(sp) is also defined there.
+// Whoosh firings — one value per SUBMISSION
+// The backend stores firings on the first row of each submission only. All rows of one
+// submission share a "Submitted at" timestamp, so (date + submittedAt) identifies a
+// submission. Taking the first non-null value per key counts every submission once —
+// including two on the same day — and still gives the right answer for older rows that
+// repeat the value on every row. Rows with no timestamp (added by hand) fall back to
+// one value per date.
 // ─────────────────────────────────────────────
+function whooshFiringKey(date, entry) {
+  return date + '|' + (entry.submittedAt || '');
+}
+
+function sumWhooshFirings(sessions) {
+  var seen = {}, total = 0;
+  sessions.forEach(function(s) {
+    (s.entries || []).forEach(function(e) {
+      if (e.whooshFirings === null || e.whooshFirings === undefined) return;
+      var key = whooshFiringKey(s.date, e);
+      if (key in seen) return;
+      seen[key] = true;
+      total += e.whooshFirings || 0;
+    });
+  });
+  return total;
+}
 
 // ─────────────────────────────────────────────
-// Render
+// Gap breakdown popup
+// Chip data is kept in a JS map by index; chips carry only a data-chip attribute — no inline
+// onclick strings, no escaping issues.
 // ─────────────────────────────────────────────
-
-// Stored for use by exportCSV()
-window._exportSessions = [];
-window._exportRinger   = '';
-
 var _gapListenerAttached = false;
 var _chipData = {};
 var _chipIndex = 0;
@@ -768,7 +604,7 @@ function _positionPopup(chip, rowCount) {
   var scrollY = window.pageYOffset || document.documentElement.scrollTop;
   var scrollX = window.pageXOffset || document.documentElement.scrollLeft;
   var pw = _gapPopup.offsetWidth || 200;
-  var estimatedHeight = rowCount * 31 + 12;
+  var estimatedHeight = _gapPopup.offsetHeight || (rowCount * 31 + 12);
   var left = rect.left + scrollX;
   if (left + pw > scrollX + window.innerWidth - 12) left = scrollX + window.innerWidth - pw - 12;
   if (left < scrollX + 8) left = scrollX + 8;
@@ -791,9 +627,7 @@ function _initGapPopup() {
   window.addEventListener('scroll', function() {
     if (!_currentChip || _gapPopup.style.display !== 'block') return;
     var rect = _currentChip.getBoundingClientRect();
-    if (rect.bottom < 0 || rect.top > window.innerHeight) {
-      closeGapPopup();
-    }
+    if (rect.bottom < 0 || rect.top > window.innerHeight) closeGapPopup();
   }, { passive: true });
 }
 
@@ -823,29 +657,36 @@ function _attachChipListener() {
         }).join('')
       + '</div>';
     _currentChip = chip;
-    _positionPopup(chip, ringerRows.length);
+    // Show first, then position: a display:none element has no measurable width or height
     _gapOverlay.classList.add('open');
     _gapPopup.style.display = 'block';
+    _positionPopup(chip, ringerRows.length);
   });
 }
+
+// ─────────────────────────────────────────────
+// Render
+// ─────────────────────────────────────────────
+
+// Stored for use by the exports
+window._exportSessions = [];
+window._exportRinger   = '';
 
 function renderDashboard(data, ringer) {
   var sessions = (data.sessions || []).slice().sort(function(a, b) {
     return b.date.localeCompare(a.date);
   });
 
-  // Store for export — sorted chronologically (ascending)
-  window._exportSessions = (data.sessions || []).slice().sort(function(a, b) {
-    return a.date.localeCompare(b.date);
-  });
+  // Exports use chronological order (ascending)
+  window._exportSessions = sessions.slice().reverse();
   window._exportRinger = ringer;
 
-  var totalExt = 0, totalProc = 0;
-  var totalPulliRinged = 0, totalBroods = 0;
-  var whooshExt = 0, whooshFiringsTotal = 0;
+  var totalProc = 0, totalPulliRinged = 0, totalBroods = 0;
+  var whooshExt = 0, mistExt = 0;
+  var mistSpecies = new Set();
   var speciesMap = {}, methodMap = {};
-  // fledgedMethodSet tracks methods used by fledged rows only (for species table columns)
-  var fledgedMethodSet = {};
+  // Total extracted per method — orders the method columns of the species table
+  var methodTotals = {};
 
   sessions.forEach(function(s) {
     (s.entries || []).forEach(function(e) {
@@ -853,30 +694,28 @@ function renderDashboard(data, ringer) {
       var proc = e.processed || 0;
       var sp   = e.species   || 'Unknown';
       var mt   = e.method    || 'Unknown';
-      var age  = e.age       || '';
-      var isPullus = age === 'Pullus';
 
-      totalExt  += ext;
-      totalProc += proc;
+      totalProc        += proc;
       totalPulliRinged += (e.pulliRinged    || 0);
       totalBroods      += (e.broodsAssessed || 0);
 
-      if (mt.toLowerCase().includes('whoosh')) {
-        whooshExt += ext;
+      if (isWhoosh(mt)) whooshExt += ext;
+      if (isMistNet(mt)) {
+        mistExt += ext;
+        if (ext > 0) mistSpecies.add(sp);
       }
 
-      if (!speciesMap[sp]) speciesMap[sp] = { _total: 0, _proc: 0, _fledgedRinged: 0, _pulliRinged: 0, _broodsAssessed: 0 };
-      speciesMap[sp]._total += ext;
-      speciesMap[sp]._proc  += proc;
+      if (!speciesMap[sp]) speciesMap[sp] = { _proc: 0, _fledgedRinged: 0, _pulliRinged: 0, _broodsAssessed: 0 };
+      speciesMap[sp]._proc           += proc;
       speciesMap[sp]._fledgedRinged  += (e.fledgedRinged  || 0);
       speciesMap[sp]._pulliRinged    += (e.pulliRinged    || 0);
       speciesMap[sp]._broodsAssessed += (e.broodsAssessed || 0);
 
-      // Only track extracted per-method for fledged rows (pullus methods excluded from species table)
-      if (!isPullus && ext > 0) {
+      // Per-method extracted counts for the species table. Pullus extractions count too: they
+      // show under their own methods (e.g. a nest-box column). Only the BTO export leaves them out.
+      if (ext > 0) {
         speciesMap[sp][mt] = (speciesMap[sp][mt] || 0) + ext;
-        if (!fledgedMethodSet[mt]) fledgedMethodSet[mt] = 0;
-        fledgedMethodSet[mt] += ext;
+        methodTotals[mt] = (methodTotals[mt] || 0) + ext;
       }
 
       if (!methodMap[mt]) methodMap[mt] = { extracted: 0, species: new Set(), dates: new Set() };
@@ -886,24 +725,16 @@ function renderDashboard(data, ringer) {
     });
   });
 
-  whooshFiringsTotal = sumWhooshFirings(sessions);
+  var whooshFiringsTotal = sumWhooshFirings(sessions);
 
-  // Build ordered fledged method list: Mist net first, Whoosh net second, then others by total
+  // Method columns for the species table: Mist net first, Whoosh net second, then the rest by total
   var PRIORITY = { 'Mist net': 0, 'Whoosh net': 1 };
-  var fledgedMethodList = Object.keys(fledgedMethodSet).sort(function(a, b) {
+  var speciesMethodList = Object.keys(methodTotals).sort(function(a, b) {
     var pa = (PRIORITY[a] !== undefined) ? PRIORITY[a] : 2;
     var pb = (PRIORITY[b] !== undefined) ? PRIORITY[b] : 2;
     if (pa !== pb) return pa - pb;
-    return fledgedMethodSet[b] - fledgedMethodSet[a];
+    return methodTotals[b] - methodTotals[a];
   });
-
-  // Unique species where at least one extraction occurred
-  var speciesCount = Object.keys(speciesMap).filter(function(sp) {
-    return speciesMap[sp]._total > 0;
-  }).length;
-
-  // All unique species seen (extracted or processed) — used for processed tile
-  var allSpeciesCount = Object.keys(speciesMap).length;
 
   var methodList = Object.keys(methodMap).sort(function(a, b) {
     return methodMap[b].extracted - methodMap[a].extracted;
@@ -922,15 +753,14 @@ function renderDashboard(data, ringer) {
   document.getElementById('ringer-title').textContent = ringer;
 
   // ── Tiles ──
-  var mistNet = methodMap['Mist net'] || { extracted: 0, species: new Set() };
   document.getElementById('stat-sessions').textContent  = sessions.length;
   document.getElementById('stat-whoosh').textContent    = whooshExt;
-  document.getElementById('stat-mistnet').textContent   = mistNet.extracted;
+  document.getElementById('stat-mistnet').textContent   = mistExt;
   document.getElementById('stat-pulli').textContent     = totalPulliRinged;
   document.getElementById('stat-processed').textContent = totalProc;
   document.getElementById('stat-sessions-sub').textContent  = firstDate ? fmtMonth(firstDate) + ' \u2192 ' + fmtMonth(lastDate) : '\u2014';
   document.getElementById('stat-whoosh-sub').textContent    = 'across ' + whooshFiringsTotal + ' firing' + (whooshFiringsTotal !== 1 ? 's' : '');
-  document.getElementById('stat-mistnet-sub').textContent   = 'across ' + mistNet.species.size + ' species';
+  document.getElementById('stat-mistnet-sub').textContent   = 'across ' + mistSpecies.size + ' species';
   document.getElementById('stat-pulli-sub').textContent     = 'across ' + totalBroods + ' brood' + (totalBroods !== 1 ? 's' : '');
   document.getElementById('stat-proc-sub').textContent      = 'across ' + Object.keys(speciesMap).length + ' species';
 
@@ -947,11 +777,16 @@ function renderDashboard(data, ringer) {
   }).join('');
 
   // ── Species table ──
-  window._speciesData = { speciesMap: speciesMap, methodList: fledgedMethodList };
-  buildSortToggle(fledgedMethodList);
+  window._speciesData = { speciesMap: speciesMap, methodList: speciesMethodList };
+  var anyPulli  = Object.keys(speciesMap).some(function(sp) { return speciesMap[sp]._pulliRinged    > 0; });
+  var anyBroods = Object.keys(speciesMap).some(function(sp) { return speciesMap[sp]._broodsAssessed > 0; });
+  buildSortToggle(speciesMethodList, anyPulli, anyBroods);
   buildSpeciesTable('proc');
 
   // ── Species gaps ──
+  // NOTE (open items): the gaps compare against every species this ringer has logged under ANY
+  // method, although the FAQ describes gaps "for a method" (#8); and the badge count below does not
+  // apply the same total > 0 / object filters as the chips, so it can disagree with what is shown (#9).
   var mySpecies         = new Set(Object.keys(speciesMap));
   var myProcessedSpecies = new Set(
     Object.entries(speciesMap).filter(function(e) { return e[1]._proc > 0; }).map(function(e) { return e[0]; })
@@ -959,11 +794,6 @@ function renderDashboard(data, ringer) {
   var siteFreqByMethod  = data.siteFreqByMethod  || {};
   var siteProcessedFreq = data.siteProcessedFreq || {};
   var siteMethods       = Object.keys(siteFreqByMethod);
-
-  // ── Gap breakdown popup ──────────────────────────────────────────
-  // Chip data stored in a JS map by index; chips carry only a data-chip
-  // attribute — no inline onclick strings, no escaping issues.
-
 
   function missingChips(freqMap, mySet) {
     // freqMap[species] is a per-ringer object: { ringerName: count }
@@ -1069,70 +899,32 @@ function renderDashboard(data, ringer) {
 }
 
 // ─────────────────────────────────────────────
-// Whoosh firings — one value per SUBMISSION
-// The backend stores firings on the first row of each submission only. All rows of one
-// submission share a "Submitted at" timestamp, so (date + submittedAt) identifies a
-// submission. Taking the first non-null value per key counts every submission once —
-// including two on the same day — and still gives the right answer for older rows that
-// repeat the value on every row. Rows with no timestamp (added by hand) fall back to
-// one value per date.
-// ─────────────────────────────────────────────
-function whooshFiringKey(date, entry) {
-  return date + '|' + (entry.submittedAt || '');
-}
-
-function sumWhooshFirings(sessions) {
-  var seen = {}, total = 0;
-  sessions.forEach(function(s) {
-    (s.entries || []).forEach(function(e) {
-      if (e.whooshFirings === null || e.whooshFirings === undefined) return;
-      var key = whooshFiringKey(s.date, e);
-      if (key in seen) return;
-      seen[key] = true;
-      total += e.whooshFirings || 0;
-    });
-  });
-  return total;
-}
-  
-// ─────────────────────────────────────────────
-// CSV export
+// Export menu
 // ─────────────────────────────────────────────
 function toggleExportMenu(e) {
   e.stopPropagation();
   document.getElementById('export-dropdown').classList.toggle('open');
 }
 
+function closeExportMenu() {
+  var dd = document.getElementById('export-dropdown');
+  if (dd) dd.classList.remove('open');
+}
+
 document.addEventListener('click', function(e) {
   var wrap = document.getElementById('export-wrap');
-  if (wrap && !wrap.contains(e.target)) {
-    var dd = document.getElementById('export-dropdown');
-    if (dd) dd.classList.remove('open');
-  }
+  if (wrap && !wrap.contains(e.target)) closeExportMenu();
 });
 
-function csvCell(value) {
-  var s = value === null || value === undefined ? '' : String(value);
-  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
-  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-    return '"' + s.replace(/"/g, '""') + '"';
-  }
-  return s;
-}
+// Escape closes the gap popup and the export menu (shared.js calls this after its own modals)
+window.closeOnEscape = function() {
+  closeGapPopup();
+  closeExportMenu();
+};
 
-function downloadCSV(rows, filename) {
-  var csv = rows.map(function(row) { return row.map(csvCell).join(','); }).join('\r\n');
-  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  var url  = URL.createObjectURL(blob);
-  var a    = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  document.getElementById('export-dropdown').classList.remove('open');
-}
-
+// ─────────────────────────────────────────────
+// CSV export
+// ─────────────────────────────────────────────
 function exportSessionData() {
   var sessions = window._exportSessions;
   var ringer   = window._exportRinger;
@@ -1172,20 +964,44 @@ function exportSessionData() {
   var today    = new Date().toISOString().split('T')[0];
   var safeName = ringer.replace(/[^a-zA-Z0-9_-]/g, '_');
   downloadCSV(rows, 'ringing-sessions_' + safeName + '_' + today + '.csv');
+  closeExportMenu();
+}
+
+// ─────────────────────────────────────────────
+// BTO-format export
+// ─────────────────────────────────────────────
+
+// ExcelJS is only needed here, so it is loaded the first time someone exports
+function loadExcelJS() {
+  if (window.ExcelJS) return Promise.resolve();
+  return new Promise(function(resolve, reject) {
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+    s.onload = resolve;
+    s.onerror = function() { reject(new Error('ExcelJS failed to load')); };
+    document.head.appendChild(s);
+  });
 }
 
 async function exportBTOSummary() {
   var sessions = window._exportSessions;
   var ringer   = window._exportRinger;
   if (!sessions || !sessions.length) return;
-  document.getElementById('export-dropdown').classList.remove('open');
+  closeExportMenu();
+
+  try {
+    await loadExcelJS();
+  } catch (err) {
+    showError('The Excel export library could not be loaded. Check your internet connection and try again.');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
 
   // ── Aggregate by BTO form row ──────────────────────────────────────
   // species.js decides where each logged species counts: getBTORow(name) returns the BTO form
   // section (= the species' category) and the row it counts towards (its `parent` if it has one,
   // e.g. "Brent Goose (Dark-bellied)" -> "Brent Goose", "Lesser Redpoll" -> "Redpoll").
   // Pullus extractions are deliberately NOT counted in the mist-net / whoosh-net columns.
-  
   var rowData = {};   // section -> { row name -> totals }
   sessions.forEach(function(s) {
     (s.entries || []).forEach(function(e) {
@@ -1199,8 +1015,8 @@ async function exportBTOSummary() {
       if (e.age !== 'Pullus') {
         d.proc          += e.processed     || 0;
         d.fledgedRinged += e.fledgedRinged || 0;
-        if (mt === 'Mist net')                   d.mistNet   += ext;
-        if (mt.toLowerCase().includes('whoosh')) d.whooshNet += ext;
+        if (isMistNet(mt)) d.mistNet   += ext;
+        if (isWhoosh(mt))  d.whooshNet += ext;
       }
       d.pulliRinged += e.pulliRinged    || 0;
       d.broods      += e.broodsAssessed || 0;
@@ -1228,7 +1044,6 @@ async function exportBTOSummary() {
       species: formRows.concat(extras)
     };
   }).filter(function(sec) { return sec.species.length; });
-  
 
   // ── Build workbook ─────────────────────────────────────────────────
   var wb = new ExcelJS.Workbook();
@@ -1317,10 +1132,9 @@ async function exportBTOSummary() {
     cell.border    = { top: thin, bottom: thin, left: thin, right: thin };
     cell.alignment = { horizontal: 'center', vertical: 'center' };
   });
-  r2.commit();
 
   // ── Sections ──────────────────────────────────────────────────────
-  // Col G gets CAT_FILL on species rows for these 4 sections (per reference)
+  // Col G gets CAT_FILL on species rows for these 3 sections (per reference)
   var G_GREY_SECTIONS = { 'Waterfowl': true, 'Colony-nesting seabirds': true, 'Waders and gamebirds': true };
   var isFirstSection = true;
 
@@ -1344,7 +1158,7 @@ async function exportBTOSummary() {
         { top: thin, left: thin },
         { top: thin, right: thin },
       ];
-      for (var c = 1; c <= 7; c++) rCat.getCell(c).border = catBorders[c - 1];
+      for (var c2 = 1; c2 <= 7; c2++) rCat.getCell(c2).border = catBorders[c2 - 1];
     }
     isFirstSection = false;
 
@@ -1367,7 +1181,8 @@ async function exportBTOSummary() {
 
     var lastSpRow = ws.rowCount;
 
-    // Total row — SUM formulas always present, no fill, exact border pattern from reference
+    // Total row — SUM formulas always present, no fill, exact border pattern from reference.
+    // The ranges span every row in the section, including any extra rows added for species not on the form.
     var rTot = ws.addRow([section.name + ' total']);
     rTot.getCell(1).font   = f(true);
     rTot.getCell(1).border = { top: thin, bottom: thin };
@@ -1470,32 +1285,24 @@ async function exportBTOSummary() {
   ws.views = [{ state: 'frozen', ySplit: 2 }];
 
   // ── Download ──────────────────────────────────────────────────────
-  var buf  = await wb.xlsx.writeBuffer();
-  var blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  var url  = URL.createObjectURL(blob);
-  var a    = document.createElement('a');
+  var buf      = await wb.xlsx.writeBuffer();
+  var blob     = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   var today    = new Date().toISOString().split('T')[0];
   var safeName = ringer.replace(/[^a-zA-Z0-9_-]/g, '_');
-  a.href = url;
-  a.download = 'BTO-summary_' + safeName + '_' + today + '.xlsx';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  downloadBlob(blob, 'BTO-summary_' + safeName + '_' + today + '.xlsx');
 }
 
 // ─────────────────────────────────────────────
 // Species table sort
 // ─────────────────────────────────────────────
-function buildSortToggle(fledgedMethodList) {
+function buildSortToggle(methodList, hasPulliRinged, hasBroods) {
   var buttons = [
     { key: 'proc',        label: 'Fl. Processed' },
     { key: 'fledgedRing', label: 'Fl. Ringed'    },
-  ].concat(fledgedMethodList.map(function(m) { return { key: 'method:' + m, label: m }; })).concat([
-    { key: 'pulliRing',   label: 'Pu. Ringed'    },
-    { key: 'broods',      label: 'Broods Ass.'   },
-    { key: 'alpha',       label: 'A\u2013Z'       },
-  ]);
+  ].concat(methodList.map(function(m) { return { key: 'method:' + m, label: m }; }));
+  if (hasPulliRinged) buttons.push({ key: 'pulliRing', label: 'Pu. Ringed'  });
+  if (hasBroods)      buttons.push({ key: 'broods',    label: 'Broods Ass.' });
+  buttons.push({ key: 'alpha', label: 'A\u2013Z' });
 
   document.getElementById('species-sort-toggle').innerHTML = buttons.map(function(b) {
     return '<button class="sort-btn' + (b.key === 'proc' ? ' active' : '') + '" '
@@ -1525,17 +1332,18 @@ function scrollSpeciesColumnIntoView(order) {
     var headers = Array.prototype.slice.call(table.querySelectorAll('thead th'));
     if (!headers.length) return;
 
+    function indexOfHeader(text) {
+      var idx = -1;
+      headers.forEach(function(th, i) { if (th.textContent.trim() === text) idx = i; });
+      return idx;
+    }
+
     var targetIndex = -1;
     if (order === 'proc')             targetIndex = 1;
     else if (order === 'fledgedRing') targetIndex = 2;
-    else if (order === 'pulliRing')   targetIndex = headers.length - 2;
-    else if (order === 'broods')      targetIndex = headers.length - 1;
-    else if (order.indexOf('method:') === 0) {
-      var methodName = order.slice(7);
-      headers.forEach(function(th, i) {
-        if (th.textContent.trim() === methodName) targetIndex = i;
-      });
-    }
+    else if (order === 'pulliRing')   targetIndex = indexOfHeader('Pu. Ringed');
+    else if (order === 'broods')      targetIndex = indexOfHeader('Broods Ass.');
+    else if (order.indexOf('method:') === 0) targetIndex = indexOfHeader(order.slice(7));
     if (targetIndex < 0) return;
 
     var wrapRect    = wrap.getBoundingClientRect();
@@ -1548,31 +1356,28 @@ function scrollSpeciesColumnIntoView(order) {
 function buildSpeciesTable(order) {
   var d = window._speciesData;
   if (!d) return;
-  var speciesMap        = d.speciesMap;
-  var fledgedMethodList = d.methodList;
+  var speciesMap = d.speciesMap;
+  var methodList = d.methodList;
 
-  var allRows = Object.entries(speciesMap).slice().sort(function(a, b) {
+  var allRows = Object.entries(speciesMap).sort(function(a, b) {
     if (order === 'alpha')       return a[0].localeCompare(b[0]);
-    if (order === 'proc')        return (b[1]._proc          || 0) - (a[1]._proc          || 0);
-    if (order === 'fledgedRing') return (b[1]._fledgedRinged || 0) - (a[1]._fledgedRinged || 0);
-    if (order === 'pulliRing')   return (b[1]._pulliRinged   || 0) - (a[1]._pulliRinged   || 0);
-    if (order === 'broods')      return (b[1]._broodsAssessed|| 0) - (a[1]._broodsAssessed|| 0);
+    if (order === 'fledgedRing') return (b[1]._fledgedRinged  || 0) - (a[1]._fledgedRinged  || 0);
+    if (order === 'pulliRing')   return (b[1]._pulliRinged    || 0) - (a[1]._pulliRinged    || 0);
+    if (order === 'broods')      return (b[1]._broodsAssessed || 0) - (a[1]._broodsAssessed || 0);
     if (order.indexOf('method:') === 0) return (b[1][order.slice(7)] || 0) - (a[1][order.slice(7)] || 0);
-    return (b[1]._proc || 0) - (a[1]._proc || 0);
+    return (b[1]._proc || 0) - (a[1]._proc || 0);   // 'proc' (default)
   });
 
   var hasPulliRinged = allRows.some(function(r) { return (r[1]._pulliRinged    || 0) > 0; });
   var hasBroods      = allRows.some(function(r) { return (r[1]._broodsAssessed || 0) > 0; });
 
-  var thCols   = fledgedMethodList.map(function(m) { return '<th class="r">' + esc(m) + '</th>'; }).join('');
-  var thPulli  = hasPulliRinged ? '<th class="r">Pu. Ringed</th>'  : '';
-  var thBroods = hasBroods      ? '<th class="r">Broods Ass.</th>' : '';
-
   var thead = '<thead><tr>'
     + '<th>Species</th>'
     + '<th class="r">Fl. Processed</th>'
     + '<th class="r">Fl. Ringed</th>'
-    + thCols + thPulli + thBroods
+    + methodList.map(function(m) { return '<th class="r">' + esc(m) + '</th>'; }).join('')
+    + (hasPulliRinged ? '<th class="r">Pu. Ringed</th>'  : '')
+    + (hasBroods      ? '<th class="r">Broods Ass.</th>' : '')
     + '</tr></thead>';
 
   // Group rows by category
@@ -1583,25 +1388,23 @@ function buildSpeciesTable(order) {
     byCategory[cat].push(entry);
   });
 
+  function cell(n) { return '<td class="r">' + (n > 0 ? n : '\u2014') + '</td>'; }
+
   function makeRows(rows) {
     return rows.map(function(entry) {
       var sp = entry[0], v = entry[1];
-      var methodCells = fledgedMethodList.map(function(m) {
-        var cnt = v[m] || 0;
-        return '<td class="r">' + (cnt > 0 ? cnt : '\u2014') + '</td>';
-      }).join('');
-      var pulliCell  = hasPulliRinged ? '<td class="r">' + ((v._pulliRinged    || 0) > 0 ? v._pulliRinged    : '\u2014') + '</td>' : '';
-      var broodsCell = hasBroods      ? '<td class="r">' + ((v._broodsAssessed || 0) > 0 ? v._broodsAssessed : '\u2014') + '</td>' : '';
       return '<tr>'
         + '<td class="primary">' + esc(sp) + '</td>'
-        + '<td class="r">' + (v._proc          > 0 ? v._proc          : '\u2014') + '</td>'
-        + '<td class="r">' + (v._fledgedRinged > 0 ? v._fledgedRinged : '\u2014') + '</td>'
-        + methodCells + pulliCell + broodsCell
+        + cell(v._proc)
+        + cell(v._fledgedRinged)
+        + methodList.map(function(m) { return cell(v[m] || 0); }).join('')
+        + (hasPulliRinged ? cell(v._pulliRinged    || 0) : '')
+        + (hasBroods      ? cell(v._broodsAssessed || 0) : '')
         + '</tr>';
     }).join('');
   }
 
-  var colCount = 3 + fledgedMethodList.length + (hasPulliRinged ? 1 : 0) + (hasBroods ? 1 : 0);
+  var colCount = 3 + methodList.length + (hasPulliRinged ? 1 : 0) + (hasBroods ? 1 : 0);
   var emptyCells = Array(colCount - 1).fill('<td></td>').join('');
 
   var tbody = '';
@@ -1614,12 +1417,7 @@ function buildSpeciesTable(order) {
 
   document.getElementById('species-table-wrap').innerHTML =
     '<div class="species-table-scroll">'
-    + '<table class="data-table"><thead><tr>'
-    + '<th>Species</th>'
-    + '<th class="r">Fl. Processed</th>'
-    + '<th class="r">Fl. Ringed</th>'
-    + thCols + thPulli + thBroods
-    + '</tr></thead><tbody>' + tbody + '</tbody></table></div>';
+    + '<table class="data-table">' + thead + '<tbody>' + tbody + '</tbody></table></div>';
 }
 </script>
 <script src="shared.js"></script>

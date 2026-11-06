@@ -1,6 +1,10 @@
 // Ringing Tracker: behaviour and markup shared by every page.
 // Load at the END of <body>, after the page's own scripts.
 // Set <body data-page="log"> or <body data-page="dashboard"> to mark the active nav link.
+
+// ── Backend ──
+window.SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_325ASJS3a7eWO0SF1VKzMLJyePOAVuk46kxnRf6voyz_u1lIBJYvnZ9gbkczMrpH/exec';
+
 // ── Safety helpers: use esc() on ANY text that came from a user or the spreadsheet
 // before putting it into innerHTML or an HTML attribute.
 window.esc = function (s) {
@@ -16,6 +20,43 @@ window.highlight = function (text, q) {
   return String(text).split(re).map(function (part, i) {
     return i % 2 ? '<span class="match">' + window.esc(part) + '</span>' : window.esc(part);
   }).join('');
+};
+
+// ── Catching-method helpers: one definition of "is this a whoosh / mist net?" ──
+window.isWhoosh = function (method) {
+  return String(method == null ? '' : method).toLowerCase().indexOf('whoosh') !== -1;
+};
+window.isMistNet = function (method) {
+  return String(method == null ? '' : method).trim().toLowerCase() === 'mist net';
+};
+
+// ── Downloads ──
+window.downloadBlob = function (blob, filename) {
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+// One CSV cell: quotes values containing , " or a newline, and defuses spreadsheet formulas
+// (text starting with = + - @ would otherwise run when the file is opened in Excel).
+window.csvCell = function (value) {
+  var s = value === null || value === undefined ? '' : String(value);
+  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+};
+
+// rows: array of arrays. The leading BOM makes Excel read accented names as UTF-8.
+window.downloadCSV = function (rows, filename) {
+  var csv = rows.map(function (row) { return row.map(window.csvCell).join(','); }).join('\r\n');
+  window.downloadBlob(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }), filename);
 };
 
 (function () {
@@ -37,7 +78,11 @@ window.highlight = function (text, q) {
     + '<button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" aria-label="Settings">'
     + '\u2699 <span class="settings-label">Settings</span></button>'
     + '<div class="settings-dropdown" id="settings-dropdown">'
-    + '<button class="settings-item" id="theme-toggle" onclick="toggleTheme()">Dark mode: off</button>'
+    + '<div class="settings-theme" role="group" aria-label="Theme"><span class="settings-theme-label">Theme</span><div class="theme-options">'
+    + '<button type="button" class="theme-opt" data-theme-choice="light" aria-pressed="false" onclick="setTheme(\'light\')">White</button>'
+    + '<button type="button" class="theme-opt" data-theme-choice="cream" aria-pressed="false" onclick="setTheme(\'cream\')">Cream</button>'
+    + '<button type="button" class="theme-opt" data-theme-choice="dark" aria-pressed="false" onclick="setTheme(\'dark\')">Dark</button>'
+    + '</div></div>'
     + '<button class="settings-item" onclick="openInfoModal(\'about-modal\')">FAQ</button>'
     + '<button class="settings-item" onclick="openInfoModal(\'changelog-modal\')">Changelog</button>'
     + '<button class="settings-item" onclick="openInfoModal(\'report-modal\')">Report issues</button>'
@@ -57,7 +102,7 @@ window.highlight = function (text, q) {
 
   var changelog =
     '<div class="cl-entry"><span class="vtag vtag-new">v1.2 \u00b7 Latest</span><ul>'
-    + '<li>New look, with a dark mode option in Settings</li>'
+    + '<li>New look, with a choice of White, Cream (the original style) and Dark themes in Settings</li>'
     + '</ul></div>'
     + '<div class="cl-entry"><span class="vtag">v1.1</span><ul>'
     + '<li>Added extra detail to appropriately track BTO-relevant ringing progress (e.g. number of whoosh net firings, number of broods assessed)</li>'
@@ -121,7 +166,7 @@ window.highlight = function (text, q) {
   };
 
   // Single, shared Escape handler for every page. Pages can opt in to extra
-  // Escape behaviour (e.g. closing a page-specific modal) by defining
+  // Escape behaviour (e.g. closing a page-specific modal or menu) by defining
   // window.closeOnEscape — called last, only once info modals/settings are
   // already handled.
   document.addEventListener('keydown', function (e) {
@@ -132,10 +177,5 @@ window.highlight = function (text, q) {
     if (typeof window.closeOnEscape === 'function') window.closeOnEscape();
   });
 
-  // theme.js ran in <head> before the toggle button existed: sync its label now
-  if (window.toggleTheme) {
-    var t = document.documentElement.getAttribute('data-theme');
-    var btn = document.getElementById('theme-toggle');
-    if (btn) btn.textContent = 'Dark mode: ' + (t === 'dark' ? 'on' : 'off');
-  }
+  // (theme.js marks the selected theme in the picker once the page has loaded.)
 })();
