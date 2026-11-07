@@ -1,7 +1,7 @@
-/* Ringing Tracker: styles shared by every page — themes (white, cream, dark), base, page layout,
+/* Ringing Tracker: styles shared by every page — themes (light, cream, dark), base, page layout,
    header, settings menu and the info modals. Load FIRST, before the page's own <style>.
    Themes are just sets of variables on <html data-theme="light|cream|dark"> (see theme.js);
-   "light" is the White theme and is the default. */
+   "light" is the default. */
 
 /* ── Themes ── */
 :root {
@@ -94,9 +94,6 @@
   --danger: #8b2e2e;
   --shadow: 0 1px 3px rgba(26,26,20,0.08);
   --shadow-lg: 0 8px 24px rgba(26,26,20,0.18);
-
-  --font-body: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
-  --font-head: 'Playfair Display', Georgia, 'Times New Roman', serif;
 
   --hdr-bg: #1a1a14;
   --hdr-ink: #f5f0e8;
@@ -221,7 +218,7 @@ header nav a.active { color: var(--hdr-ink); font-weight: 600; box-shadow: inset
 .settings-item:last-child { border-bottom: none; }
 .settings-item:hover { background: var(--accent-light); color: var(--accent); }
 
-/* Theme picker: White | Cream | Dark */
+/* Theme picker: Light | Cream | Dark */
 .settings-theme { padding: 10px 16px; border-bottom: 1px solid var(--border); }
 .settings-theme-label { display: block; font-size: 0.72rem; color: var(--ink-muted); margin-bottom: 6px; }
 .theme-options { display: flex; gap: 4px; }
