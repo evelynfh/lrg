@@ -1,35 +1,33 @@
-// Ringing Tracker theme: applies the saved (or system) theme immediately — load in <head>
-// to avoid a flash — and exposes setTheme() for the Settings menu.
+// Ringing Tracker theme: applies the saved theme immediately — load in <head> to avoid a flash —
+// and exposes setTheme() for the Settings menu.
 //
-// Themes: 'light' (the default), 'cream' and 'dark' — each is just a set of colours in shared.css.
+// Themes: 'cream' (the default), 'light' and 'dark' — each is just a set of colours in shared.css.
 // 'light' and 'dark' are also the values older versions of the site saved, so existing
 // visitors keep their choice.
 (function () {
   var KEY = 'rt-theme';
 
+  // What a first-time visitor sees. Change this to 'light' or 'dark' to change the default.
+  var DEFAULT_THEME = 'cream';
+
   // Theme -> colour for the browser's own UI (mobile address bar etc.)
   var THEMES = { light: '#f6f7f8', cream: '#f5f0e8', dark: '#0f1316' };
+
+  function isTheme(mode) {
+    return Object.prototype.hasOwnProperty.call(THEMES, mode);
+  }
 
   function saved() {
     try { return localStorage.getItem(KEY); } catch (e) { return null; }
   }
 
-  function systemDark() {
-    return !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
-  }
-
-  // `chosen` is true when the visitor picked the theme (or had picked it before); until then the
-  // theme-color meta tags keep following the system light/dark setting.
-  function apply(mode, chosen) {
-    if (!THEMES[mode]) mode = 'light';
+  function apply(mode) {
+    if (!isTheme(mode)) mode = DEFAULT_THEME;
     document.documentElement.setAttribute('data-theme', mode);
 
-    if (chosen) {
-      document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
-        m.setAttribute('content', THEMES[mode]);
-        m.removeAttribute('media');
-      });
-    }
+    document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+      m.setAttribute('content', THEMES[mode]);
+    });
 
     // Mark the matching option in the Settings picker (it may not exist yet when this first runs)
     document.querySelectorAll('[data-theme-choice]').forEach(function (b) {
@@ -38,17 +36,16 @@
   }
 
   var s = saved();
-  var hasChoice = !!(s && THEMES[s]);
-  apply(hasChoice ? s : (systemDark() ? 'dark' : 'light'), hasChoice);
+  apply(isTheme(s) ? s : DEFAULT_THEME);
 
   window.setTheme = function (mode) {
-    if (!THEMES[mode]) return;
+    if (!isTheme(mode)) return;
     try { localStorage.setItem(KEY, mode); } catch (e) {}
-    apply(mode, true);
+    apply(mode);
   };
 
   // The picker buttons are added by shared.js after this runs in <head>: sync them once the page is ready.
   document.addEventListener('DOMContentLoaded', function () {
-    apply(document.documentElement.getAttribute('data-theme'), false);
+    apply(document.documentElement.getAttribute('data-theme'));
   });
 })();

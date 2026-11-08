@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#f6f7f8" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0f1316" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f0e8">
 <title>Ringing Tracker</title>
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -12,7 +11,7 @@
 <link rel="manifest" href="site.webmanifest">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css?v=3">
+<link rel="stylesheet" href="shared.css?v=4">
 <style>
   /* ── Screens (form / confirmation / success) — layout comes from .screen in shared.css ── */
   .screen { display: none; }
@@ -220,6 +219,8 @@
   .species-option:last-child { border-bottom: none; }
   .species-option:hover, .species-option.highlighted { background: var(--accent-light); color: var(--accent); }
   .species-option .match { font-weight: 600; color: var(--accent); }
+  .species-option.is-selected { font-weight: 600; }
+  .species-option.is-selected::after { content: ' \2713'; color: var(--accent); }
   .opt-hint { color: var(--ink-muted); font-size: 0.72rem; }
   .species-code { color: var(--ink-muted); font-size: 0.72rem; margin-left: 6px; }
 
@@ -312,7 +313,7 @@
     border-color: var(--danger);
   }
 
-  .add-row-wrap { padding: 16px 24px; border-top: 1px dashed var(--border); display: flex; flex-wrap: wrap; gap: 10px; }
+  .add-row-wrap { padding: 16px 24px; border-top: 1px dashed var(--border); }
   .add-row-btn {
     background: none;
     border: 1px dashed var(--accent);
@@ -327,7 +328,6 @@
     gap: 6px;
   }
   .add-row-btn:hover { background: var(--accent-light); }
-  .add-row-btn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-style: solid; }
 
   /* Whoosh net firing question */
   .whoosh-section {
@@ -341,8 +341,7 @@
     background: var(--row-alt);
   }
   .whoosh-section.visible { display: flex; }
-  .whoosh-zero-note { display: none; flex-basis: 100%; text-align: center; font-size: 0.72rem; color: var(--ink-muted); }
-  .whoosh-section.zero-catch .whoosh-zero-note { display: block; }
+  .whoosh-note { flex-basis: 100%; text-align: center; font-size: 0.72rem; color: var(--ink-muted); }
   .whoosh-label {
     font-size: 0.75rem;
     font-weight: 500;
@@ -835,7 +834,7 @@
     .remove-row { width: 100%; height: 40px; font-size: 0.78rem; border-radius: 3px; }
     .remove-row::after { content: '\00a0 Remove entry'; }
 
-    .add-row-wrap { padding: 12px; flex-direction: column; }
+    .add-row-wrap { padding: 12px; }
     .add-row-btn { width: 100%; justify-content: center; padding: 12px; font-size: 0.85rem; }
     .submit-btn { width: 100%; padding: 16px; font-size: 0.9rem; }
     .submit-row { flex-direction: column; align-items: stretch; }
@@ -847,7 +846,7 @@
     .upload-meta-grid { grid-template-columns: 1fr; }
   }
 </style>
-<script src="theme.js?v=3"></script>
+<script src="theme.js?v=4"></script>
 </head>
 <body data-page="log">
 
@@ -868,7 +867,7 @@
         <div class="species-search-wrap">
           <input type="text" id="trainee-name" class="species-input"
                  placeholder="Type to search or add name"
-                 autocomplete="off"
+                 autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore="true" data-form-type="other"
                  data-selected=""
                  oninput="filterTrainees(this.value)"
                  onkeydown="handleTraineeKey(event)"
@@ -909,9 +908,6 @@
       <button class="add-row-btn" onclick="addRow()">
         <span>+</span> Add species
       </button>
-      <button type="button" class="add-row-btn" id="zero-catch-btn" aria-pressed="false" onclick="toggleZeroCatch()">
-        No birds caught (whoosh firings only)
-      </button>
     </div>
 
     <div class="whoosh-section" id="whoosh-section">
@@ -925,10 +921,10 @@
                value="—" data-value="null"
                onchange="whooshInputChange(this)"
                onblur="whooshInputChange(this)"
-               autocomplete="off">
+               autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore="true" data-form-type="other">
         <button type="button" class="num-btn" aria-label="Increase" onclick="changeWhoosh(1)">▲</button>
       </div>
-      <p class="whoosh-zero-note">No birds will be recorded, only the live firings. Use this when every bird escaped.</p>
+      <p class="whoosh-note">No birds caught? Leave that whoosh row's species and counts blank and only the firings are recorded.</p>
     </div>
   </div>
 
@@ -982,7 +978,7 @@
       <div class="upload-meta-grid">
         <div>
           <label for="upload-sender">Your name <span class="required">*</span></label>
-          <input type="text" id="upload-sender" placeholder="Type your full name" autocomplete="off">
+          <input type="text" id="upload-sender" placeholder="Type your full name" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore="true" data-form-type="other">
         </div>
         <div>
           <label for="upload-notes">Notes</label>
@@ -1017,8 +1013,8 @@
 <div class="screen" id="confirm-screen">
   <div class="confirm-banner">⚠ Please review your session before submitting</div>
   <div class="confirm-banner" id="confirm-zero-note" style="display:none">
-    <strong>Zero-catch whoosh session.</strong> No birds are being recorded, only
-    <span id="confirm-zero-count">0</span> live firing(s). Please double-check that every bird escaped before you submit.
+    <strong>No birds were caught in the whoosh net firings.</strong> Only the
+    <span id="confirm-zero-count">0</span> live firing(s) are being recorded for the whoosh row. Please double-check that this is correct before you submit.
   </div>
 
   <div class="confirm-card">
@@ -1094,7 +1090,7 @@
 
 <div id="js-tip" role="tooltip" aria-hidden="true"></div>
 
-<script src="species.js?v=3"></script>
+<script src="species.js?v=4"></script>
 <script>
 // SCRIPT_URL, esc(), highlight() and isWhoosh() come from shared.js.
 // SPECIES_LIST comes from species.js, shared with dashboard.html.
@@ -1241,24 +1237,12 @@ function updateWhooshVisibility() {
   if (!section) return;
   const hasWhoosh = [...document.querySelectorAll('.method-input')]
     .some(inp => isWhoosh(inp.dataset.selected));
-  const show = hasWhoosh || zeroCatchMode;
-  section.classList.toggle('visible', show);
-  section.classList.toggle('zero-catch', zeroCatchMode);
-  if (!show) {
+  section.classList.toggle('visible', hasWhoosh);
+  if (!hasWhoosh) {
     // Reset when all whoosh rows removed
     const inp = document.getElementById('whoosh-firings');
     if (inp) { inp.value = '—'; inp.dataset.value = 'null'; inp.classList.remove('input-error'); }
   }
-}
-
-// "No birds caught": show the whoosh question on its own, so live firings can be logged for a
-// session where every bird escaped (no species rows needed once there is at least one firing).
-let zeroCatchMode = false;
-
-function toggleZeroCatch() {
-  zeroCatchMode = !zeroCatchMode;
-  document.getElementById('zero-catch-btn').setAttribute('aria-pressed', zeroCatchMode ? 'true' : 'false');
-  updateWhooshVisibility();
 }
 
 function changeWhoosh(delta) {
@@ -1306,7 +1290,7 @@ function addRow(skipFocus = false) {
     <div class="species-search-wrap">
       <input class="species-input" type="text"
              placeholder="Type to search"
-             autocomplete="off"
+             autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore="true" data-form-type="other"
              aria-label="Species"
              oninput="filterSpecies(${id}, this.value)"
              onkeydown="handleKey(event, ${id})"
@@ -1327,7 +1311,7 @@ function addRow(skipFocus = false) {
     <div class="species-search-wrap method-wrap" id="method-wrap-${id}">
       <input class="method-input" type="text"
              placeholder="Type or select"
-             autocomplete="off"
+             autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore="true" data-form-type="other"
              aria-label="Method"
              oninput="filterMethod(${id}, this.value)"
              onkeydown="handleMethodKey(event, ${id})"
@@ -1422,7 +1406,19 @@ function selectSpecies(id, name, isWriteIn) {
   dd.classList.remove('open');
   dd.innerHTML = '';
   autoSelectNestType(id);
-  setTimeout(() => input.focus(), 0);
+  if (isMobileLayout()) {
+    // Close the keyboard (no extra Back press needed) and bring the whole row into view, so the
+    // age, method and counts are right there after choosing a species.
+    input.blur();
+    setTimeout(() => document.getElementById(`row-${id}`).scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+  } else {
+    setTimeout(() => input.focus(), 0);
+  }
+}
+
+// The phone layout stacks every field of a row vertically (same breakpoint as the CSS).
+function isMobileLayout() {
+  return !!(window.matchMedia && matchMedia('(max-width: 640px)').matches);
 }
 
 function delayClose(ddId) {
@@ -1564,11 +1560,12 @@ let methodHighlightIndex = {};
 function filterMethod(id, query) {
   const dd = document.getElementById(`dd-method-${id}`);
   const q = query.trim().toLowerCase();
-  methodHighlightIndex[id] = 0;
+  methodHighlightIndex[id] = -1;   // nothing highlighted until the arrow keys are used
 
   const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
   // Clicking a method that is already chosen (text unchanged) lists every method, so it is easy to change
   const showAll = !!(methodInput && methodInput.dataset.selected && methodInput.dataset.selected === query.trim());
+  const chosen = methodInput ? methodInput.dataset.selected : '';
   if (methodInput && methodInput.dataset.selected !== query.trim()) {
     methodInput.classList.remove('input-confirmed');
     methodInput.dataset.selected = '';
@@ -1599,7 +1596,8 @@ function filterMethod(id, query) {
     return;
   }
 
-  dd.innerHTML = matches.map((m, i) => `<div class="species-option${i === 0 && !writeIn ? ' highlighted' : ''}"
+  // The method that is currently chosen is marked with a tick, so it is never confused with the highlight
+  dd.innerHTML = matches.map(m => `<div class="species-option${m === chosen ? ' is-selected' : ''}"
       data-name="${esc(m)}"
       onmousedown="selectMethod(${id}, this.dataset.name, false)">${highlight(m, q)}</div>`
   ).join('') + writeIn;
@@ -1635,6 +1633,7 @@ function applyMethod(id, value, isWriteIn, auto) {
 
 function selectMethod(id, value, isWriteIn) {
   applyMethod(id, value, isWriteIn, false);
+  if (isMobileLayout()) document.querySelector(`#method-wrap-${id} .method-input`).blur();   // close the keyboard
 }
 
 // Pullus rows: once a species is chosen, pre-select the method whose name matches that species'
@@ -1669,18 +1668,24 @@ function handleMethodKey(e, id) {
   const dd = document.getElementById(`dd-method-${id}`);
   const items = dd.querySelectorAll('.species-option');
   if (!items.length) return;
+  const idx = methodHighlightIndex[id] === undefined ? -1 : methodHighlightIndex[id];   // -1: nothing highlighted yet
+
   if (e.key === 'ArrowDown') {
     e.preventDefault();
-    methodHighlightIndex[id] = Math.min((methodHighlightIndex[id] || 0) + 1, items.length - 1);
+    methodHighlightIndex[id] = Math.min(idx + 1, items.length - 1);
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
-    methodHighlightIndex[id] = Math.max((methodHighlightIndex[id] || 0) - 1, 0);
+    methodHighlightIndex[id] = idx < 0 ? items.length - 1 : Math.max(idx - 1, 0);
   } else if (e.key === 'Enter') {
     e.preventDefault();
-    items[methodHighlightIndex[id] || 0]?.dispatchEvent(new MouseEvent('mousedown'));
+    // Enter picks the option the arrow keys moved to, or the only option on offer; otherwise nothing
+    const pick = idx >= 0 ? items[idx] : (items.length === 1 ? items[0] : null);
+    if (pick) pick.dispatchEvent(new MouseEvent('mousedown'));
     return;
   } else if (e.key === 'Escape') {
     dd.classList.remove('open');
+    return;
+  } else {
     return;
   }
   items.forEach((el, i) => el.classList.toggle('highlighted', i === methodHighlightIndex[id]));
@@ -1808,6 +1813,7 @@ function selectTrainee(name) {
   const dd = document.getElementById('dd-trainee');
   dd.classList.remove('open');
   dd.innerHTML = '';
+  if (isMobileLayout()) input.blur();   // close the keyboard
 }
 
 function handleTraineeKey(e) {
@@ -1883,12 +1889,9 @@ function submitForm() {
     whooshInp.classList.remove('input-error');
   }
 
-  // With at least one live firing, species rows are optional: a session where every bird escaped
-  // is recorded as firings only, and any blank rows are ignored.
-  const rowsOptional = whooshFirings !== null && whooshFirings > 0;
-
   const entries = [];
   let valid = true;
+  let noCatchWhoosh = false;   // a whoosh row where nothing was caught: only the firings count
 
   document.querySelectorAll('.species-row').forEach(row => {
     const id = row.id.replace('row-', '');
@@ -1913,9 +1916,19 @@ function submitForm() {
     const pulliRinged    = isPullus ? Math.max(0, parseInt(document.getElementById(`pulli-ringed-${id}`).value) || 0) : 0;
     const broodsAssessed = isPullus ? Math.max(0, parseInt(document.getElementById(`broods-${id}`).value) || 0) : 0;
 
-    // A row nothing has been entered in is skipped when firings make rows optional
-    const blank = !species && !age && !method && !num && !processed && !fledgedRinged && !pulliRinged && !broodsAssessed;
-    if (blank && rowsOptional) return;
+    // Whoosh method chosen but no bird data: the requirements for the row are waived (no species, age,
+    // extracted or processed needed). The live firings are what gets recorded, so they must be at least 1.
+    const noBirds = !species && !num && !processed && !fledgedRinged && !pulliRinged && !broodsAssessed;
+    if (isWhoosh(method) && noBirds) {
+      if (!whooshFirings) {
+        document.getElementById('whoosh-firings').classList.add('input-error');
+        showStatus('A whoosh row with no birds needs at least one whoosh net firing. Enter the firings below, or add the bird details.', false);
+        valid = false;
+        return;
+      }
+      noCatchWhoosh = true;
+      return;
+    }
 
     if (!species) {
       speciesInput.classList.add('input-error');
@@ -1946,17 +1959,19 @@ function submitForm() {
     entries.push({ species, speciesWriteIn, age, num, method, methodWriteIn, processed, fledgedRinged, pulliRinged, broodsAssessed });
   });
 
-  if (!valid) { showStatus('Please check all rows: species, age and method are required. Fledged rows need at least one extracted or processed bird. Pullus rows need at least one pulli ringed or brood assessed.', false); return; }
-
-  if (!entries.length && !rowsOptional) {
-    showStatus(whooshVisible
-      ? 'Add a species, or enter at least one whoosh net firing for a session where no birds were caught.'
-      : 'Please add at least one species.', false);
+  if (!valid) {
+    // (the whoosh-firings message above, if that was the problem, is already showing)
+    if (!document.getElementById('whoosh-firings').classList.contains('input-error')) {
+      showStatus('Please check all rows: species, age and method are required. Fledged rows need at least one extracted or processed bird. Pullus rows need at least one pulli ringed or brood assessed.', false);
+    }
     return;
   }
 
-  // The server adds any new ringer or method to the sheet itself, so only the data goes across
-  pendingPayload = { trainee: name, date, entries, whooshFirings };
+  if (!entries.length && !noCatchWhoosh) { showStatus('Please add at least one species.', false); return; }
+
+  // The server adds any new ringer or method to the sheet itself, so only the data goes across.
+  // (noCatchWhoosh is only for the confirmation screen.)
+  pendingPayload = { trainee: name, date, entries, whooshFirings, noCatchWhoosh };
   switchScreen(formScreen, confirmScreen, () => showConfirmScreen(pendingPayload));
 }
 
@@ -1964,11 +1979,10 @@ function showConfirmScreen(payload) {
   document.getElementById('confirm-ringer').textContent = payload.trainee;
   document.getElementById('confirm-date').textContent = payload.date || 'Not specified';
 
-  // No species rows means a zero-catch whoosh session: say so, and ask for a double-check
-  const zeroCatch = payload.entries.length === 0;
-  document.getElementById('confirm-zero-note').style.display = zeroCatch ? '' : 'none';
+  // A whoosh row with no birds: say so, and ask for a double-check
+  document.getElementById('confirm-zero-note').style.display = payload.noCatchWhoosh ? '' : 'none';
   document.getElementById('confirm-zero-count').textContent = payload.whooshFirings;
-  document.getElementById('confirm-species-card').style.display = zeroCatch ? 'none' : '';
+  document.getElementById('confirm-species-card').style.display = payload.entries.length ? '' : 'none';
 
   const sum = key => payload.entries.reduce((s, e) => s + (e[key] || 0), 0);
   document.getElementById('confirm-tot-ext').textContent     = sum('num');
@@ -2063,11 +2077,9 @@ function resetForm() {
   document.getElementById('species-rows').innerHTML = '';
   showStatus('', null);
   rowCount = 0;
-  zeroCatchMode = false;
-  document.getElementById('zero-catch-btn').setAttribute('aria-pressed', 'false');
   const whooshInp = document.getElementById('whoosh-firings');
   whooshInp.value = '—'; whooshInp.dataset.value = 'null'; whooshInp.classList.remove('input-error');
-  document.getElementById('whoosh-section').classList.remove('visible', 'zero-catch');
+  document.getElementById('whoosh-section').classList.remove('visible');
   addRow(true);
 }
 
@@ -2325,6 +2337,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<script src="shared.js?v=3"></script>
+<script src="shared.js?v=4"></script>
 </body>
 </html>

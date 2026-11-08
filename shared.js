@@ -104,11 +104,13 @@ window.downloadCSV = function (rows, filename) {
 
   var changelog =
     '<div class="cl-entry"><span class="vtag vtag-new">v1.3 \u00b7 Latest</span><ul>'
-    + '<li>Whoosh net sessions where every bird escaped can now be logged: add the live firings without any species</li>'
+    + '<li>Whoosh net sessions where every bird escaped can now be logged: choose the Whoosh method, enter the firings, and leave the species and counts blank</li>'
     + '<li>Nest type (the method for Pullus rows) is pre-selected from the species, and can still be changed</li>'
-    + '<li>New "Birds ringed" tile on the dashboard</li>'
+    + '<li>New "Birds ringed" tile on the dashboard (fledged birds)</li>'
+    + '<li>The species breakdown shows each species group\'s totals in its heading row</li>'
+    + '<li>Method lists only highlight an option once you use the arrow keys, and on phones the keyboard closes after you pick a species or method</li>'
     + '<li>Flag button on each session in the Session history, to ask for an incorrect entry to be edited</li>'
-    + '<li>Cream is now just a colour scheme, like Light and Dark; the upload dialog follows the chosen colours</li>'
+    + '<li>Cream is the default look, and is now just a colour scheme like Light and Dark; the upload dialog follows the chosen colours</li>'
     + '</ul></div>'
     + '<div class="cl-entry"><span class="vtag">v1.2</span><ul>'
     + '<li>New look, with a choice of Light, Cream and Dark themes in Settings</li>'

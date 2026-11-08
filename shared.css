@@ -1,7 +1,7 @@
 /* Ringing Tracker: styles shared by every page — themes (light, cream, dark), base, page layout,
    header, settings menu and the info modals. Load FIRST, before the page's own <style>.
-   Themes are just sets of colour variables on <html data-theme="light|cream|dark"> (see theme.js);
-   "light" is the default. */
+   Themes are just sets of colour variables on <html data-theme="light|cream|dark"> (see theme.js,
+   which also says which one is the default). The un-themed :root block below is the Light palette. */
 
 /* ── Themes ── */
 :root {
