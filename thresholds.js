@@ -1,9 +1,9 @@
 // Ringing Tracker: BTO licence endorsement thresholds, by species group.
 // Source: BTO minimum thresholds tables (Ringing_thresholds.xlsx).
 //
-// Used by dashboard.html's "Licence thresholds" section. Only the Full-grown endorsement is
-// wired up on the dashboard so far — the Pullus, Mist net and Whoosh net entries below are kept
-// in the same shape ready for when those tabs are built, but are not yet read by dashboard.html.
+// Used by dashboard.html's "Licence thresholds" section. All four tabs (Full grown, Pullus, Mist net,
+// Whoosh net) now read from this file. Pullus counts pulli ringed plus broods assessed; Mist net counts
+// extractions by the "Mist net" method; Whoosh net uses total whoosh extractions and active firings.
 //
 // Each endorsement has a list of species "groups". For Full-grown, a group's `categories` is the
 // list of species.js categories (OPEN/CAV/PREY/WADE/WATER/COL/CLIFF/HERON) that count towards it —
