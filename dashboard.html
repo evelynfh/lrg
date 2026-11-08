@@ -347,7 +347,7 @@
   .threshold-row:hover td { filter: brightness(0.97); }
   .threshold-row.open td.primary { color: var(--accent); font-weight: 600; }
   .threshold-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-  
+
   .threshold-expand-icon {
     display: inline-block;
     width: 10px;
@@ -483,7 +483,7 @@
       z-index: 2;
     }
 
-    .threshold-tabs { padding: 10px 14px 10px; }
+    .threshold-tabs { padding: 10px 14px 0; }
     .threshold-restricted-wrap { padding: 12px 14px 16px; }
   }
 </style>
@@ -1113,14 +1113,7 @@ function thresholdCellHTML(value, target, extraClass, titleAttr) {
   var met = value >= target;
   var cls = 'threshold-cell' + (met ? ' met' : '') + (extraClass ? ' ' + extraClass : '');
   var barColor = extraClass === 'amber' ? 'var(--warn-strong)' : 'var(--accent)';
-  
-  // Faint background track fill + gap/spacing via background positioning //
-  var style = 'background-image: linear-gradient(' + barColor + ', ' + barColor + '); ' +
-              'background-color: var(--border-soft); ' + 
-              'background-repeat: no-repeat; ' +
-              'background-size: ' + (pct * 100) + '% 4px; ' +
-              'background-position: left bottom 4px;'; // leaves a small gap from cell bottom
-              
+  var style = 'background: linear-gradient(' + barColor + ', ' + barColor + ') left bottom no-repeat; background-size: ' + (pct * 100) + '% 3px;';
   return '<td class="r ' + cls + '" style="' + style + '"' + (titleAttr ? ' title="' + esc(titleAttr) + '"' : '') + '>'
     + value + ' / ' + target + '</td>';
 }
