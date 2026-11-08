@@ -337,14 +337,36 @@
     transition: background 0.12s, color 0.12s, border-color 0.12s;
   }
   .threshold-tab.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
-  .threshold-tab:disabled { cursor: default; opacity: 0.55; }
-  .threshold-tab:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
+  /* Hover only on tabs that aren't selected (the selected one would otherwise turn accent-on-accent
+     and lose its label), and only on devices that can really hover (so a tap doesn't stick). */
+  @media (hover: hover) {
+    .threshold-tab:not(.active):hover { border-color: var(--accent); color: var(--accent); }
+  }
 
-  #threshold-table-wrap { margin-top: 0; }
-  
+  /* One fixed grid for every tab: the name column and each metric column have fixed widths, so bars
+     start in the same place and are the same length in every group and on every tab. */
+  .threshold-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .threshold-table {
+    --name-w: 280px;
+    --metric-w: 200px;
+    --n: 2;
+    table-layout: fixed;
+    width: 100%;
+    min-width: calc(var(--name-w) + var(--n) * var(--metric-w));
+  }
+  .threshold-table col.tcol-name   { width: var(--name-w); }
+  .threshold-table col.tcol-metric { width: var(--metric-w); }
+  .threshold-table th, .threshold-table td { text-align: left; vertical-align: top; }
+  .threshold-table th.tcell { padding: 8px 16px; }
+  .threshold-table td.tcell { padding: 10px 16px; }
+  .threshold-table td.tname { padding: 10px 22px; }
+  .threshold-table td.tname-detail { padding-left: 38px; }
+
+  /* Striping is off here: expanded rows are inserted between group rows and would break it */
+  .threshold-table tbody tr:nth-child(even) { background: transparent; }
+  .threshold-table tbody tr.threshold-detail-row { background: var(--row-alt); }
   .threshold-row { cursor: pointer; }
-  .threshold-row td { transition: filter 0.1s; }
-  .threshold-row:hover td { filter: brightness(0.97); }
+  .threshold-table tbody tr.threshold-row:hover { background: var(--row-alt); }
   .threshold-row.open td.primary { color: var(--accent); font-weight: 600; }
   .threshold-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
@@ -358,10 +380,24 @@
   }
   .threshold-row.open .threshold-expand-icon { transform: rotate(90deg); color: var(--accent); }
 
-  .threshold-cell { position: relative; }
-  .threshold-cell.met { color: var(--ink); font-weight: 700; }
-  .threshold-cell.amber { color: var(--warn-ink); cursor: help; }
-  .threshold-cell { padding-bottom: 13px; }
+  /* Metric cell: number, bar, optional note. The bar is a real element with a fixed height. */
+  .tcell-num { font-size: 0.85rem; color: var(--ink); line-height: 1.3; margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+  .tcell-tgt { color: var(--ink-muted); }
+  .tcell.met .tcell-val { font-weight: 700; }
+  .tcell.amber .tcell-val { color: var(--warn-ink); font-weight: 600; }
+  .tbar {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--accent) 16%, transparent);   /* the faint full-length track */
+  }
+  .tbar-seg { flex: none; height: 100%; }
+  .tbar-seg.green { background: var(--accent); }
+  .tbar-seg.amber { background: var(--warn-strong); }
+  .tcell-sub { min-height: 14px; margin-top: 4px; font-size: 0.68rem; line-height: 14px; color: var(--ink-muted); }
+  .tcell-sub.amber { color: var(--warn-ink); }
+  .tcell-na .tcell-num { color: var(--ink-muted); }
 
   .ia-icon {
     display: inline-flex;
@@ -377,15 +413,20 @@
     font-style: normal;
     cursor: help;
     vertical-align: middle;
-    margin-left: 2px;
+    margin-left: 6px;
   }
 
-  .threshold-detail-row td { background: var(--row-alt); padding: 0; border-bottom: 1px solid var(--border); }
-  .threshold-restricted-wrap { padding: 14px 22px 18px; }
-  .threshold-restricted-title { font-size: 0.72rem; font-weight: 600; color: var(--ink-muted); margin-bottom: 10px; }
-  .threshold-restricted-table th, .threshold-restricted-table td { padding: 7px 14px; }
-  .threshold-restricted-empty { padding: 10px 0; font-size: 0.78rem; color: var(--ink-muted); font-style: italic; }
-
+  .threshold-table .threshold-detail-title td {
+    padding: 12px 22px 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+    border-bottom: none;
+  }
+  .threshold-table td.threshold-restricted-empty { padding: 10px 38px 14px; font-size: 0.78rem; color: var(--ink-muted); font-style: italic; }
+  .threshold-note { padding: 14px 22px 18px; font-size: 0.78rem; color: var(--ink-muted); line-height: 1.6; border-top: 1px solid var(--border-soft); }
+  .threshold-note .ia-icon { margin: 0 6px 0 0; }
+  
   /* ── Session history ── */
   .session-item {
     display: flex;
@@ -483,8 +524,8 @@
       z-index: 2;
     }
 
-    .threshold-tabs { padding: 10px 14px 0; }
-    .threshold-restricted-wrap { padding: 12px 14px 16px; }
+    .threshold-tabs { padding: 10px 14px 10px; }
+    .threshold-table { --name-w: 170px; --metric-w: 170px; }
   }
 </style>
 <script src="theme.js?v=3"></script>
@@ -580,10 +621,10 @@
         <span class="badge">BTO endorsement progress</span>
       </div>
       <div class="threshold-tabs" id="threshold-tabs">
-        <button type="button" class="threshold-tab active" data-endorsement="fullGrown">Full grown</button>
-        <button type="button" class="threshold-tab" disabled title="Coming soon">Pullus</button>
-        <button type="button" class="threshold-tab" disabled title="Coming soon">Mist net</button>
-        <button type="button" class="threshold-tab" disabled title="Coming soon">Whoosh net</button>
+        <button type="button" class="threshold-tab active" data-endorsement="fullGrown" aria-pressed="true">Full grown</button>
+        <button type="button" class="threshold-tab" data-endorsement="pullus" aria-pressed="false">Pullus</button>
+        <button type="button" class="threshold-tab" data-endorsement="mistNet" aria-pressed="false">Mist net</button>
+        <button type="button" class="threshold-tab" data-endorsement="whooshNet" aria-pressed="false">Whoosh net</button>
       </div>
       <div id="threshold-table-wrap"></div>
     </div>
@@ -636,7 +677,7 @@
 </div>
 
 <script src="species.js?v=3"></script>
-<script src="thresholds.js?v=1"></script>
+<script src="thresholds.js?v=2"></script>
 <script>
 // SCRIPT_URL, esc(), isWhoosh(), isMistNet(), downloadBlob() and downloadCSV() come from shared.js.
 // SPECIES_LIST, CATEGORY_ORDER, BTO_FORM, getSpeciesCategory() and getBTORow() come from species.js.
@@ -873,11 +914,12 @@ function renderDashboard(data, ringer) {
         if (ext > 0) mistSpecies.add(sp);
       }
 
-      if (!speciesMap[sp]) speciesMap[sp] = { _proc: 0, _fledgedRinged: 0, _pulliRinged: 0, _broodsAssessed: 0 };
+      if (!speciesMap[sp]) speciesMap[sp] = { _proc: 0, _fledgedRinged: 0, _pulliRinged: 0, _broodsAssessed: 0, _mist: 0 };
       speciesMap[sp]._proc           += proc;
       speciesMap[sp]._fledgedRinged  += (e.fledgedRinged  || 0);
       speciesMap[sp]._pulliRinged    += (e.pulliRinged    || 0);
       speciesMap[sp]._broodsAssessed += (e.broodsAssessed || 0);
+        if (isMistNet(mt)) speciesMap[sp]._mist += ext;
 
       // Per-method extracted counts for the species table. Pullus extractions count too: they
       // show under their own methods (e.g. a nest-box column). Only the BTO export leaves them out.
@@ -954,8 +996,8 @@ function renderDashboard(data, ringer) {
   buildSpeciesTable('proc');
 
   // ── Licence thresholds ──
-  buildThresholdsSection(speciesMap);
-
+  buildThresholdsSection(speciesMap, whooshExt, whooshFiringsTotal);
+  
   // ── Species gaps ──
   // NOTE (open items): the gaps compare against every species this ringer has logged under ANY
   // method, although the FAQ describes gaps "for a method" (#8); and the badge count below does not
@@ -1074,153 +1116,318 @@ function renderDashboard(data, ringer) {
 
 // ─────────────────────────────────────────────
 // Licence thresholds
-// Reads window.LICENCE_THRESHOLDS (thresholds.js). Only the "fullGrown" endorsement has data for
-// now — the other three tabs are shown disabled until the same framework is extended to them.
+// Reads window.LICENCE_THRESHOLDS (thresholds.js). Four tabs:
+//   fullGrown / pullus / mistNet : one row per species group, expandable to restricted-endorsement progress
+//   whooshNet                    : a single endorsement, not split by group
 //
-// Per group: "species processed" counts a species once it is diversity-eligible for the
-// restricted endorsement, not just once it has been logged — i.e. the single highest-count
-// species can fill the (higher) "first species" threshold, and every other species needs to
-// clear the (lower) "additional species" threshold. This mirrors the BTO rule that meeting the
-// unrestricted requirement outright should match what adding species one at a time would need.
-// If the individuals total is met but that diversity isn't, the species cell is flagged amber.
+// Species counting. Every species with at least one bird counts towards "Species" and towards the
+// bar. A species is GREEN if it fills a restricted-endorsement slot, AMBER if it counts but hasn't
+// reached the threshold for the slot it would fill. Slots are filled in order: first species, then
+// second (Mist net only), then additional species. A species fills a slot only if it meets that
+// slot's individuals threshold and, for Pullus, its broods threshold too ('n/a' means no requirement).
 // ─────────────────────────────────────────────
+var THRESHOLD_VIEWS = {
+  fullGrown: {
+    verb: 'processed',
+    count:  function(v) { return v._proc || 0; },
+    broods: null,
+    cols: [
+      { key: 'indiv',   label: 'Individuals processed' },
+      { key: 'species', label: 'Species processed' }
+    ]
+  },
+  pullus: {
+    verb: 'ringed',
+    count:  function(v) { return v._pulliRinged || 0; },
+    broods: function(v) { return v._broodsAssessed || 0; },
+    cols: [
+      { key: 'indiv',   label: 'Individuals ringed' },
+      { key: 'species', label: 'Species ringed' },
+      { key: 'broods',  label: 'Broods assessed' }
+    ]
+  },
+  mistNet: {
+    verb: 'extracted',
+    count:  function(v) { return v._mist || 0; },
+    broods: null,
+    cols: [
+      { key: 'indiv',   label: 'Individuals extracted' },
+      { key: 'species', label: 'Species extracted' }
+    ]
+  }
+};
+
+var TIER_LABELS = { first: 'First species', second: 'Second species', additional: 'Additional species' };
+var AMBER_HELP = 'Amber species count towards the total but haven\u2019t yet reached the restricted-endorsement threshold for their slot, so you may need restricted endorsements to cover them.';
+
+var _thresholdTab = 'fullGrown';
+var _thresholdData = null;      // { speciesMap, whooshExt, whooshFirings }
 var _thresholdStats = {};
 var _thresholdListenerAttached = false;
 
-function computeGroupStats(group, speciesMap) {
-  var rows = Object.keys(speciesMap)
-    .filter(function(sp) { return group.categories.indexOf(getSpeciesCategory(sp)) !== -1; })
-    .map(function(sp) { return { species: sp, count: speciesMap[sp]._proc || 0 }; })
-    .filter(function(r) { return r.count > 0; })
-    .sort(function(a, b) { return b.count - a.count; });
+function isNum(x) { return typeof x === 'number'; }
+
+// Which restricted tier the Nth species (0-based) has to meet
+function tierFor(group, slot) {
+  if (slot === 0) return 'first';
+  if (slot === 1 && group.restricted.second !== undefined) return 'second';
+  return 'additional';
+}
+
+function meetsTier(row, group, tier) {
+  var need = group.restricted[tier];
+  if (!isNum(need) || row.count < need) return false;
+  var needBroods = group.restricted[tier + 'Broods'];      // Pullus only; 'n/a' or missing = no requirement
+  if (isNum(needBroods) && row.broods < needBroods) return false;
+  return true;
+}
+
+function computeGroupStats(group, speciesMap, view) {
+  var rows = [], totalBroods = 0;
+  Object.keys(speciesMap).forEach(function(sp) {
+    if (group.categories.indexOf(getSpeciesCategory(sp)) === -1) return;
+    var v = speciesMap[sp];
+    var broods = view.broods ? view.broods(v) : 0;
+    var count = view.count(v);
+    totalBroods += broods;
+    if (count > 0) rows.push({ species: sp, count: count, broods: broods });
+  });
+  rows.sort(function(a, b) { return b.count - a.count || a.species.localeCompare(b.species); });
 
   var totalIndividuals = rows.reduce(function(s, r) { return s + r.count; }, 0);
 
-  var restricted = group.restricted;
-  var eligibleSpecies = 0;
-  if (rows.length && rows[0].count >= restricted.first) {
-    eligibleSpecies = 1;
-    for (var i = 1; i < rows.length; i++) {
-      if (rows[i].count >= restricted.additional) eligibleSpecies++;
+  // Fill the slots in order, each with the strongest remaining species that meets it
+  var remaining = rows.slice(), ordered = [], slot = 0;
+  while (remaining.length) {
+    var tier = tierFor(group, slot), idx = -1;
+    for (var i = 0; i < remaining.length; i++) {
+      if (meetsTier(remaining[i], group, tier)) { idx = i; break; }
     }
+    if (idx < 0) break;
+    var r = remaining.splice(idx, 1)[0];
+    r.tier = tier;
+    ordered.push(r);
+    slot++;
   }
+  var eligible = ordered.length;
+  // Everything else is shown against the next slot that is still to be filled
+  var nextTier = tierFor(group, slot);
+  remaining.forEach(function(r) { r.tier = nextTier; ordered.push(r); });
 
-  return { rows: rows, totalIndividuals: totalIndividuals, eligibleSpecies: eligibleSpecies };
+  return {
+    rows: ordered,
+    totalIndividuals: totalIndividuals,
+    totalSpecies: rows.length,
+    eligibleSpecies: eligible,
+    totalBroods: totalBroods
+  };
 }
 
-function thresholdCellHTML(value, target, extraClass, titleAttr) {
-  var pct = target > 0 ? Math.min(value / target, 1) : 0;
-  var met = value >= target;
-  var cls = 'threshold-cell' + (met ? ' met' : '') + (extraClass ? ' ' + extraClass : '');
-  var barColor = extraClass === 'amber' ? 'var(--warn-strong)' : 'var(--accent)';
-  var style = 'background: linear-gradient(' + barColor + ', ' + barColor + ') left bottom no-repeat; background-size: ' + (pct * 100) + '% 3px;';
-  return '<td class="r ' + cls + '" style="' + style + '"' + (titleAttr ? ' title="' + esc(titleAttr) + '"' : '') + '>'
-    + value + ' / ' + target + '</td>';
+// ── Bars and cells ──
+// segs: [{ value, cls: 'green' | 'amber' }], drawn left to right and capped at the full length
+function barHTML(segs, target) {
+  var used = 0;
+  var html = segs.map(function(s) {
+    if (!(target > 0) || !(s.value > 0)) return '';
+    var w = Math.min(s.value / target * 100, 100 - used);
+    if (w <= 0) return '';
+    used += w;
+    return '<span class="tbar-seg ' + s.cls + '" style="width:' + w.toFixed(2) + '%"></span>';
+  }).join('');
+  return '<div class="tbar" aria-hidden="true">' + html + '</div>';
 }
 
-function renderThresholdGroupRow(group, stats) {
-  var indivMet   = stats.totalIndividuals >= group.unrestricted.individuals;
-  var speciesMet = stats.eligibleSpecies  >= group.unrestricted.species;
-  var amber = indivMet && !speciesMet;
+function metricCellHTML(o) {
+  return '<td class="tcell' + (o.cls ? ' ' + o.cls : '') + '"' + (o.title ? ' title="' + esc(o.title) + '"' : '') + '>'
+    + '<div class="tcell-num"><span class="tcell-val">' + o.value + '</span><span class="tcell-tgt"> / ' + o.target + '</span></div>'
+    + barHTML(o.segs, o.target)
+    + '<div class="tcell-sub' + (o.subCls ? ' ' + o.subCls : '') + '">' + (o.sub ? esc(o.sub) : '') + '</div>'
+    + '</td>';
+}
+
+function naCellHTML() {
+  return '<td class="tcell tcell-na"><div class="tcell-num">n/a</div></td>';
+}
+
+function plainBarCell(value, target) {
+  return metricCellHTML({
+    value: value, target: target,
+    segs: [{ value: value, cls: 'green' }],
+    cls: value >= target ? 'met' : ''
+  });
+}
+
+// ── Group rows ──
+function renderThresholdGroupRow(group, stats, view) {
+  var u = group.unrestricted;
+  var amberCount = stats.totalSpecies - stats.eligibleSpecies;
+  var speciesMet = stats.eligibleSpecies >= u.species;
+
+  var cells = plainBarCell(stats.totalIndividuals, u.individuals);
+
+  cells += metricCellHTML({
+    value: stats.totalSpecies,
+    target: u.species,
+    segs: [{ value: stats.eligibleSpecies, cls: 'green' }, { value: amberCount, cls: 'amber' }],
+    cls: speciesMet ? 'met' : (amberCount > 0 ? 'amber' : ''),
+    sub: amberCount > 0 ? stats.eligibleSpecies + ' qualifying \u00b7 ' + amberCount + ' below threshold' : '',
+    subCls: amberCount > 0 ? 'amber' : '',
+    title: amberCount > 0 ? AMBER_HELP : ''
+  });
+
+  if (view.broods) {
+    cells += isNum(group.broodAssessments) ? plainBarCell(stats.totalBroods, group.broodAssessments) : naCellHTML();
+  }
 
   var iaIcon = group.independentAssessment
     ? '<span class="ia-icon" title="Independent assessment required">!</span>'
     : '';
 
-  var speciesTitle = amber
-    ? 'You\u2019ve met the individuals total, but may need to meet more restricted endorsement criteria to cover enough species for an unrestricted endorsement.'
-    : '';
-
   return '<tr class="threshold-row" data-group="' + esc(group.key) + '" tabindex="0" role="button" aria-expanded="false">'
-    + '<td class="primary"><span class="threshold-expand-icon">\u25B6</span>' + esc(group.name) + iaIcon + '</td>'
-    + thresholdCellHTML(stats.totalIndividuals, group.unrestricted.individuals, '', '')
-    + thresholdCellHTML(stats.eligibleSpecies, group.unrestricted.species, amber ? 'amber' : '', speciesTitle)
-    + '</tr>';
+    + '<td class="primary tname"><span class="threshold-expand-icon">\u25B6</span>' + esc(group.name) + iaIcon + '</td>'
+    + cells
+    + '<td></td></tr>';
 }
 
-function renderRestrictedTable(group, stats) {
+// ── Expanded rows: same columns as the group rows, so the bars line up underneath ──
+function renderRestrictedRows(group, stats, view) {
+  var nCols = view.cols.length + 2;
+  var out = '<tr class="threshold-detail-row threshold-detail-title"><td colspan="' + nCols + '">'
+    + 'Restricted endorsement progress \u2014 ' + esc(group.name) + '</td></tr>';
+
   if (!stats.rows.length) {
-    return '<div class="threshold-restricted-empty">No birds processed yet for this group.</div>';
+    return out + '<tr class="threshold-detail-row"><td colspan="' + nCols + '" class="threshold-restricted-empty">'
+      + 'No birds ' + view.verb + ' yet for this group.</td></tr>';
   }
-  var restricted = group.restricted;
-  var rowsHtml = stats.rows.map(function(r, i) {
-    var threshold = i === 0 ? restricted.first : restricted.additional;
-    return '<tr>'
-      + '<td class="primary">' + esc(r.species) + '</td>'
-      + thresholdCellHTML(r.count, threshold, '', '')
-      + '</tr>';
+
+  stats.rows.forEach(function(r) {
+    var need = group.restricted[r.tier];
+    var tierLabel = TIER_LABELS[r.tier];
+
+    var indivCell = isNum(need)
+      ? metricCellHTML({
+          value: r.count, target: need,
+          segs: [{ value: r.count, cls: r.count >= need ? 'green' : 'amber' }],
+          cls: r.count >= need ? 'met' : '',
+          sub: tierLabel
+        })
+      : metricCellHTML({ value: r.count, target: 'n/a', segs: [], sub: tierLabel + ' (not available)' });
+
+    var broodCell = '';
+    if (view.broods) {
+      var needB = group.restricted[r.tier + 'Broods'];
+      broodCell = isNum(needB)
+        ? metricCellHTML({
+            value: r.broods, target: needB,
+            segs: [{ value: r.broods, cls: r.broods >= needB ? 'green' : 'amber' }],
+            cls: r.broods >= needB ? 'met' : ''
+          })
+        : naCellHTML();
+    }
+
+    var cells = view.cols.map(function(c) {
+      if (c.key === 'indiv')  return indivCell;
+      if (c.key === 'broods') return broodCell;
+      return '<td class="tcell"></td>';
+    }).join('');
+
+    out += '<tr class="threshold-detail-row">'
+      + '<td class="primary tname tname-detail">' + esc(r.species) + '</td>'
+      + cells + '<td></td></tr>';
+  });
+  return out;
+}
+
+// ── Whoosh net: one endorsement, no groups ──
+function renderWhooshTab(data) {
+  var u = data.unrestricted;
+  function row(name, value, target) {
+    return '<tr><td class="primary tname">' + name + '</td>' + plainBarCell(value, target) + '<td></td></tr>';
+  }
+  var note = '<div class="threshold-note">'
+    + (data.independentAssessment ? '<span class="ia-icon" title="Independent assessment required">!</span>Independent assessment required. ' : '')
+    + esc(data.note || '') + '</div>';
+
+  return '<div class="threshold-scroll"><table class="data-table threshold-table" style="--n:1">'
+    + '<colgroup><col class="tcol-name"><col class="tcol-metric"><col></colgroup>'
+    + '<thead><tr><th>Requirement</th><th class="tcell">Progress</th><th></th></tr></thead>'
+    + '<tbody>'
+    + row('Individuals extracted (whoosh net)', _thresholdData.whooshExt, u.individualsExtracted)
+    + row('Active firings', _thresholdData.whooshFirings, u.firings)
+    + '</tbody></table></div>' + note;
+}
+
+// ── Tabs ──
+function renderThresholdTab(key) {
+  var wrap = document.getElementById('threshold-table-wrap');
+  var T = window.LICENCE_THRESHOLDS;
+  if (!wrap || !T || !T[key] || !_thresholdData) return;
+  _thresholdTab = key;
+
+  document.querySelectorAll('.threshold-tab').forEach(function(b) {
+    var on = b.getAttribute('data-endorsement') === key;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+
+  _thresholdStats = {};
+  if (key === 'whooshNet') { wrap.innerHTML = renderWhooshTab(T.whooshNet.data); return; }
+
+  var view = THRESHOLD_VIEWS[key];
+  var bodyRows = T[key].groups.map(function(group) {
+    var stats = computeGroupStats(group, _thresholdData.speciesMap, view);
+    _thresholdStats[group.key] = { group: group, stats: stats, view: view };
+    return renderThresholdGroupRow(group, stats, view);
   }).join('');
 
-  return '<table class="data-table threshold-restricted-table">'
-    + '<thead><tr><th>Species</th><th class="r">Processed</th></tr></thead>'
-    + '<tbody>' + rowsHtml + '</tbody></table>';
-}
-
-function buildThresholdsSection(speciesMap) {
-  var wrap = document.getElementById('threshold-table-wrap');
-  if (!wrap || !window.LICENCE_THRESHOLDS || !window.LICENCE_THRESHOLDS.fullGrown) return;
-
-  var endorsement = window.LICENCE_THRESHOLDS.fullGrown;
-  _thresholdStats = {};
-
-  var bodyRows = endorsement.groups.map(function(group) {
-    var stats = computeGroupStats(group, speciesMap);
-    _thresholdStats[group.key] = { group: group, stats: stats };
-    return renderThresholdGroupRow(group, stats);
+  var cols = view.cols.map(function() { return '<col class="tcol-metric">'; }).join('');
+  var heads = view.cols.map(function(c) {
+    var tip = c.key === 'species'
+      ? ' title="Every species counts towards the total; those that also clear the restricted-endorsement threshold for their slot are shown in green, the rest in amber"'
+      : '';
+    return '<th class="tcell"' + tip + '>' + esc(c.label) + '</th>';
   }).join('');
 
   wrap.innerHTML =
-    '<table class="data-table threshold-table">'
-    + '<thead><tr>'
-    + '<th>Species group</th>'
-    + '<th class="r">Individuals processed</th>'
-    + '<th class="r" title="Counts a species once it clears the restricted-endorsement threshold for its rank by number processed">Species processed</th>'
-    + '</tr></thead>'
-    + '<tbody>' + bodyRows + '</tbody></table>';
+    '<div class="threshold-scroll"><table class="data-table threshold-table" style="--n:' + view.cols.length + '">'
+    + '<colgroup><col class="tcol-name">' + cols + '<col></colgroup>'
+    + '<thead><tr><th>Species group</th>' + heads + '<th></th></tr></thead>'
+    + '<tbody>' + bodyRows + '</tbody></table></div>';
+}
 
-  _attachThresholdRowListener();
+function buildThresholdsSection(speciesMap, whooshExt, whooshFirings) {
+  _thresholdData = { speciesMap: speciesMap, whooshExt: whooshExt || 0, whooshFirings: whooshFirings || 0 };
+  renderThresholdTab(_thresholdTab);
+  _attachThresholdListeners();
 }
 
 function toggleThresholdRow(row) {
-  var key = row.getAttribute('data-group');
-  var existing = row.nextElementSibling;
-  var wasOpen = existing && existing.classList.contains('threshold-detail-row');
+  var wasOpen = row.classList.contains('open');
+  var wrap = document.getElementById('threshold-table-wrap');
 
   // Only one panel open at a time
-  var wrap = document.getElementById('threshold-table-wrap');
   wrap.querySelectorAll('.threshold-detail-row').forEach(function(el) { el.remove(); });
   wrap.querySelectorAll('.threshold-row.open').forEach(function(el) {
     el.classList.remove('open');
     el.setAttribute('aria-expanded', 'false');
   });
+  if (wasOpen) return;
 
-  if (wasOpen) return;   // the removal above just closed it
-
-  var entry = _thresholdStats[key];
+  var entry = _thresholdStats[row.getAttribute('data-group')];
   if (!entry) return;
-
   row.classList.add('open');
   row.setAttribute('aria-expanded', 'true');
-
-  var tr = document.createElement('tr');
-  tr.className = 'threshold-detail-row';
-  var td = document.createElement('td');
-  td.colSpan = 3;
-  td.innerHTML = '<div class="threshold-restricted-wrap">'
-    + '<div class="threshold-restricted-title">Restricted endorsement progress \u2014 ' + esc(entry.group.name) + '</div>'
-    + renderRestrictedTable(entry.group, entry.stats)
-    + '</div>';
-  tr.appendChild(td);
-  row.parentNode.insertBefore(tr, row.nextSibling);
+  row.insertAdjacentHTML('afterend', renderRestrictedRows(entry.group, entry.stats, entry.view));
 }
 
-function _attachThresholdRowListener() {
+function _attachThresholdListeners() {
   if (_thresholdListenerAttached) return;
   _thresholdListenerAttached = true;
   document.addEventListener('click', function(ev) {
+    var tab = ev.target.closest('.threshold-tab');
+    if (tab) { renderThresholdTab(tab.getAttribute('data-endorsement')); return; }
     var row = ev.target.closest('.threshold-row');
-    if (!row) return;
-    toggleThresholdRow(row);
+    if (row) toggleThresholdRow(row);
   });
   document.addEventListener('keydown', function(ev) {
     if (ev.key !== 'Enter' && ev.key !== ' ') return;
