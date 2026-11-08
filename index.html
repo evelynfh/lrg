@@ -1346,6 +1346,9 @@ function removeRow(id) {
 // ─────────────────────────────────────────────
 let highlightIndex = {};
 
+// Some mobile keyboards don't report e.key === 'Enter', so also check the key code
+function isEnterKey(e) { return e.key === 'Enter' || e.keyCode === 13; }
+
 function filterSpecies(id, query) {
   const dd = document.getElementById(`dd-${id}`);
   const input = document.querySelector(`#row-${id} .species-input`);
@@ -1370,8 +1373,9 @@ function filterSpecies(id, query) {
   ).slice(0, 40);
 
   const exactMatch = SPECIES_LIST.some(s => s.name.toLowerCase() === q);
+  // The first row is always highlighted: the first match, or the write-in if nothing matches
   const writeIn = !exactMatch
-    ? `<div class="species-option write-in-option"
+    ? `<div class="species-option write-in-option${matches.length ? '' : ' highlighted'}"
          data-name="${esc(query.trim())}"
          onmousedown="selectSpecies(${id}, this.dataset.name, true)">
          <span class="opt-hint">Use as written: </span>${esc(query.trim())}
@@ -1385,7 +1389,7 @@ function filterSpecies(id, query) {
 
   dd.innerHTML = matches.map((s, i) => {
     const code = s.code ? `<span class="species-code">${highlight(s.code, q)}</span>` : '';
-    return `<div class="species-option${i === 0 && !writeIn ? ' highlighted' : ''}"
+    return `<div class="species-option${i === 0 ? ' highlighted' : ''}"
       data-name="${esc(s.name)}"
       onmousedown="selectSpecies(${id}, this.dataset.name, false)">
       ${highlight(s.name, q)}${code}
@@ -1560,7 +1564,6 @@ let methodHighlightIndex = {};
 function filterMethod(id, query) {
   const dd = document.getElementById(`dd-method-${id}`);
   const q = query.trim().toLowerCase();
-  methodHighlightIndex[id] = -1;   // nothing highlighted until the arrow keys are used
 
   const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
   // Clicking a method that is already chosen (text unchanged) lists every method, so it is easy to change
@@ -1583,8 +1586,14 @@ function filterMethod(id, query) {
 
   const matches = (q && !showAll) ? activeList.filter(m => m.toLowerCase().includes(q)) : activeList;
   const exactMatch = activeList.some(m => m.toLowerCase() === q);
+
+  // Top option is highlighted. The exception is re-opening an already-chosen method:
+  // there the highlight starts on that method, so pressing Enter can't change it by accident.
+  const startIdx = showAll ? Math.max(0, matches.indexOf(chosen)) : 0;
+  methodHighlightIndex[id] = startIdx;
+
   const writeIn = q && !exactMatch
-    ? `<div class="species-option write-in-option"
+    ? `<div class="species-option write-in-option${matches.length ? '' : ' highlighted'}"
          data-name="${esc(query.trim())}"
          onmousedown="selectMethod(${id}, this.dataset.name, true)">
          <span class="opt-hint">Use as written: </span>${esc(query.trim())}
@@ -1596,8 +1605,7 @@ function filterMethod(id, query) {
     return;
   }
 
-  // The method that is currently chosen is marked with a tick, so it is never confused with the highlight
-  dd.innerHTML = matches.map(m => `<div class="species-option${m === chosen ? ' is-selected' : ''}"
+  dd.innerHTML = matches.map((m, i) => `<div class="species-option${m === chosen ? ' is-selected' : ''}${i === startIdx ? ' highlighted' : ''}"
       data-name="${esc(m)}"
       onmousedown="selectMethod(${id}, this.dataset.name, false)">${highlight(m, q)}</div>`
   ).join('') + writeIn;
@@ -1668,19 +1676,17 @@ function handleMethodKey(e, id) {
   const dd = document.getElementById(`dd-method-${id}`);
   const items = dd.querySelectorAll('.species-option');
   if (!items.length) return;
-  const idx = methodHighlightIndex[id] === undefined ? -1 : methodHighlightIndex[id];   // -1: nothing highlighted yet
+  const idx = methodHighlightIndex[id] ?? 0;
 
   if (e.key === 'ArrowDown') {
     e.preventDefault();
     methodHighlightIndex[id] = Math.min(idx + 1, items.length - 1);
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
-    methodHighlightIndex[id] = idx < 0 ? items.length - 1 : Math.max(idx - 1, 0);
-  } else if (e.key === 'Enter') {
+    methodHighlightIndex[id] = Math.max(idx - 1, 0);
+  } else if (isEnterKey(e)) {
     e.preventDefault();
-    // Enter picks the option the arrow keys moved to, or the only option on offer; otherwise nothing
-    const pick = idx >= 0 ? items[idx] : (items.length === 1 ? items[0] : null);
-    if (pick) pick.dispatchEvent(new MouseEvent('mousedown'));
+    items[idx]?.dispatchEvent(new MouseEvent('mousedown'));
     return;
   } else if (e.key === 'Escape') {
     dd.classList.remove('open');
@@ -1784,7 +1790,7 @@ function filterTrainees(query) {
 
   const exactMatch = traineeList.some(n => n.toLowerCase() === q);
   const newOption = !exactMatch
-    ? `<div class="species-option new-trainee-option"
+    ? `<div class="species-option new-trainee-option${matches.length ? '' : ' highlighted'}"
          data-name="${esc(query.trim())}"
          onmousedown="selectTrainee(this.dataset.name)">
          <span class="opt-hint">Add new: </span>${esc(query.trim())}
@@ -1794,7 +1800,7 @@ function filterTrainees(query) {
     dd.innerHTML = ''; dd.classList.remove('open'); return;
   }
 
-  dd.innerHTML = matches.map((n, i) => `<div class="species-option${i === 0 && !newOption ? ' highlighted' : ''}"
+  dd.innerHTML = matches.map((n, i) => `<div class="species-option${i === 0 ? ' highlighted' : ''}"
       data-name="${esc(n)}"
       onmousedown="selectTrainee(this.dataset.name)">${highlight(n, q)}</div>`
   ).join('') + newOption;
@@ -1826,7 +1832,7 @@ function handleTraineeKey(e) {
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     traineeHighlight = Math.max(traineeHighlight - 1, 0);
-  } else if (e.key === 'Enter') {
+  } else if (isEnterKey(e)) {
     e.preventDefault();
     items[traineeHighlight]?.dispatchEvent(new MouseEvent('mousedown'));
     return;
