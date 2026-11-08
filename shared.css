@@ -1,6 +1,6 @@
 /* Ringing Tracker: styles shared by every page — themes (light, cream, dark), base, page layout,
    header, settings menu and the info modals. Load FIRST, before the page's own <style>.
-   Themes are just sets of variables on <html data-theme="light|cream|dark"> (see theme.js);
+   Themes are just sets of colour variables on <html data-theme="light|cream|dark"> (see theme.js);
    "light" is the default. */
 
 /* ── Themes ── */
@@ -18,6 +18,7 @@
   --border-focus: #1f5fd6;
   --row-alt: #f9fafb;
   --th: #eef0f3;
+  --hdr-bg: #ffffff;
   --danger: #b3261e;
   --warn-bg: #fff8e6;
   --warn-border: #e8d88a;
@@ -25,29 +26,27 @@
   --warn-strong: #c9a800;
   --shadow: 0 1px 2px rgba(20,24,28,0.06);
   --shadow-lg: 0 8px 24px rgba(20,24,28,0.14);
-
-  /* Fonts (cream swaps in the original mono body + serif headings) */
-  --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-head: var(--font-body);
-
-  /* Page header strip */
-  --hdr-bg: #ffffff;
-  --hdr-ink: var(--ink);
-  --hdr-muted: var(--ink-muted);
-  --hdr-border: var(--border);
-  --hdr-hover-bg: var(--th);
-  --hdr-underline: var(--accent);
-
-  /* Card title bars (section headers, modal headers) and the small buttons inside them */
-  --bar-bg: var(--th);
-  --bar-ink: var(--ink);
-  --bar-muted: var(--ink-muted);
-  --bar-border: var(--border);
-  --bar-btn-border: var(--border);
-  --bar-btn-hover-bg: var(--accent-light);
-  --bar-btn-hover-ink: var(--accent);
-
   color-scheme: light;
+}
+
+:root[data-theme="cream"] {
+  --bg: #f5f0e8;
+  --surface: #fffdf8;
+  --ink: #1a1a14;
+  --ink-muted: #6b6657;
+  --accent: #2d5a27;
+  --accent-hover: #234a1f;
+  --accent-light: #e8f0e6;
+  --on-accent: #ffffff;
+  --border: #d9d2c0;
+  --border-soft: #f0ebe0;
+  --border-focus: #2d5a27;
+  --row-alt: #faf7f0;
+  --th: #ece6d8;
+  --hdr-bg: #fffdf8;
+  --danger: #8b2e2e;
+  --shadow: 0 1px 3px rgba(26,26,20,0.08);
+  --shadow-lg: 0 8px 24px rgba(26,26,20,0.18);
 }
 
 :root[data-theme="dark"] {
@@ -64,6 +63,7 @@
   --border-focus: #6ea0ff;
   --row-alt: #1b2127;
   --th: #212830;
+  --hdr-bg: #0b0e11;
   --danger: #ff8a8a;
   --warn-bg: #2b2410;
   --warn-border: #5c4d1a;
@@ -71,46 +71,7 @@
   --warn-strong: #e0bd1a;
   --shadow: 0 1px 2px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
-  --hdr-bg: #0b0e11;
   color-scheme: dark;
-}
-
-/* Cream = the original look: warm paper, green accent, dark header and title bars,
-   serif headings, monospace body, small uppercase labels. */
-:root[data-theme="cream"] {
-  --bg: #f5f0e8;
-  --surface: #fffdf8;
-  --ink: #1a1a14;
-  --ink-muted: #6b6657;
-  --accent: #2d5a27;
-  --accent-hover: #234a1f;
-  --accent-light: #e8f0e6;
-  --on-accent: #ffffff;
-  --border: #d9d2c0;
-  --border-soft: #f0ebe0;
-  --border-focus: #2d5a27;
-  --row-alt: #faf7f0;
-  --th: #ece6d8;
-  --danger: #8b2e2e;
-  --shadow: 0 1px 3px rgba(26,26,20,0.08);
-  --shadow-lg: 0 8px 24px rgba(26,26,20,0.18);
-
-  --hdr-bg: #1a1a14;
-  --hdr-ink: #f5f0e8;
-  --hdr-muted: #9a9480;
-  --hdr-border: #1a1a14;
-  --hdr-hover-bg: rgba(255,255,255,0.08);
-  --hdr-underline: #8fc487;
-
-  --bar-bg: #1a1a14;
-  --bar-ink: #f5f0e8;
-  --bar-muted: #9a9480;
-  --bar-border: #1a1a14;
-  --bar-btn-border: rgba(255,255,255,0.18);
-  --bar-btn-hover-bg: rgba(255,255,255,0.08);
-  --bar-btn-hover-ink: #f5f0e8;
-
-  color-scheme: light;
 }
 
 /* ── Base ── */
@@ -119,13 +80,12 @@
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--font-body);
+  font-family: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   min-height: 100vh;
 }
 
-h1, h2, h3, .tile-value { font-family: var(--font-head); }
-
 button, input, select, textarea { font-family: inherit; }
+button { touch-action: manipulation; }   /* no tap delay / double-tap zoom on buttons (touch screens) */
 
 /* Focus ring for every text-like control */
 input:focus, select:focus, textarea:focus {
@@ -149,32 +109,32 @@ main, .screen {
 /* ── Header ── */
 header {
   background: var(--hdr-bg);
-  color: var(--hdr-ink);
+  color: var(--ink);
   padding: 18px 40px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid var(--hdr-border);
+  border-bottom: 1px solid var(--border);
 }
-header h1 { font-size: 1.25rem; font-weight: 700; color: var(--hdr-ink); margin-right: 16px; }
+header h1 { font-size: 1.25rem; font-weight: 700; color: var(--ink); margin-right: 16px; }
 header nav { display: flex; flex: 1; gap: 4px; align-items: center; }
 header nav a {
-  color: var(--hdr-muted);
+  color: var(--ink-muted);
   text-decoration: none;
   font-size: 0.85rem;
   padding: 8px 12px 4px;
   transition: color 0.15s, background 0.15s;
 }
-header nav a:hover { color: var(--hdr-ink); background: var(--hdr-hover-bg); }
-header nav a.active { color: var(--hdr-ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--hdr-underline); }
+header nav a:hover { color: var(--ink); background: var(--th); }
+header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
 
 /* ── Settings button & dropdown ── */
 .settings-wrap { position: relative; margin-left: auto; }
 
 .settings-btn {
   background: none;
-  border: 1px solid var(--hdr-border);
+  border: 1px solid var(--border);
   border-radius: 3px;
-  color: var(--hdr-muted);
+  color: var(--ink-muted);
   font-size: 0.8rem;
   padding: 5px 10px;
   cursor: pointer;
@@ -184,8 +144,7 @@ header nav a.active { color: var(--hdr-ink); font-weight: 600; box-shadow: inset
   white-space: nowrap;
   transition: color 0.15s, background 0.15s;
 }
-.settings-btn:hover, .settings-btn.open { color: var(--hdr-ink); background: var(--hdr-hover-bg); }
-:root[data-theme="cream"] .settings-btn { border-color: rgba(255,255,255,0.18); }
+.settings-btn:hover, .settings-btn.open { color: var(--ink); background: var(--th); }
 
 .settings-dropdown {
   display: none;
@@ -236,7 +195,7 @@ header nav a.active { color: var(--hdr-ink); font-weight: 600; box-shadow: inset
 .theme-opt:hover { background: var(--accent-light); color: var(--accent); }
 .theme-opt[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
-/* ── Info modals (FAQ, changelog, report issues) ── */
+/* ── Info modals (FAQ, changelog, report issues; also reused for the dashboard's edit request) ── */
 .info-overlay {
   display: none;
   position: fixed;
@@ -261,9 +220,9 @@ header nav a.active { color: var(--hdr-ink); font-weight: 600; box-shadow: inset
   animation: modalIn 0.22s ease;
 }
 .info-modal-hd {
-  background: var(--bar-bg);
-  color: var(--bar-ink);
-  border-bottom: 1px solid var(--bar-border);
+  background: var(--th);
+  color: var(--ink);
+  border-bottom: 1px solid var(--border);
   padding: 14px 20px;
   display: flex;
   justify-content: space-between;
@@ -276,13 +235,13 @@ header nav a.active { color: var(--hdr-ink); font-weight: 600; box-shadow: inset
 .info-modal-x {
   background: none;
   border: none;
-  color: var(--bar-muted);
+  color: var(--ink-muted);
   font-size: 1.3rem;
   line-height: 1;
   cursor: pointer;
   padding: 2px 4px;
 }
-.info-modal-x:hover { color: var(--bar-ink); }
+.info-modal-x:hover { color: var(--ink); }
 
 .info-modal-bd { padding: 22px 24px; font-size: 0.85rem; line-height: 1.7; color: var(--ink-muted); }
 .info-modal-bd h3 { font-size: 0.95rem; color: var(--ink); margin: 18px 0 6px; font-weight: 600; }
@@ -308,46 +267,6 @@ header nav a.active { color: var(--hdr-ink); font-weight: 600; box-shadow: inset
 .cl-entry:last-child { border-bottom: none; }
 .cl-entry ul { margin: 6px 0 0 16px; }
 .cl-entry li { margin-bottom: 3px; }
-
-/* ── Cream extras: the original accents that aren't just colours ── */
-:root[data-theme="cream"] .session-card,
-:root[data-theme="cream"] .selector-card,
-:root[data-theme="cream"] .confirm-card,
-:root[data-theme="cream"] .success-card,
-:root[data-theme="cream"] .info-modal { border-top: 3px solid var(--accent); }
-
-/* Upload dialog keeps its amber/brown treatment */
-:root[data-theme="cream"] .modal { border-color: var(--warn-border); border-top: 3px solid var(--warn-strong); }
-:root[data-theme="cream"] .modal-header { background: #4a3c00; color: #fff8e6; border-bottom-color: #4a3c00; }
-:root[data-theme="cream"] .modal-close { color: var(--warn-strong); }
-:root[data-theme="cream"] .modal-close:hover { color: #fff8e6; }
-:root[data-theme="cream"] .upload-btn { background: #4a3c00; color: #fff8e6; }
-:root[data-theme="cream"] .upload-btn:hover { background: #332900; }
-:root[data-theme="cream"] .upload-btn:disabled { background: var(--ink-muted); }
-
-/* Small uppercase labels */
-:root[data-theme="cream"] label,
-:root[data-theme="cream"] .col-headers span,
-:root[data-theme="cream"] .confirm-meta-label,
-:root[data-theme="cream"] .confirm-col-head,
-:root[data-theme="cream"] .confirm-cell-label,
-:root[data-theme="cream"] .confirm-mob-label,
-:root[data-theme="cream"] .proc-mob-label,
-:root[data-theme="cream"] .ringed-mob-label,
-:root[data-theme="cream"] .pulli-ringed-mob-label,
-:root[data-theme="cream"] .broods-mob-label,
-:root[data-theme="cream"] .data-table th,
-:root[data-theme="cream"] .tile-label,
-:root[data-theme="cream"] .missing-method-label,
-:root[data-theme="cream"] .missing-cat-label,
-:root[data-theme="cream"] .species-cat-td,
-:root[data-theme="cream"] .section-header .badge,
-:root[data-theme="cream"] .species-section-header span,
-:root[data-theme="cream"] .settings-theme-label {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.66rem;
-}
 
 /* ── Mobile ── */
 @media (max-width: 640px) {

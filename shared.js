@@ -79,9 +79,9 @@ window.downloadCSV = function (rows, filename) {
     + '\u2699 <span class="settings-label">Settings</span></button>'
     + '<div class="settings-dropdown" id="settings-dropdown">'
     + '<div class="settings-theme" role="group" aria-label="Theme"><span class="settings-theme-label">Theme</span><div class="theme-options">'
-    + '<button type="button" class="theme-opt" data-theme-choice="light" aria-pressed="false" onclick="setTheme(\'light\')">White</button>'
-    + '<button type="button" class="theme-opt" data-theme-choice="cream" aria-pressed="false" onclick="setTheme(\'cream\')">Cream</button>'
-    + '<button type="button" class="theme-opt" data-theme-choice="dark" aria-pressed="false" onclick="setTheme(\'dark\')">Dark</button>'
+    + '<button type="button" class="theme-opt" data-theme-choice="light" aria-pressed="false">Light</button>'
+    + '<button type="button" class="theme-opt" data-theme-choice="cream" aria-pressed="false">Cream</button>'
+    + '<button type="button" class="theme-opt" data-theme-choice="dark" aria-pressed="false">Dark</button>'
     + '</div></div>'
     + '<button class="settings-item" onclick="openInfoModal(\'about-modal\')">FAQ</button>'
     + '<button class="settings-item" onclick="openInfoModal(\'changelog-modal\')">Changelog</button>'
@@ -97,12 +97,21 @@ window.downloadCSV = function (rows, filename) {
     + '<p>The dashboard reads all data from the spreadsheet for the ringer selected, and breaks it down by species and catching method. The "Species gaps" section shows all the species you haven\'t logged for a method that other ringers have, sorted in descending order \u2014 so you\'ll quickly see any commonly-handled birds you\'re missing. This is dependent on other ringers having logged them, though, so if everyone is missing a species it won\'t appear as a gap.</p>'
     + '<h3>How do I upload my old data?</h3>'
     + '<p>Use the "Upload previous records" button at the bottom of the Log session page and upload your old data in whatever format you use. Since the data structures will vary, uploaded files need manual approval, so it may be a few days before they get added to the main database and appear in the dashboard. If you want to be notified when this happens, pop your contact details in the notes section.</p>'
+    + '<h3>What if I entered something wrong?</h3>'
+    + '<p>On the Dashboard, each session in the Session history has a Flag button. Use it to describe what needs changing and the request is emailed to the person who looks after the spreadsheet, who will make the edit.</p>'
     + '<h3>Is the data backed up?</h3>'
     + '<p>Yes \u2014 every time you log a new session the responses sheet is backed up to a separate spreadsheet, and there are also regular weekly backups to cover manual edits. It\'s also worth using the "Export data" button on the dashboard to download your data (as a session-level .csv or a BTO-format .xlsx) so you have an offline copy.</p>';
 
   var changelog =
-    '<div class="cl-entry"><span class="vtag vtag-new">v1.2 \u00b7 Latest</span><ul>'
-    + '<li>New look, with a choice of White, Cream (the original style) and Dark themes in Settings</li>'
+    '<div class="cl-entry"><span class="vtag vtag-new">v1.3 \u00b7 Latest</span><ul>'
+    + '<li>Whoosh net sessions where every bird escaped can now be logged: add the live firings without any species</li>'
+    + '<li>Nest type (the method for Pullus rows) is pre-selected from the species, and can still be changed</li>'
+    + '<li>New "Birds ringed" tile on the dashboard</li>'
+    + '<li>Flag button on each session in the Session history, to ask for an incorrect entry to be edited</li>'
+    + '<li>Cream is now just a colour scheme, like Light and Dark; the upload dialog follows the chosen colours</li>'
+    + '</ul></div>'
+    + '<div class="cl-entry"><span class="vtag">v1.2</span><ul>'
+    + '<li>New look, with a choice of Light, Cream and Dark themes in Settings</li>'
     + '</ul></div>'
     + '<div class="cl-entry"><span class="vtag">v1.1</span><ul>'
     + '<li>Added extra detail to appropriately track BTO-relevant ringing progress (e.g. number of whoosh net firings, number of broods assessed)</li>'
@@ -147,6 +156,12 @@ window.downloadCSV = function (rows, filename) {
   document.addEventListener('click', function (e) {
     var wrap = document.querySelector('.settings-wrap');
     if (wrap && !wrap.contains(e.target)) window.closeSettings();
+  });
+
+  // ── Theme picker (the buttons are added above; theme.js does the work) ──
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('[data-theme-choice]');
+    if (btn && typeof window.setTheme === 'function') window.setTheme(btn.getAttribute('data-theme-choice'));
   });
 
   // ── Info modals ──

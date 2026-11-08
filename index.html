@@ -12,7 +12,7 @@
 <link rel="manifest" href="site.webmanifest">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="shared.css?v=3">
 <style>
   /* ── Screens (form / confirmation / success) — layout comes from .screen in shared.css ── */
   .screen { display: none; }
@@ -91,16 +91,16 @@
     margin-bottom: 24px;
   }
   .species-section-header {
-    background: var(--bar-bg);
-    color: var(--bar-ink);
-    border-bottom: 1px solid var(--bar-border);
+    background: var(--th);
+    color: var(--ink);
+    border-bottom: 1px solid var(--border);
     padding: 14px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
   .species-section-header h2 { font-size: 1rem; font-weight: 600; }
-  .species-section-header span { font-size: 0.75rem; color: var(--bar-muted); }
+  .species-section-header span { font-size: 0.75rem; color: var(--ink-muted); }
 
   /* Column headers */
   .col-headers {
@@ -312,7 +312,7 @@
     border-color: var(--danger);
   }
 
-  .add-row-wrap { padding: 16px 24px; border-top: 1px dashed var(--border); }
+  .add-row-wrap { padding: 16px 24px; border-top: 1px dashed var(--border); display: flex; flex-wrap: wrap; gap: 10px; }
   .add-row-btn {
     background: none;
     border: 1px dashed var(--accent);
@@ -327,18 +327,22 @@
     gap: 6px;
   }
   .add-row-btn:hover { background: var(--accent-light); }
+  .add-row-btn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-style: solid; }
 
   /* Whoosh net firing question */
   .whoosh-section {
     display: none;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 16px;
     padding: 16px 24px;
     border-top: 1px solid var(--border);
     background: var(--row-alt);
   }
   .whoosh-section.visible { display: flex; }
+  .whoosh-zero-note { display: none; flex-basis: 100%; text-align: center; font-size: 0.72rem; color: var(--ink-muted); }
+  .whoosh-section.zero-catch .whoosh-zero-note { display: block; }
   .whoosh-label {
     font-size: 0.75rem;
     font-weight: 500;
@@ -403,7 +407,7 @@
     transition: border-color 0.15s, color 0.15s, background 0.15s;
     white-space: nowrap;
   }
-  .upload-prev-btn:hover { border-color: var(--warn-border); color: var(--warn-ink); background: var(--warn-bg); }
+  .upload-prev-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
 
   /* ── Warning banner (also used for the list-load warning) ── */
   .confirm-banner {
@@ -551,9 +555,9 @@
     animation: modalIn 0.22s ease;
   }
   .modal-header {
-    background: var(--bar-bg);
-    color: var(--bar-ink);
-    border-bottom: 1px solid var(--bar-border);
+    background: var(--th);
+    color: var(--ink);
+    border-bottom: 1px solid var(--border);
     padding: 14px 20px;
     display: flex;
     justify-content: space-between;
@@ -566,20 +570,20 @@
   .modal-close {
     background: none;
     border: none;
-    color: var(--bar-muted);
+    color: var(--ink-muted);
     font-size: 1.3rem;
     line-height: 1;
     cursor: pointer;
     padding: 2px 4px;
     border-radius: 2px;
   }
-  .modal-close:hover { color: var(--bar-ink); }
+  .modal-close:hover { color: var(--ink); }
   .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
 
   .upload-drop-zone {
-    border: 2px dashed var(--warn-border);
+    border: 2px dashed var(--accent);
     border-radius: 4px;
-    background: var(--warn-bg);
+    background: var(--accent-light);
     padding: 32px 24px;
     text-align: center;
     cursor: pointer;
@@ -587,8 +591,8 @@
     position: relative;
   }
   .upload-drop-zone:hover, .upload-drop-zone.drag-over {
-    border-color: var(--warn-strong);
-    background: color-mix(in srgb, var(--warn-border) 40%, var(--warn-bg));
+    border-color: var(--accent-hover);
+    background: color-mix(in srgb, var(--accent) 14%, var(--accent-light));
   }
   .upload-drop-zone input[type="file"] {
     position: absolute;
@@ -599,7 +603,7 @@
     height: 100%;
   }
   .drop-icon { font-size: 1.6rem; margin-bottom: 8px; display: block; opacity: 0.7; }
-  .drop-label { font-size: 0.82rem; color: var(--warn-ink); font-weight: 500; margin-bottom: 4px; }
+  .drop-label { font-size: 0.82rem; color: var(--accent); font-weight: 500; margin-bottom: 4px; }
   .drop-hint { font-size: 0.7rem; color: var(--ink-muted); }
 
   .upload-file-list { display: flex; flex-direction: column; gap: 6px; }
@@ -671,9 +675,9 @@
   .upload-btn:active { transform: scale(0.98); }
   .upload-btn:disabled { background: var(--ink-muted); cursor: not-allowed; }
 
-  .upload-progress-wrap { display: none; height: 4px; background: var(--warn-border); border-radius: 2px; overflow: hidden; }
+  .upload-progress-wrap { display: none; height: 4px; background: var(--accent-light); border-radius: 2px; overflow: hidden; }
   .upload-progress-wrap.visible { display: block; }
-  .upload-progress-bar { height: 100%; background: var(--warn-strong); border-radius: 2px; transition: width 0.2s ease; width: 0%; }
+  .upload-progress-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.2s ease; width: 0%; }
 
   /* ── Responsive ── */
   @media (max-width: 640px) {
@@ -831,7 +835,7 @@
     .remove-row { width: 100%; height: 40px; font-size: 0.78rem; border-radius: 3px; }
     .remove-row::after { content: '\00a0 Remove entry'; }
 
-    .add-row-wrap { padding: 12px; }
+    .add-row-wrap { padding: 12px; flex-direction: column; }
     .add-row-btn { width: 100%; justify-content: center; padding: 12px; font-size: 0.85rem; }
     .submit-btn { width: 100%; padding: 16px; font-size: 0.9rem; }
     .submit-row { flex-direction: column; align-items: stretch; }
@@ -843,7 +847,7 @@
     .upload-meta-grid { grid-template-columns: 1fr; }
   }
 </style>
-<script src="theme.js"></script>
+<script src="theme.js?v=3"></script>
 </head>
 <body data-page="log">
 
@@ -905,6 +909,9 @@
       <button class="add-row-btn" onclick="addRow()">
         <span>+</span> Add species
       </button>
+      <button type="button" class="add-row-btn" id="zero-catch-btn" aria-pressed="false" onclick="toggleZeroCatch()">
+        No birds caught (whoosh firings only)
+      </button>
     </div>
 
     <div class="whoosh-section" id="whoosh-section">
@@ -921,6 +928,7 @@
                autocomplete="off">
         <button type="button" class="num-btn" aria-label="Increase" onclick="changeWhoosh(1)">▲</button>
       </div>
+      <p class="whoosh-zero-note">No birds will be recorded, only the live firings. Use this when every bird escaped.</p>
     </div>
   </div>
 
@@ -1008,6 +1016,10 @@
 <!-- ═══ Confirmation screen ═══ -->
 <div class="screen" id="confirm-screen">
   <div class="confirm-banner">⚠ Please review your session before submitting</div>
+  <div class="confirm-banner" id="confirm-zero-note" style="display:none">
+    <strong>Zero-catch whoosh session.</strong> No birds are being recorded, only
+    <span id="confirm-zero-count">0</span> live firing(s). Please double-check that every bird escaped before you submit.
+  </div>
 
   <div class="confirm-card">
     <div class="confirm-card-header">
@@ -1025,7 +1037,7 @@
     </div>
   </div>
 
-  <div class="confirm-card">
+  <div class="confirm-card" id="confirm-species-card">
     <div class="confirm-card-header">
       <h2>Species Recorded</h2>
     </div>
@@ -1082,7 +1094,7 @@
 
 <div id="js-tip" role="tooltip" aria-hidden="true"></div>
 
-<script src="species.js"></script>
+<script src="species.js?v=3"></script>
 <script>
 // SCRIPT_URL, esc(), highlight() and isWhoosh() come from shared.js.
 // SPECIES_LIST comes from species.js, shared with dashboard.html.
@@ -1229,12 +1241,24 @@ function updateWhooshVisibility() {
   if (!section) return;
   const hasWhoosh = [...document.querySelectorAll('.method-input')]
     .some(inp => isWhoosh(inp.dataset.selected));
-  section.classList.toggle('visible', hasWhoosh);
-  if (!hasWhoosh) {
+  const show = hasWhoosh || zeroCatchMode;
+  section.classList.toggle('visible', show);
+  section.classList.toggle('zero-catch', zeroCatchMode);
+  if (!show) {
     // Reset when all whoosh rows removed
     const inp = document.getElementById('whoosh-firings');
     if (inp) { inp.value = '—'; inp.dataset.value = 'null'; inp.classList.remove('input-error'); }
   }
+}
+
+// "No birds caught": show the whoosh question on its own, so live firings can be logged for a
+// session where every bird escaped (no species rows needed once there is at least one firing).
+let zeroCatchMode = false;
+
+function toggleZeroCatch() {
+  zeroCatchMode = !zeroCatchMode;
+  document.getElementById('zero-catch-btn').setAttribute('aria-pressed', zeroCatchMode ? 'true' : 'false');
+  updateWhooshVisibility();
 }
 
 function changeWhoosh(delta) {
@@ -1397,6 +1421,7 @@ function selectSpecies(id, name, isWriteIn) {
   const dd = document.getElementById(`dd-${id}`);
   dd.classList.remove('open');
   dd.innerHTML = '';
+  autoSelectNestType(id);
   setTimeout(() => input.focus(), 0);
 }
 
@@ -1458,6 +1483,7 @@ function selectAge(id, value, btn) {
       methodInput.value = '';
       methodInput.dataset.selected = '';
       methodInput.dataset.writeIn = 'false';
+      methodInput.dataset.auto = '';
       methodInput.classList.remove('input-confirmed');
     }
   }
@@ -1471,6 +1497,7 @@ function selectAge(id, value, btn) {
     document.getElementById(`broods-${id}`).value = 0;
   }
 
+  if (isPullus) autoSelectNestType(id);
   updateWhooshVisibility();   // switching age can clear the method, which may have been the whoosh one
   updateHeaderVisibility();
 }
@@ -1525,6 +1552,8 @@ function fetchMethods() {
         const dd = document.getElementById(`dd-method-${id}`);
         if (dd && dd.classList.contains('open')) filterMethod(id, input.value);
       });
+      // The lists have arrived: pre-select nest types for any Pullus rows that were waiting for them
+      document.querySelectorAll('.species-row').forEach(r => autoSelectNestType(r.id.replace('row-', '')));
     })
     .catch(() => { listLoadFailed.methods = true; updateListWarning(); })
     .finally(() => { methodsLoading = false; });
@@ -1538,9 +1567,12 @@ function filterMethod(id, query) {
   methodHighlightIndex[id] = 0;
 
   const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
+  // Clicking a method that is already chosen (text unchanged) lists every method, so it is easy to change
+  const showAll = !!(methodInput && methodInput.dataset.selected && methodInput.dataset.selected === query.trim());
   if (methodInput && methodInput.dataset.selected !== query.trim()) {
     methodInput.classList.remove('input-confirmed');
     methodInput.dataset.selected = '';
+    methodInput.dataset.auto = '';   // typing is a manual choice
     updateWhooshVisibility();   // editing the text un-selects the method, so re-check for whoosh rows
   }
 
@@ -1552,7 +1584,7 @@ function filterMethod(id, query) {
     return;
   }
 
-  const matches = q ? activeList.filter(m => m.toLowerCase().includes(q)) : activeList;
+  const matches = (q && !showAll) ? activeList.filter(m => m.toLowerCase().includes(q)) : activeList;
   const exactMatch = activeList.some(m => m.toLowerCase() === q);
   const writeIn = q && !exactMatch
     ? `<div class="species-option write-in-option"
@@ -1575,11 +1607,14 @@ function filterMethod(id, query) {
   dd.classList.add('open');
 }
 
-function selectMethod(id, value, isWriteIn) {
+// Set a row's method. `auto` marks a value chosen by the nest-type lookup rather than by the person,
+// so the lookup may change it again (e.g. if the species changes) but never overrides a manual choice.
+function applyMethod(id, value, isWriteIn, auto) {
   const input = document.querySelector(`#method-wrap-${id} .method-input`);
   input.value = value;
   input.dataset.selected = value;
   input.dataset.writeIn = isWriteIn ? 'true' : 'false';
+  input.dataset.auto = auto ? 'true' : '';
   input.classList.remove('input-error');
   input.classList.add('input-confirmed');
   if (isWriteIn) {
@@ -1596,6 +1631,38 @@ function selectMethod(id, value, isWriteIn) {
   dd.classList.remove('open');
   dd.innerHTML = '';
   updateWhooshVisibility();
+}
+
+function selectMethod(id, value, isWriteIn) {
+  applyMethod(id, value, isWriteIn, false);
+}
+
+// Pullus rows: once a species is chosen, pre-select the method whose name matches that species'
+// nest type (species.js: getNestKeywords). Always still changeable.
+function autoSelectNestType(id) {
+  const ageBtn = document.querySelector(`#age-${id} .age-btn.active`);
+  if (!ageBtn || ageBtn.textContent.trim() !== 'Pullus') return;
+  const species = document.querySelector(`#row-${id} .species-input`).dataset.selected;
+  if (!species) return;
+  const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
+  // Never overwrite a method the person chose themselves
+  if (methodInput.dataset.selected && methodInput.dataset.auto !== 'true') return;
+
+  const keywords = getNestKeywords(species);
+  const match = keywords.length
+    ? pullusMethodList.find(m => keywords.some(k => m.toLowerCase().includes(k)))
+    : undefined;
+  if (match) {
+    applyMethod(id, match, false, true);
+  } else if (methodInput.dataset.auto === 'true') {
+    // The species changed to one with no nest type: drop the old automatic choice
+    methodInput.value = '';
+    methodInput.dataset.selected = '';
+    methodInput.dataset.writeIn = 'false';
+    methodInput.dataset.auto = '';
+    methodInput.classList.remove('input-confirmed');
+    updateWhooshVisibility();
+  }
 }
 
 function handleMethodKey(e, id) {
@@ -1802,13 +1869,28 @@ function submitForm() {
   dateInput.classList.remove('input-error');
   showStatus('', null);
 
-  const rows = document.querySelectorAll('.species-row');
-  if (!rows.length) { showStatus('Please add at least one species.', false); return; }
+  // Whoosh net firings — required whenever the whoosh question is showing
+  const whooshVisible = document.getElementById('whoosh-section').classList.contains('visible');
+  let whooshFirings = null;
+  if (whooshVisible) {
+    const whooshInp = document.getElementById('whoosh-firings');
+    if (whooshInp.dataset.value === 'null') {
+      whooshInp.classList.add('input-error');
+      showStatus('Please enter the number of whoosh net active firings (0 is a valid answer).', false);
+      return;
+    }
+    whooshFirings = parseInt(whooshInp.dataset.value);
+    whooshInp.classList.remove('input-error');
+  }
+
+  // With at least one live firing, species rows are optional: a session where every bird escaped
+  // is recorded as firings only, and any blank rows are ignored.
+  const rowsOptional = whooshFirings !== null && whooshFirings > 0;
 
   const entries = [];
   let valid = true;
 
-  rows.forEach(row => {
+  document.querySelectorAll('.species-row').forEach(row => {
     const id = row.id.replace('row-', '');
     const speciesInput = row.querySelector('.species-input');
     const species = speciesInput.dataset.selected;
@@ -1830,6 +1912,10 @@ function submitForm() {
     // Pullus-only fields
     const pulliRinged    = isPullus ? Math.max(0, parseInt(document.getElementById(`pulli-ringed-${id}`).value) || 0) : 0;
     const broodsAssessed = isPullus ? Math.max(0, parseInt(document.getElementById(`broods-${id}`).value) || 0) : 0;
+
+    // A row nothing has been entered in is skipped when firings make rows optional
+    const blank = !species && !age && !method && !num && !processed && !fledgedRinged && !pulliRinged && !broodsAssessed;
+    if (blank && rowsOptional) return;
 
     if (!species) {
       speciesInput.classList.add('input-error');
@@ -1862,18 +1948,11 @@ function submitForm() {
 
   if (!valid) { showStatus('Please check all rows: species, age and method are required. Fledged rows need at least one extracted or processed bird. Pullus rows need at least one pulli ringed or brood assessed.', false); return; }
 
-  // Whoosh net firings — required if whoosh section is visible
-  const whooshVisible = document.getElementById('whoosh-section').classList.contains('visible');
-  let whooshFirings = null;
-  if (whooshVisible) {
-    const whooshInp = document.getElementById('whoosh-firings');
-    if (whooshInp.dataset.value === 'null') {
-      whooshInp.classList.add('input-error');
-      showStatus('Please enter the number of whoosh net active firings (0 is a valid answer).', false);
-      return;
-    }
-    whooshFirings = parseInt(whooshInp.dataset.value);
-    whooshInp.classList.remove('input-error');
+  if (!entries.length && !rowsOptional) {
+    showStatus(whooshVisible
+      ? 'Add a species, or enter at least one whoosh net firing for a session where no birds were caught.'
+      : 'Please add at least one species.', false);
+    return;
   }
 
   // The server adds any new ringer or method to the sheet itself, so only the data goes across
@@ -1884,6 +1963,12 @@ function submitForm() {
 function showConfirmScreen(payload) {
   document.getElementById('confirm-ringer').textContent = payload.trainee;
   document.getElementById('confirm-date').textContent = payload.date || 'Not specified';
+
+  // No species rows means a zero-catch whoosh session: say so, and ask for a double-check
+  const zeroCatch = payload.entries.length === 0;
+  document.getElementById('confirm-zero-note').style.display = zeroCatch ? '' : 'none';
+  document.getElementById('confirm-zero-count').textContent = payload.whooshFirings;
+  document.getElementById('confirm-species-card').style.display = zeroCatch ? 'none' : '';
 
   const sum = key => payload.entries.reduce((s, e) => s + (e[key] || 0), 0);
   document.getElementById('confirm-tot-ext').textContent     = sum('num');
@@ -1924,8 +2009,11 @@ function goBackToForm(errorMessage) {
   });
 }
 
-function showSuccessScreen(numSpecies, name) {
-  document.getElementById('success-sub').textContent = `${numSpecies} species logged for ${name}.`;
+function showSuccessScreen(payload) {
+  const n = payload.entries.length;
+  document.getElementById('success-sub').textContent = n
+    ? `${n} species logged for ${payload.trainee}.`
+    : `${payload.whooshFirings} whoosh net firing${payload.whooshFirings !== 1 ? 's' : ''} logged for ${payload.trainee} (no birds caught).`;
   switchScreen(confirmScreen, successScreen);
 }
 
@@ -1943,7 +2031,7 @@ function doSubmit() {
   .then(r => r.json())
   .then(data => {
     if (data.result === 'success') {
-      showSuccessScreen(pendingPayload.entries.length, pendingPayload.trainee);
+      showSuccessScreen(pendingPayload);
     } else {
       // The server explains validation problems; anything else gets the generic message
       goBackToForm(data.error || 'Submission failed — please try again or get in touch if the problem persists.');
@@ -1975,11 +2063,12 @@ function resetForm() {
   document.getElementById('species-rows').innerHTML = '';
   showStatus('', null);
   rowCount = 0;
+  zeroCatchMode = false;
+  document.getElementById('zero-catch-btn').setAttribute('aria-pressed', 'false');
   const whooshInp = document.getElementById('whoosh-firings');
   whooshInp.value = '—'; whooshInp.dataset.value = 'null'; whooshInp.classList.remove('input-error');
-  document.getElementById('whoosh-section').classList.remove('visible');
+  document.getElementById('whoosh-section').classList.remove('visible', 'zero-catch');
   addRow(true);
-  updateHeaderVisibility();
 }
 
 function showStatus(msg, ok) {
@@ -2236,6 +2325,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<script src="shared.js"></script>
+<script src="shared.js?v=3"></script>
 </body>
 </html>

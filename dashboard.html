@@ -12,7 +12,7 @@
 <link rel="manifest" href="site.webmanifest">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="shared.css?v=3">
 <style>
   /* ── Loading state ── */
   .loading-state {
@@ -123,6 +123,7 @@
   }
   .export-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
   .export-btn:active { transform: scale(0.97); }
+  .export-btn:disabled { opacity: 0.6; cursor: progress; }
 
   .export-dropdown {
     display: none;
@@ -158,10 +159,11 @@
   /* ── Stat tiles ── */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 14px;
     margin-bottom: 22px;
   }
+  @media (min-width: 1000px) { .stats-grid { grid-template-columns: repeat(6, 1fr); } }
   .stat-tile {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -183,16 +185,16 @@
     overflow: hidden;
   }
   .section-header {
-    background: var(--bar-bg);
-    color: var(--bar-ink);
-    border-bottom: 1px solid var(--bar-border);
+    background: var(--th);
+    color: var(--ink);
+    border-bottom: 1px solid var(--border);
     padding: 12px 22px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
   .section-header h3 { font-size: 0.95rem; font-weight: 600; }
-  .section-header .badge { font-size: 0.7rem; color: var(--bar-muted); }
+  .section-header .badge { font-size: 0.7rem; color: var(--ink-muted); }
 
   /* ── Tables ── */
   .data-table { width: 100%; border-collapse: collapse; }
@@ -223,13 +225,13 @@
     font-size: 0.7rem;
     padding: 4px 10px;
     border-radius: 2px;
-    border: 1px solid var(--bar-btn-border);
+    border: 1px solid var(--border);
     background: transparent;
-    color: var(--bar-muted);
+    color: var(--ink-muted);
     cursor: pointer;
     transition: background 0.12s, color 0.12s;
   }
-  .sort-btn:hover { background: var(--bar-btn-hover-bg); color: var(--bar-btn-hover-ink); }
+  .sort-btn:hover { background: var(--accent-light); color: var(--accent); }
   .sort-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
   /* ── Species table ── */
@@ -333,6 +335,54 @@
   .pill-species { background: var(--th); color: var(--ink-muted); border: 1px solid var(--border); }
   .session-totals { color: var(--ink-muted); font-size: 0.72rem; white-space: nowrap; }
 
+  /* Flag button on each session, and the edit-request dialog */
+  .flag-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 3px 9px;
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .flag-btn:hover { border-color: var(--warn-strong); color: var(--warn-ink); background: var(--warn-bg); }
+  .flag-btn.flagged { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .flag-field-label { display: block; font-size: 0.75rem; font-weight: 500; color: var(--ink); margin: 14px 0 6px; }
+  textarea.flag-comment {
+    width: 100%;
+    min-height: 110px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  .flag-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+  #flag-status { font-size: 0.78rem; }
+  #flag-status.status-ok  { color: var(--accent); }
+  #flag-status.status-err { color: var(--danger); }
+  .flag-send-btn {
+    background: var(--accent);
+    color: var(--on-accent);
+    border: none;
+    border-radius: 3px;
+    padding: 10px 22px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .flag-send-btn:hover { background: var(--accent-hover); }
+  .flag-send-btn:disabled { background: var(--ink-muted); cursor: not-allowed; }
+
   /* ── Responsive ── */
   @media (max-width: 640px) {
     select.ringer-select { max-width: 100%; }
@@ -365,7 +415,7 @@
     }
   }
 </style>
-<script src="theme.js"></script>
+<script src="theme.js?v=3"></script>
 </head>
 <body data-page="dashboard">
 
@@ -393,7 +443,7 @@
     <div class="ringer-strip">
       <h2 id="ringer-title"></h2>
       <div class="export-wrap" id="export-wrap">
-        <button class="export-btn" onclick="toggleExportMenu(event)" title="Download data">
+        <button class="export-btn" id="export-btn" onclick="toggleExportMenu(event)" title="Download data">
           ↓ Export data
         </button>
         <div class="export-dropdown" id="export-dropdown">
@@ -428,6 +478,11 @@
         <div class="tile-label">Birds processed</div>
         <div class="tile-value" id="stat-processed">—</div>
         <div class="tile-sub" id="stat-proc-sub"></div>
+      </div>
+      <div class="stat-tile">
+        <div class="tile-label">Birds ringed</div>
+        <div class="tile-value" id="stat-ringed">—</div>
+        <div class="tile-sub" id="stat-ringed-sub"></div>
       </div>
     </div>
 
@@ -474,7 +529,27 @@
 
 </main>
 
-<script src="species.js"></script>
+<!-- Edit request dialog (reuses the info-modal look and its open/close/Escape handling from shared.js) -->
+<div class="info-overlay" id="flag-modal" onclick="handleInfoOverlayClick(event,'flag-modal')">
+  <div class="info-modal">
+    <div class="info-modal-hd">
+      <h2>Request an edit</h2>
+      <button class="info-modal-x" onclick="closeInfoModal('flag-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="info-modal-bd">
+      <p id="flag-session-label"></p>
+      <label class="flag-field-label" for="flag-comment">What needs changing?</label>
+      <textarea class="flag-comment" id="flag-comment" maxlength="1000"
+                placeholder="e.g. The Blue Tit count should be 3, not 8"></textarea>
+      <div class="flag-footer">
+        <span id="flag-status"></span>
+        <button class="flag-send-btn" id="flag-send" onclick="submitFlag()">Send request</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="species.js?v=3"></script>
 <script>
 // SCRIPT_URL, esc(), isWhoosh(), isMistNet(), downloadBlob() and downloadCSV() come from shared.js.
 // SPECIES_LIST, CATEGORY_ORDER, BTO_FORM, getSpeciesCategory() and getBTORow() come from species.js.
@@ -681,7 +756,8 @@ function renderDashboard(data, ringer) {
   window._exportSessions = sessions.slice().reverse();
   window._exportRinger = ringer;
 
-  var totalProc = 0, totalPulliRinged = 0, totalBroods = 0;
+  var totalProc = 0, totalPulliRinged = 0, totalBroods = 0, totalRinged = 0;
+  var ringedSpecies = new Set();
   var whooshExt = 0, mistExt = 0;
   var mistSpecies = new Set();
   var speciesMap = {}, methodMap = {};
@@ -690,6 +766,7 @@ function renderDashboard(data, ringer) {
 
   sessions.forEach(function(s) {
     (s.entries || []).forEach(function(e) {
+      if (e.zeroCatch) return;   // a "no birds caught" whoosh session: nothing to tally except its firings (sumWhooshFirings)
       var ext  = e.extracted || 0;
       var proc = e.processed || 0;
       var sp   = e.species   || 'Unknown';
@@ -698,6 +775,9 @@ function renderDashboard(data, ringer) {
       totalProc        += proc;
       totalPulliRinged += (e.pulliRinged    || 0);
       totalBroods      += (e.broodsAssessed || 0);
+      var ringedNow = (e.fledgedRinged || 0) + (e.pulliRinged || 0);
+      totalRinged      += ringedNow;
+      if (ringedNow > 0) ringedSpecies.add(sp);
 
       if (isWhoosh(mt)) whooshExt += ext;
       if (isMistNet(mt)) {
@@ -758,11 +838,13 @@ function renderDashboard(data, ringer) {
   document.getElementById('stat-mistnet').textContent   = mistExt;
   document.getElementById('stat-pulli').textContent     = totalPulliRinged;
   document.getElementById('stat-processed').textContent = totalProc;
+  document.getElementById('stat-ringed').textContent    = totalRinged;
   document.getElementById('stat-sessions-sub').textContent  = firstDate ? fmtMonth(firstDate) + ' \u2192 ' + fmtMonth(lastDate) : '\u2014';
   document.getElementById('stat-whoosh-sub').textContent    = 'across ' + whooshFiringsTotal + ' firing' + (whooshFiringsTotal !== 1 ? 's' : '');
   document.getElementById('stat-mistnet-sub').textContent   = 'across ' + mistSpecies.size + ' species';
   document.getElementById('stat-pulli-sub').textContent     = 'across ' + totalBroods + ' brood' + (totalBroods !== 1 ? 's' : '');
   document.getElementById('stat-proc-sub').textContent      = 'across ' + Object.keys(speciesMap).length + ' species';
+  document.getElementById('stat-ringed-sub').textContent    = 'across ' + ringedSpecies.size + ' species';
 
   // ── Method table ──
   document.getElementById('method-badge').textContent = methodList.length + ' method' + (methodList.length !== 1 ? 's' : '');
@@ -890,6 +972,7 @@ function renderDashboard(data, ringer) {
       + species.map(function(sp) { return '<span class="pill pill-species">' + esc(sp) + '</span>'; }).join('')
       + '</div>'
       + '<span class="session-totals">' + ext + ' ext \u00b7 ' + proc + ' proc</span>'
+      + flagButtonHTML(s.date, ringer)
       + '</div>';
   }).join('');
 
@@ -983,19 +1066,39 @@ function loadExcelJS() {
   });
 }
 
+function setExportBusy(busy) {
+  var btn = document.getElementById('export-btn');
+  if (!btn) return;
+  btn.disabled = busy;
+  btn.textContent = busy ? 'Preparing export\u2026' : '\u2193 Export data';
+}
+
+// The click handler. Anything that goes wrong is shown in the red banner at the top of the page
+// (an error inside an async click handler would otherwise vanish without a trace).
 async function exportBTOSummary() {
   var sessions = window._exportSessions;
   var ringer   = window._exportRinger;
   if (!sessions || !sessions.length) return;
   closeExportMenu();
-
+  clearError();
+  setExportBusy(true);
   try {
-    await loadExcelJS();
+    if (typeof BTO_FORM === 'undefined' || typeof getBTORow !== 'function') {
+      throw new Error('the species list on this page is out of date. Please reload the page (Ctrl+Shift+R) and try again.');
+    }
+    try { await loadExcelJS(); } catch (e) {
+      throw new Error('the Excel library could not be loaded. Check your internet connection and try again.');
+    }
+    await buildBTOWorkbook(sessions, ringer);
   } catch (err) {
-    showError('The Excel export library could not be loaded. Check your internet connection and try again.');
+    showError('The BTO export could not be created: ' + (err && err.message ? err.message : err));
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
+  } finally {
+    setExportBusy(false);
   }
+}
+
+async function buildBTOWorkbook(sessions, ringer) {
 
   // ── Aggregate by BTO form row ──────────────────────────────────────
   // species.js decides where each logged species counts: getBTORow(name) returns the BTO form
@@ -1005,6 +1108,7 @@ async function exportBTOSummary() {
   var rowData = {};   // section -> { row name -> totals }
   sessions.forEach(function(s) {
     (s.entries || []).forEach(function(e) {
+      if (e.zeroCatch) return;   // firings are counted separately (sumWhooshFirings); there is no species to add
       var loc = getBTORow(e.species || 'Unknown');
       if (!rowData[loc.section]) rowData[loc.section] = {};
       var d = rowData[loc.section][loc.row];
@@ -1293,6 +1397,73 @@ async function exportBTOSummary() {
 }
 
 // ─────────────────────────────────────────────
+// Flag a session: ask for incorrect data to be edited
+// Sends the comment to the backend, which emails it to the person who looks after the sheet
+// (with the session date and the date of the request).
+// ─────────────────────────────────────────────
+var FLAG_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" '
+  + 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4"/><path d="M4 4h13l-2.5 4.5L17 13H4"/></svg>';
+var _flagDate = null;
+var _flagged = {};   // "ringer|date" -> true once a request has been sent from this page
+
+function flagButtonHTML(date, ringer) {
+  var sent = !!_flagged[ringer + '|' + date];
+  return '<button type="button" class="flag-btn' + (sent ? ' flagged' : '') + '" data-date="' + esc(date) + '" '
+    + 'onclick="openFlagModal(this.dataset.date)" '
+    + 'title="' + (sent ? 'Edit request sent' : 'Ask for this session to be edited') + '" '
+    + 'aria-label="Ask for the session on ' + esc(date) + ' to be edited">'
+    + FLAG_SVG + '<span>' + (sent ? 'Sent' : 'Flag') + '</span></button>';
+}
+
+function setFlagStatus(msg, ok) {
+  var el = document.getElementById('flag-status');
+  el.textContent = msg;
+  el.className = ok === true ? 'status-ok' : ok === false ? 'status-err' : '';
+}
+
+function openFlagModal(date) {
+  _flagDate = date;
+  document.getElementById('flag-session-label').textContent = 'Session on ' + date + ' (' + window._exportRinger + ')';
+  document.getElementById('flag-comment').value = '';
+  document.getElementById('flag-send').disabled = false;
+  setFlagStatus('', null);
+  openInfoModal('flag-modal');
+  setTimeout(function() { document.getElementById('flag-comment').focus(); }, 50);
+}
+
+async function submitFlag() {
+  var comment = document.getElementById('flag-comment').value.trim();
+  if (comment.length < 5) { setFlagStatus('Please say what needs changing.', false); return; }
+
+  var btn = document.getElementById('flag-send');
+  var ringer = window._exportRinger, date = _flagDate;
+  btn.disabled = true;
+  setFlagStatus('Sending\u2026', null);
+  try {
+    var r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'flagSession', ringer: ringer, date: date, comment: comment })
+    });
+    var res = await r.json();
+    if (res.result !== 'success') { setFlagStatus(res.error || 'Could not send the request \u2014 please try again.', false); btn.disabled = false; return; }
+
+    _flagged[ringer + '|' + date] = true;
+    document.querySelectorAll('.flag-btn').forEach(function(b) {
+      if (b.dataset.date === date) {
+        b.classList.add('flagged');
+        b.title = 'Edit request sent';
+        b.querySelector('span').textContent = 'Sent';
+      }
+    });
+    setFlagStatus('Thanks \u2014 your request has been sent.', true);
+    setTimeout(function() { closeInfoModal('flag-modal'); }, 1600);
+  } catch (err) {
+    setFlagStatus('Could not send \u2014 please check your internet connection and try again.', false);
+    btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────
 // Species table sort
 // ─────────────────────────────────────────────
 function buildSortToggle(methodList, hasPulliRinged, hasBroods) {
@@ -1420,6 +1591,6 @@ function buildSpeciesTable(order) {
     + '<table class="data-table">' + thead + '<tbody>' + tbody + '</tbody></table></div>';
 }
 </script>
-<script src="shared.js"></script>
+<script src="shared.js?v=3"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 // Ringing Tracker theme: applies the saved (or system) theme immediately — load in <head>
 // to avoid a flash — and exposes setTheme() for the Settings menu.
 //
-// Themes: 'light' (the default), 'cream' (the original look) and 'dark'.
+// Themes: 'light' (the default), 'cream' and 'dark' — each is just a set of colours in shared.css.
 // 'light' and 'dark' are also the values older versions of the site saved, so existing
 // visitors keep their choice.
 (function () {
@@ -23,7 +23,6 @@
   function apply(mode, chosen) {
     if (!THEMES[mode]) mode = 'light';
     document.documentElement.setAttribute('data-theme', mode);
-    if (mode === 'cream') loadCreamFonts();
 
     if (chosen) {
       document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
