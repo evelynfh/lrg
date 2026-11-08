@@ -397,20 +397,38 @@
   .tcell-na .tcell-num { color: var(--ink-muted); }
 
   .ia-icon {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    background: var(--danger);
-    color: #fff;
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid var(--border);
     font-size: 0.62rem;
     font-weight: 700;
     font-style: normal;
-    cursor: help;
+    line-height: 1;
+    cursor: pointer;
     vertical-align: middle;
     margin-left: 6px;
+  }
+  .ia-icon::after { content: ''; position: absolute; inset: -8px; }   /* bigger tap target */
+  .ia-tip {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    max-width: 240px;
+    padding: 7px 11px;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 4px;
+    box-shadow: var(--shadow-lg);
+    font-size: 0.72rem;
+    line-height: 1.5;
   }
 
   .threshold-table .threshold-detail-title td {
@@ -420,6 +438,7 @@
     color: var(--ink-muted);
     border-bottom: none;
   }
+  
   .threshold-table td.threshold-restricted-empty { padding: 10px 38px 14px; font-size: 0.78rem; color: var(--ink-muted); font-style: italic; }
   .threshold-note { padding: 14px 22px 18px; font-size: 0.78rem; color: var(--ink-muted); line-height: 1.6; border-top: 1px solid var(--border-soft); }
   .threshold-note .ia-icon { margin: 0 6px 0 0; }
@@ -474,7 +493,7 @@
   .session-item:last-child { border-bottom: none; }
   .session-item:nth-child(even) { background: var(--row-alt); }
   .session-date { color: var(--ink); min-width: 96px; font-size: 0.82rem; }
-  .session-pills { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; }
+  .session-pills { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; min-width: 0; }
   .pill { padding: 2px 8px; border-radius: 2px; font-size: 0.7rem; }
   .pill-method  { background: var(--accent-light); color: var(--accent); border: 1px solid var(--border); }
   .pill-species { background: var(--th); color: var(--ink-muted); border: 1px solid var(--border); }
@@ -489,6 +508,7 @@
     border: 1px solid var(--border);
     border-radius: 3px;
     padding: 3px 9px;
+    white-space: nowrap;
     font-size: 0.7rem;
     color: var(--ink-muted);
     cursor: pointer;
@@ -531,7 +551,18 @@
   /* ── Responsive ── */
   @media (max-width: 640px) {
     select.ringer-select { max-width: 100%; }
-    .session-item { flex-wrap: wrap; }
+    .session-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "date flag" "pills pills" "totals totals";
+      gap: 6px 10px;
+      align-items: center;
+      padding: 10px 16px;
+    }
+    .session-date   { grid-area: date; min-width: 0; }
+    .session-pills  { grid-area: pills; }
+    .session-totals { grid-area: totals; }
+    .flag-btn       { grid-area: flag; justify-self: end; }
     .ringer-strip { flex-wrap: wrap; }
     .export-btn { font-size: 0.72rem; padding: 7px 12px; }
     .section-header { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
@@ -564,6 +595,8 @@
     .threshold-table th { font-size: 0.64rem; }
     .threshold-table th:first-child { padding-left: 12px; }
     .threshold-table th.tcell, .threshold-table td.tcell { padding-left: 6px; padding-right: 6px; }
+    .threshold-table td.tname,
+    .threshold-table th { vertical-align: middle; }
     .threshold-table td.tname { padding: 10px 6px 10px 12px; font-size: 0.75rem; }
     .threshold-table td.tname-detail { padding-left: 22px; }
     .threshold-table .threshold-detail-title td { padding-left: 12px; }
@@ -644,6 +677,29 @@
     </div>
 
     <div class="section-card">
+      <div class="section-header threshold-header">
+        <div class="header-title">
+          <h3>Licence thresholds</h3>
+          <span class="help-wrap" id="threshold-help">
+            <button type="button" class="help-btn" aria-label="How the progress bars work" aria-expanded="false" onclick="toggleThresholdHelp(event)">?</button>
+            <span class="help-pop" role="tooltip">
+              <strong>Green</strong> species meet the restricted-endorsement threshold for their slot (first, second or additional species).
+              <strong>Amber</strong> species count towards the total, but you haven&rsquo;t reached the threshold for a restricted endorsement.
+            </span>
+          </span>
+        </div>
+        <span class="badge">BTO endorsement progress</span>
+      </div>
+      <div class="threshold-tabs" id="threshold-tabs">
+        <button type="button" class="threshold-tab active" data-endorsement="fullGrown" aria-pressed="true">Full grown</button>
+        <button type="button" class="threshold-tab" data-endorsement="pullus" aria-pressed="false">Pullus</button>
+        <button type="button" class="threshold-tab" data-endorsement="mistNet" aria-pressed="false">Mist net</button>
+        <button type="button" class="threshold-tab" data-endorsement="whooshNet" aria-pressed="false">Whoosh net</button>
+      </div>
+      <div id="threshold-table-wrap"></div>
+    </div>
+    
+    <div class="section-card">
       <div class="section-header">
         <h3>Extractions by method</h3>
         <span class="badge" id="method-badge"></span>
@@ -657,30 +713,6 @@
         </tr></thead>
         <tbody id="method-tbody"></tbody>
       </table>
-    </div>
-
-    <div class="section-card">
-      <div class="section-header threshold-header">
-        <div class="header-title">
-          <h3>Licence thresholds</h3>
-          <span class="help-wrap" id="threshold-help">
-            <button type="button" class="help-btn" aria-label="How the progress bars work" aria-expanded="false" onclick="toggleThresholdHelp(event)">?</button>
-            <span class="help-pop" role="tooltip">
-              <strong>Green</strong> species meet the restricted-endorsement threshold for their slot (first, second or additional species).
-              <strong>Amber</strong> species count towards the total, but you haven&rsquo;t reached the threshold for a restricted endorsement.
-              The faint track shows how much is still to go. Click a group to see restricted-endorsement progress.
-            </span>
-          </span>
-        </div>
-        <span class="badge">BTO endorsement progress</span>
-      </div>
-      <div class="threshold-tabs" id="threshold-tabs">
-        <button type="button" class="threshold-tab active" data-endorsement="fullGrown" aria-pressed="true">Full grown</button>
-        <button type="button" class="threshold-tab" data-endorsement="pullus" aria-pressed="false">Pullus</button>
-        <button type="button" class="threshold-tab" data-endorsement="mistNet" aria-pressed="false">Mist net</button>
-        <button type="button" class="threshold-tab" data-endorsement="whooshNet" aria-pressed="false">Whoosh net</button>
-      </div>
-      <div id="threshold-table-wrap"></div>
     </div>
 
     <div class="section-card">
@@ -1315,6 +1347,36 @@ function colgroupHTML() {
 }
   
 // ── Group rows ──
+function iaIconHTML() {
+  return '<span class="ia-icon" data-tip="Independent assessment required" aria-label="Independent assessment required">!</span>';
+}
+
+var _iaTip = null;
+var _iaTipIcon = null;
+
+function showIaTip(icon) {
+  if (!_iaTip) {
+    _iaTip = document.createElement('div');
+    _iaTip.className = 'ia-tip';
+    _iaTip.setAttribute('role', 'tooltip');
+    document.body.appendChild(_iaTip);
+  }
+  _iaTip.textContent = icon.getAttribute('data-tip');
+  _iaTip.style.display = 'block';
+  _iaTipIcon = icon;
+  var r = icon.getBoundingClientRect();
+  var left = Math.max(8, Math.min(r.left + r.width / 2 - _iaTip.offsetWidth / 2, window.innerWidth - _iaTip.offsetWidth - 8));
+  var top = r.top - _iaTip.offsetHeight - 8;
+  if (top < 8) top = r.bottom + 8;
+  _iaTip.style.left = left + 'px';
+  _iaTip.style.top = top + 'px';
+}
+
+function hideIaTip() {
+  if (_iaTip) _iaTip.style.display = 'none';
+  _iaTipIcon = null;
+}
+  
 function renderThresholdGroupRow(group, stats, view) {
   var u = group.unrestricted;
   var amberCount = stats.totalSpecies - stats.eligibleSpecies;
@@ -1333,9 +1395,7 @@ function renderThresholdGroupRow(group, stats, view) {
     cells += isNum(group.broodAssessments) ? plainBarCell(stats.totalBroods, group.broodAssessments) : naCellHTML();
   }
 
-  var iaIcon = group.independentAssessment
-    ? '<span class="ia-icon" title="Independent assessment required">!</span>'
-    : '';
+  var iaIcon = group.independentAssessment ? iaIconHTML() : '';
 
   return '<tr class="threshold-row" data-group="' + esc(group.key) + '" tabindex="0" role="button" aria-expanded="false">'
     + '<td class="primary tname"><span class="threshold-expand-icon">\u25B6</span>' + esc(group.name) + iaIcon + '</td>'
@@ -1397,7 +1457,7 @@ function renderWhooshTab(data) {
     return '<tr><td class="primary tname">' + name + '</td>' + plainBarCell(value, target) + padCells(1) + '</tr>';
   }
   var note = '<div class="threshold-note">'
-    + (data.independentAssessment ? '<span class="ia-icon" title="Independent assessment required">!</span>Independent assessment required. ' : '')
+    + (data.independentAssessment ? iaIconHTML() + 'Independent assessment required. ' : '')
     + esc(data.note || '') + '</div>';
 
   return '<div class="threshold-scroll"><table class="data-table threshold-table">'
@@ -1432,7 +1492,6 @@ function renderThresholdTab(key) {
     return renderThresholdGroupRow(group, stats, view);
   }).join('');
 
-  var cols = view.cols.map(function() { return '<col class="tcol-metric">'; }).join('');
   var heads = view.cols.map(function(c) {
     return '<th class="tcell">' + esc(c.label) + '</th>';
   }).join('');
@@ -1472,12 +1531,29 @@ function toggleThresholdRow(row) {
 function _attachThresholdListeners() {
   if (_thresholdListenerAttached) return;
   _thresholdListenerAttached = true;
+  var canHover = window.matchMedia && matchMedia('(hover: hover)').matches;
+
   document.addEventListener('click', function(ev) {
+    var ia = ev.target.closest('.ia-icon');
+    if (ia) {
+      // Tapping the icon must not expand the row underneath it
+      if (!canHover) { if (_iaTipIcon === ia) hideIaTip(); else showIaTip(ia); }
+      return;
+    }
+    hideIaTip();
     var tab = ev.target.closest('.threshold-tab');
     if (tab) { renderThresholdTab(tab.getAttribute('data-endorsement')); return; }
     var row = ev.target.closest('.threshold-row');
     if (row) toggleThresholdRow(row);
   });
+  document.addEventListener('mouseover', function(ev) {
+    var ia = canHover && ev.target.closest('.ia-icon');
+    if (ia) showIaTip(ia);
+  });
+  document.addEventListener('mouseout', function(ev) {
+    if (canHover && ev.target.closest('.ia-icon')) hideIaTip();
+  });
+  window.addEventListener('scroll', hideIaTip, { passive: true });
   document.addEventListener('keydown', function(ev) {
     if (ev.key !== 'Enter' && ev.key !== ' ') return;
     var row = ev.target.closest && ev.target.closest('.threshold-row');
@@ -1486,7 +1562,6 @@ function _attachThresholdListeners() {
     toggleThresholdRow(row);
   });
 }
-
 function toggleThresholdHelp(ev) {
   ev.stopPropagation();
   var w = document.getElementById('threshold-help');
@@ -1525,6 +1600,7 @@ window.closeOnEscape = function() {
   closeGapPopup();
   closeExportMenu();
   closeThresholdHelp();
+  hideIaTip();
 };
 
 // ─────────────────────────────────────────────
