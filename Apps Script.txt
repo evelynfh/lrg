@@ -63,6 +63,21 @@ const BLOCKED_EXTENSIONS = [
   'dll', 'apk', 'iso', 'html', 'htm', 'lnk', 'reg'
 ];
 
+// ── Dashboard cache ──
+// getRingerData() is cached in two independent pieces — see the "Dashboard caching" section near
+// getRingerData for the full explanation of why, and how they're kept up to date without re-scanning
+// the Responses sheet on every submission.
+//   CACHE_TTL_S        how long a cache entry lives before it expires on its own (CacheService's own
+//                       hard ceiling is 21600 = 6 hours). Kept modest rather than maxed out because a
+//                       manual edit made directly on the sheet — not through this form — is NOT picked
+//                       up until the relevant entry expires.
+//   SITE_FREQ_KEY       the shared "who's caught what, by method" totals used by every ringer's
+//                       Species gaps section: { method: { species: { ringer: count } } }
+//   SITE_PROCESSED_KEY  the shared "who's processed what" totals: { species: { ringer: count } }
+const CACHE_TTL_S        = 3600;
+const SITE_FREQ_KEY      = 'site_freq_method';
+const SITE_PROCESSED_KEY = 'site_processed';
+
 // ─────────────────────────────────────────────
 // GET
 // ─────────────────────────────────────────────
@@ -135,6 +150,8 @@ function doPost(e) {
     4. Resolve the ringer and each method to the spelling already on the sheet (case-insensitive),
        adding them only if they are genuinely new.
     5. Write all rows in one call, then back them up.
+    6. Merge the new rows straight into the dashboard caches, instead of throwing them away — see
+       updateCachesAfterSubmission_ in the "Dashboard caching" section.
 */
 function submitSession_(data) {
   const clean = validateSubmission_(data);                       // [1]
@@ -164,6 +181,12 @@ function submitSession_(data) {
 
     const addedMethods = {};   // methods that did not exist before this submission
     const now = new Date();
+    const submittedAt = formatTimestamp_(now);
+
+    // resolvedEntries mirrors entryRows but in the shape getRingerData() hands to the dashboard
+    // (not a sheet row), so the caches below can be updated directly from it — no need to read the
+    // rows back off the sheet.
+    const resolvedEntries = [];
 
     const entryRows = clean.entries.map((entry, index) => {           // [5]
       const isPullus = entry.age === 'Pullus';
@@ -172,6 +195,17 @@ function submitSession_(data) {
         : canonicalise_(methodsSheet, METHODS_COL.FLEDGED, fledgedMap, entry.method);
       const methodKey = (isPullus ? 'P:' : 'F:') + keyOf_(method.value);
       if (method.added) addedMethods[methodKey] = true;
+
+      const whooshFirings = index === 0 && clean.whooshFirings !== null ? clean.whooshFirings : null;
+
+      resolvedEntries.push({
+        species: entry.species, age: entry.age, extracted: entry.num, method: method.value,
+        processed:      isPullus ? 0 : entry.processed,
+        fledgedRinged:  isPullus ? 0 : entry.fledgedRinged,
+        pulliRinged:    isPullus ? entry.pulliRinged    : 0,
+        broodsAssessed: isPullus ? entry.broodsAssessed : 0,
+        whooshFirings, submittedAt, zeroCatch: false
+      });
 
       return [
         clean.date,
@@ -186,7 +220,7 @@ function submitSession_(data) {
         isPullus ? entry.broodsAssessed : '',
         // Whoosh firings are a session-level number, stored on the FIRST row only.
         // The dashboard and exports count one value per submission (see sumWhooshFirings in dashboard.html).
-        index === 0 && clean.whooshFirings !== null ? clean.whooshFirings : '',
+        whooshFirings === null ? '' : whooshFirings,
         now,
         entry.speciesWriteIn,
         addedMethods[methodKey] ? 'Yes' : 'No'
@@ -194,6 +228,13 @@ function submitSession_(data) {
     });
 
     // Zero-catch whoosh session: one row holds the firings; species/age/method are not needed
+    if (!entryRows.length) {
+      resolvedEntries.push({
+        species: ZERO_CATCH_SPECIES, age: '', extracted: 0, method: '',
+        processed: 0, fledgedRinged: 0, pulliRinged: 0, broodsAssessed: 0,
+        whooshFirings: clean.whooshFirings, submittedAt, zeroCatch: true
+      });
+    }
     const rows = entryRows.length ? entryRows : [[
       clean.date, ringer, ZERO_CATCH_SPECIES, '', 0, '', '', '', '', '', clean.whooshFirings, now, 'No', 'No'
     ]];
@@ -205,9 +246,11 @@ function submitSession_(data) {
     // Remember this submission so an identical retry is ignored
     cache.put(dupKey, '1', LIMITS.DUPLICATE_WINDOW_S);
 
-    // Invalidate every ringer's dashboard cache (not just the submitter's): each dashboard
-    // also shows other ringers' data in its "species gaps". Harmless while caching is disabled.
-    invalidateRingerCaches_(Object.keys(ringerMap).map(k => ringerMap[k]));
+    // Update (not invalidate) the dashboard caches: merge the new rows straight into the submitter's
+    // own session cache and the shared site-wide aggregates, so the next dashboard load — for this
+    // ringer or any other — doesn't have to re-scan the whole Responses sheet. See the "Dashboard
+    // caching" section near getRingerData for the full explanation.
+    updateCachesAfterSubmission_(ringer, clean.date, resolvedEntries);
 
     // Per-submission backup: append the new rows only. Kept inside the lock so two
     // submissions can't append to the monthly tab at the same time. A backup failure
@@ -546,7 +589,7 @@ function handleFileUpload(data) {
 }
 
 // ─────────────────────────────────────────────
-// Data functions
+// Data functions: trainees / methods lists
 // ─────────────────────────────────────────────
 
 function getTrainees() {
@@ -562,39 +605,163 @@ function getMethods() {
   };
 }
 
+// ─────────────────────────────────────────────
+// Dashboard caching
+// ─────────────────────────────────────────────
+//
+// getRingerData() answers two different questions, and they're now cached separately because they
+// change at different rates and belong to different people:
+//
+//   1. "What has THIS ringer logged?" (sessions)             — changes only when they submit.
+//   2. "What has EVERYONE logged, by species/method?" (site) — changes whenever ANYONE submits,
+//      because the dashboard's "Species gaps" section compares each ringer against the rest of
+//      the site.
+//
+// Previously these were cached together, per ringer, which meant every submission had to
+// invalidate every ringer's cache (since (2) had changed for all of them) — so with more than a
+// handful of active ringers, the cache was cold almost all the time, and the full Responses sheet
+// was re-read and re-parsed on nearly every dashboard load. (The cache was in fact switched off
+// entirely for testing, which has the same effect.)
+//
+// Splitting them fixes that in two ways:
+//   - A submission only ever needs to update ONE ringer's session cache (the submitter's); every
+//     other ringer's session cache is untouched and stays valid.
+//   - The shared site-wide aggregates are updated IN PLACE with just the new rows, instead of being
+//     thrown away and rebuilt from a full scan. Their size depends on how many distinct
+//     species/ringer/method combinations exist, not on how many rows are in the sheet, so they stay
+//     small and cheap to keep "hot" even as the Responses sheet grows into the thousands of rows.
+//     (This also means the site-wide totals no longer need to exclude the viewed ringer's own rows
+//     during the scan — the dashboard already only shows a species as "missing" if the viewer
+//     hasn't logged it themselves, so including everyone's rows doesn't change what's displayed,
+//     and it's what lets this one cache entry be identical, and therefore shareable, for every
+//     ringer instead of being rebuilt per-viewer.)
+//
+// A full scan of the sheet only happens when a cache entry is missing (first use, after CACHE_TTL_S
+// expires, or because CacheService dropped an oversized entry — see the note in writeThroughCaches_).
+// When that happens, all three pieces are rebuilt and re-cached together from that one scan, so a
+// cold cache costs one scan rather than one scan per missing piece.
+//
+// Note: a manual edit made directly on the sheet (not through this form) is NOT picked up until the
+// relevant cache entries expire — this was true before this change too, and is why CACHE_TTL_S is
+// kept well under CacheService's 6-hour ceiling rather than maxed out.
+
 function ringerCacheKey_(name) {
   return 'ringer_' + keyOf_(name).replace(/\s+/g, '_');
 }
 
-// CacheService.removeAll takes at most 100 keys per call
-function invalidateRingerCaches_(names) {
+// Called after a successful submission, inside the lock. Best-effort throughout: any cache
+// operation can be skipped (e.g. a cache entry isn't currently cached, or has grown past
+// CacheService's 100KB-per-key limit) without affecting the submission that triggered it — the
+// next read for that piece simply falls back to a full scan.
+function updateCachesAfterSubmission_(ringer, date, entries) {
   const cache = CacheService.getScriptCache();
-  const keys = names.map(ringerCacheKey_);
-  for (let i = 0; i < keys.length; i += 100) {
-    cache.removeAll(keys.slice(i, i + 100));
+
+  // 1. Append the new entries to the submitter's own session cache, if it's currently cached.
+  try {
+    const key = ringerCacheKey_(ringer);
+    const cached = cache.get(key);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      const sessions = parsed.sessions || [];
+      let session = sessions.find(function (s) { return s.date === date; });
+      if (!session) {
+        session = { date: date, entries: [] };
+        sessions.push(session);
+        sessions.sort(function (a, b) { return a.date.localeCompare(b.date); });
+      }
+      session.entries.push.apply(session.entries, entries);
+      cache.put(key, JSON.stringify({ sessions: sessions }), CACHE_TTL_S);
+    }
+  } catch (e) { /* leave the cache as it was; the next read rebuilds it from a full scan */ }
+
+  // 2. Merge the new rows into the shared site-wide aggregates (used by every ringer's "Species
+  // gaps"). Zero-catch whoosh rows have no species, so there's nothing to add for those.
+  entries.forEach(function (e) {
+    if (e.zeroCatch) return;
+    if (e.method && e.extracted > 0) {
+      bumpNestedFreqCache_(SITE_FREQ_KEY, e.method, e.species, ringer, e.extracted);
+    }
+    if (e.processed > 0) {
+      bumpFreqCache_(SITE_PROCESSED_KEY, e.species, ringer, e.processed);
+    }
+  });
+}
+
+// Add `amount` to cachedObj[outerKey][species][ringer], only if `key` is already cached — if it
+// isn't, there's nothing to update; the next full scan picks up this row along with everything else.
+function bumpNestedFreqCache_(key, outerKey, species, ringer, amount) {
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get(key);
+  if (!cached) return;
+  try {
+    const obj = JSON.parse(cached);
+    if (!obj[outerKey]) obj[outerKey] = {};
+    if (!obj[outerKey][species]) obj[outerKey][species] = {};
+    obj[outerKey][species][ringer] = (obj[outerKey][species][ringer] || 0) + amount;
+    cache.put(key, JSON.stringify(obj), CACHE_TTL_S);
+  } catch (e) {
+    // Parsing failed, or the merged value is now too large for CacheService: drop it rather than
+    // leave something stale or half-written. The next dashboard load rebuilds it from a full scan.
+    cache.remove(key);
   }
 }
 
-function getRingerData(ringer) {
-  // ── Cache: return stored result if available ──
-  // Every submission clears every ringer's entry (see invalidateRingerCaches_), because each
-  // dashboard also includes other ringers' data in its species gaps. Manual edits to the
-  // sheet do NOT clear the cache, so keep the lifetime below short if you re-enable it.
+// Same as bumpNestedFreqCache_ but for a flat { species: { ringer: count } } cache entry.
+function bumpFreqCache_(key, species, ringer, amount) {
   const cache = CacheService.getScriptCache();
-  const cacheKey = ringerCacheKey_(ringer);
-  // CACHE DISABLED FOR TESTING — re-enable by uncommenting the block below
-  // const cached = cache.get(cacheKey);
-  // if (cached) {
-  //   try { return JSON.parse(cached); } catch (e) { /* cache corrupt, fall through */ }
-  // }
+  const cached = cache.get(key);
+  if (!cached) return;
+  try {
+    const obj = JSON.parse(cached);
+    if (!obj[species]) obj[species] = {};
+    obj[species][ringer] = (obj[species][ringer] || 0) + amount;
+    cache.put(key, JSON.stringify(obj), CACHE_TTL_S);
+  } catch (e) {
+    cache.remove(key);
+  }
+}
 
+// Store a freshly computed result (from a full scan) in all three cache slots. Each slot is
+// written independently: if one happens to be too big for CacheService (over 100KB — most likely
+// the session list of a very prolific individual ringer; the site-wide slots stay small regardless
+// of row count, see the note above), that slot is just skipped, and the next request for it pays
+// for one more full scan — the same graceful fallback the cache had before this change.
+function writeThroughCaches_(ringer, result) {
+  const cache = CacheService.getScriptCache();
+  try { cache.put(ringerCacheKey_(ringer), JSON.stringify({ sessions: result.sessions }), CACHE_TTL_S); } catch (e) {}
+  try { cache.put(SITE_FREQ_KEY, JSON.stringify(result.siteFreqByMethod), CACHE_TTL_S); } catch (e) {}
+  try { cache.put(SITE_PROCESSED_KEY, JSON.stringify(result.siteProcessedFreq), CACHE_TTL_S); } catch (e) {}
+}
+
+function getRingerData(ringer) {
+  const cache = CacheService.getScriptCache();
+  const ringerKey = ringerCacheKey_(ringer);
+
+  const cachedRinger   = cache.get(ringerKey);
+  const cachedSiteFreq = cache.get(SITE_FREQ_KEY);
+  const cachedSiteProc = cache.get(SITE_PROCESSED_KEY);
+
+  if (cachedRinger && cachedSiteFreq && cachedSiteProc) {
+    try {
+      return {
+        sessions: JSON.parse(cachedRinger).sessions,
+        siteFreqByMethod: JSON.parse(cachedSiteFreq),
+        siteProcessedFreq: JSON.parse(cachedSiteProc)
+      };
+    } catch (e) { /* a cache entry is corrupt somehow — fall through and rebuild everything */ }
+  }
+
+  // At least one piece is missing: do ONE full scan and rebuild (and re-cache) all three together,
+  // so a cold cache costs one scan rather than one scan per missing piece.
   const target = keyOf_(ringer);   // match ringer names ignoring case and extra spaces
 
   const sheet = SS.getSheetByName('Responses');
   const lastRow = sheet.getLastRow();
 
   if (lastRow < 2) {
-    return { sessions: [], siteFreqByMethod: {}, siteProcessedFreq: {} };
+    const empty = { sessions: [], siteFreqByMethod: {}, siteProcessedFreq: {} };
+    writeThroughCaches_(ringer, empty);
+    return empty;
   }
 
   const rows = sheet.getRange(2, 1, lastRow - 1, COL.SUBMITTED_AT).getValues();
@@ -629,18 +796,21 @@ function getRingerData(ringer) {
         species, age, extracted, method, processed, fledgedRinged, pulliRinged, broodsAssessed, whooshFirings, submittedAt,
         zeroCatch: species === ZERO_CATCH_SPECIES
       });
-    } else {
-      // Per-ringer breakdown: siteFreqByMethod[method][species][ringerName] = count
-      if (method && extracted > 0) {
-        if (!siteFreqByMethod[method]) siteFreqByMethod[method] = {};
-        if (!siteFreqByMethod[method][species]) siteFreqByMethod[method][species] = {};
-        siteFreqByMethod[method][species][rowRinger] = (siteFreqByMethod[method][species][rowRinger] || 0) + extracted;
-      }
-      // Per-ringer breakdown: siteProcessedFreq[species][ringerName] = count
-      if (processed > 0) {
-        if (!siteProcessedFreq[species]) siteProcessedFreq[species] = {};
-        siteProcessedFreq[species][rowRinger] = (siteProcessedFreq[species][rowRinger] || 0) + processed;
-      }
+    }
+
+    // Site-wide breakdown: siteFreqByMethod[method][species][ringerName] = count. Includes every
+    // ringer (not just "everyone except the one being viewed" as before) — see the big comment
+    // above this section for why that's safe and is what makes this cacheable per-site rather than
+    // per-viewer.
+    if (method && extracted > 0) {
+      if (!siteFreqByMethod[method]) siteFreqByMethod[method] = {};
+      if (!siteFreqByMethod[method][species]) siteFreqByMethod[method][species] = {};
+      siteFreqByMethod[method][species][rowRinger] = (siteFreqByMethod[method][species][rowRinger] || 0) + extracted;
+    }
+    // Site-wide breakdown: siteProcessedFreq[species][ringerName] = count
+    if (processed > 0) {
+      if (!siteProcessedFreq[species]) siteProcessedFreq[species] = {};
+      siteProcessedFreq[species][rowRinger] = (siteProcessedFreq[species][rowRinger] || 0) + processed;
     }
   });
 
@@ -649,13 +819,7 @@ function getRingerData(ringer) {
     .map(date => ({ date, entries: sessionsByDate[date] }));
 
   const result = { sessions, siteFreqByMethod, siteProcessedFreq };
-
-  // Store in cache for up to 1 hour (3600 seconds).
-  // CacheService silently drops entries over 100KB — for very prolific
-  // ringers the cache miss is safe, just slower.
-  // CACHE DISABLED FOR TESTING — re-enable by uncommenting the line below
-  // try { cache.put(cacheKey, JSON.stringify(result), 3600); } catch (e) { /* oversized, skip */ }
-
+  writeThroughCaches_(ringer, result);
   return result;
 }
 
