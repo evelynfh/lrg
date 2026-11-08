@@ -12,7 +12,7 @@
 <link rel="manifest" href="site.webmanifest">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css?v=3">
+<link rel="stylesheet" href="shared.css?v=4">
 <style>
   /* ── Loading state ── */
   .loading-state {
@@ -244,14 +244,12 @@
     background: var(--accent-light) !important;
     border-bottom: 1px solid var(--border);
     border-top: 1px solid var(--border);
-    padding: 0;
-  }
-  .species-cat-row .species-cat-td {
     padding: 6px 22px 5px;
-    font-size: 0.7rem;
-    font-weight: 500;
+    font-size: 0.72rem;
+    font-weight: 600;
     color: var(--accent);
   }
+  .species-cat-row td.r { color: var(--accent); font-weight: 600; }
 
   /* ── Species gaps ── */
   .missing-method-block { border-bottom: 1px solid var(--border); }
@@ -607,7 +605,7 @@
     .threshold-expand-icon { margin-right: 5px; }
   }
 </style>
-<script src="theme.js?v=3"></script>
+<script src="theme.js?v=4"></script>
 </head>
 <body data-page="dashboard">
 
@@ -764,7 +762,7 @@
   </div>
 </div>
 
-<script src="species.js?v=3"></script>
+<script src="species.js?v=4"></script>
 <script src="thresholds.js?v=2"></script>
 <script>
 // SCRIPT_URL, esc(), isWhoosh(), isMistNet(), downloadBlob() and downloadCSV() come from shared.js.
@@ -992,7 +990,7 @@ function renderDashboard(data, ringer) {
       totalProc        += proc;
       totalPulliRinged += (e.pulliRinged    || 0);
       totalBroods      += (e.broodsAssessed || 0);
-      var ringedNow = (e.fledgedRinged || 0) + (e.pulliRinged || 0);
+      var ringedNow = e.fledgedRinged || 0;   // fledged birds only (pulli have their own tile)
       totalRinged      += ringedNow;
       if (ringedNow > 0) ringedSpecies.add(sp);
 
@@ -1007,7 +1005,7 @@ function renderDashboard(data, ringer) {
       speciesMap[sp]._fledgedRinged  += (e.fledgedRinged  || 0);
       speciesMap[sp]._pulliRinged    += (e.pulliRinged    || 0);
       speciesMap[sp]._broodsAssessed += (e.broodsAssessed || 0);
-        if (isMistNet(mt)) speciesMap[sp]._mist += ext;
+      if (isMistNet(mt)) speciesMap[sp]._mist += ext;   // mist-net extractions per species (Licence thresholds)
 
       // Per-method extracted counts for the species table. Pullus extractions count too: they
       // show under their own methods (e.g. a nest-box column). Only the BTO export leaves them out.
@@ -2175,14 +2173,25 @@ function buildSpeciesTable(order) {
     }).join('');
   }
 
-  var colCount = 3 + methodList.length + (hasPulliRinged ? 1 : 0) + (hasBroods ? 1 : 0);
-  var emptyCells = Array(colCount - 1).fill('<td></td>').join('');
+  // The group's header row carries that group's total for every column, so each method's total per group is easy to read
+  function sumOf(rows, get) {
+    return rows.reduce(function(n, entry) { return n + (get(entry[1]) || 0); }, 0);
+  }
+  function groupTotalsRow(cat, rows) {
+    return '<tr class="species-cat-row"><td class="species-cat-td">' + cat + '</td>'
+      + cell(sumOf(rows, function(v) { return v._proc; }))
+      + cell(sumOf(rows, function(v) { return v._fledgedRinged; }))
+      + methodList.map(function(m) { return cell(sumOf(rows, function(v) { return v[m]; })); }).join('')
+      + (hasPulliRinged ? cell(sumOf(rows, function(v) { return v._pulliRinged; })) : '')
+      + (hasBroods      ? cell(sumOf(rows, function(v) { return v._broodsAssessed; })) : '')
+      + '</tr>';
+  }
 
   var tbody = '';
   CATEGORY_ORDER.forEach(function(cat) {
     var rows = byCategory[cat];
     if (!rows || !rows.length) return;
-    tbody += '<tr class="species-cat-row"><td class="species-cat-td">' + cat + '</td>' + emptyCells + '</tr>';
+    tbody += groupTotalsRow(cat, rows);
     tbody += makeRows(rows);
   });
 
@@ -2191,6 +2200,6 @@ function buildSpeciesTable(order) {
     + '<table class="data-table">' + thead + '<tbody>' + tbody + '</tbody></table></div>';
 }
 </script>
-<script src="shared.js?v=3"></script>
+<script src="shared.js?v=4"></script>
 </body>
 </html>
