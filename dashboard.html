@@ -321,35 +321,47 @@
   .threshold-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-    padding: 12px 22px 0;
+    gap: 6px;
+    padding: 14px 22px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
   }
   .threshold-tab {
     font-size: 0.72rem;
     padding: 7px 16px;
     border: 1px solid var(--border);
-    border-bottom: none;
-    border-radius: 3px 3px 0 0;
-    background: var(--th);
+    border-radius: 14px;
+    background: var(--surface);
     color: var(--ink-muted);
     cursor: pointer;
-    transition: background 0.12s, color 0.12s;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
   }
-  .threshold-tab.active { background: var(--surface); color: var(--accent); font-weight: 600; }
+  .threshold-tab.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
   .threshold-tab:disabled { cursor: default; opacity: 0.55; }
-  .threshold-tab:not(:disabled):hover { background: var(--accent-light); color: var(--accent); }
+  .threshold-tab:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
 
-  #threshold-table-wrap { border-top: 1px solid var(--border); margin-top: 12px; }
-
+  #threshold-table-wrap { margin-top: 0; }
+  
   .threshold-row { cursor: pointer; }
   .threshold-row td { transition: filter 0.1s; }
   .threshold-row:hover td { filter: brightness(0.97); }
   .threshold-row.open td.primary { color: var(--accent); font-weight: 600; }
   .threshold-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
+  .threshold-expand-icon {
+    display: inline-block;
+    width: 10px;
+    margin-right: 8px;
+    font-size: 0.6rem;
+    color: var(--ink-muted);
+    transition: transform 0.15s ease;
+  }
+  .threshold-row.open .threshold-expand-icon { transform: rotate(90deg); color: var(--accent); }
+
   .threshold-cell { position: relative; }
   .threshold-cell.met { color: var(--ink); font-weight: 700; }
-  .threshold-cell.amber { color: var(--amber-ink); cursor: help; }
+  .threshold-cell.amber { color: var(--warn-ink); cursor: help; }
+  .threshold-cell { padding-bottom: 13px; }
 
   .ia-icon {
     display: inline-flex;
@@ -372,7 +384,6 @@
   .threshold-restricted-wrap { padding: 14px 22px 18px; }
   .threshold-restricted-title { font-size: 0.72rem; font-weight: 600; color: var(--ink-muted); margin-bottom: 10px; }
   .threshold-restricted-table th, .threshold-restricted-table td { padding: 7px 14px; }
-  .threshold-restricted-tier { color: var(--ink-muted); font-size: 0.7rem; white-space: nowrap; }
   .threshold-restricted-empty { padding: 10px 0; font-size: 0.78rem; color: var(--ink-muted); font-style: italic; }
 
   /* ── Session history ── */
@@ -565,14 +576,6 @@
 
     <div class="section-card">
       <div class="section-header">
-        <h3>Species breakdown</h3>
-        <div id="species-sort-toggle" class="sort-toggle"></div>
-      </div>
-      <div id="species-table-wrap"></div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-header">
         <h3>Licence thresholds</h3>
         <span class="badge">BTO endorsement progress</span>
       </div>
@@ -583,6 +586,14 @@
         <button type="button" class="threshold-tab" disabled title="Coming soon">Whoosh net</button>
       </div>
       <div id="threshold-table-wrap"></div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header">
+        <h3>Species breakdown</h3>
+        <div id="species-sort-toggle" class="sort-toggle"></div>
+      </div>
+      <div id="species-table-wrap"></div>
     </div>
 
     <div class="section-card">
@@ -1101,8 +1112,8 @@ function thresholdCellHTML(value, target, extraClass, titleAttr) {
   var pct = target > 0 ? Math.min(value / target, 1) : 0;
   var met = value >= target;
   var cls = 'threshold-cell' + (met ? ' met' : '') + (extraClass ? ' ' + extraClass : '');
-  var fillVar = extraClass === 'amber' ? 'var(--amber-bg)' : 'var(--accent-light)';
-  var style = 'background: linear-gradient(to right, ' + fillVar + ' ' + (pct * 100) + '%, transparent ' + (pct * 100) + '%);';
+  var barColor = extraClass === 'amber' ? 'var(--warn-strong)' : 'var(--accent)';
+  var style = 'background: linear-gradient(' + barColor + ', ' + barColor + ') left bottom no-repeat; background-size: ' + (pct * 100) + '% 3px;';
   return '<td class="r ' + cls + '" style="' + style + '"' + (titleAttr ? ' title="' + esc(titleAttr) + '"' : '') + '>'
     + value + ' / ' + target + '</td>';
 }
@@ -1121,7 +1132,7 @@ function renderThresholdGroupRow(group, stats) {
     : '';
 
   return '<tr class="threshold-row" data-group="' + esc(group.key) + '" tabindex="0" role="button" aria-expanded="false">'
-    + '<td class="primary">' + esc(group.name) + iaIcon + '</td>'
+    + '<td class="primary"><span class="threshold-expand-icon">\u25B6</span>' + esc(group.name) + iaIcon + '</td>'
     + thresholdCellHTML(stats.totalIndividuals, group.unrestricted.individuals, '', '')
     + thresholdCellHTML(stats.eligibleSpecies, group.unrestricted.species, amber ? 'amber' : '', speciesTitle)
     + '</tr>';
@@ -1134,18 +1145,15 @@ function renderRestrictedTable(group, stats) {
   var restricted = group.restricted;
   var rowsHtml = stats.rows.map(function(r, i) {
     var threshold = i === 0 ? restricted.first : restricted.additional;
-    var tier = i === 0 ? 'First species' : 'Additional species';
     return '<tr>'
       + '<td class="primary">' + esc(r.species) + '</td>'
       + thresholdCellHTML(r.count, threshold, '', '')
-      + '<td class="r threshold-restricted-tier">' + tier + '</td>'
       + '</tr>';
   }).join('');
 
   return '<table class="data-table threshold-restricted-table">'
-    + '<thead><tr><th>Species</th><th class="r">Processed</th><th class="r">Restricted tier</th></tr></thead>'
+    + '<thead><tr><th>Species</th><th class="r">Processed</th></tr></thead>'
     + '<tbody>' + rowsHtml + '</tbody></table>';
-}
 
 function buildThresholdsSection(speciesMap) {
   var wrap = document.getElementById('threshold-table-wrap');
