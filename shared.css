@@ -280,7 +280,7 @@ header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -
   .settings-btn { margin: 0 auto; }
   .settings-btn .settings-label { display: none; }
   .settings-dropdown { right: 0; left: auto; min-width: 210px; text-align: left; }
-  .info-modal { max-height: calc(100vh - 40px); }
-  .info-modal-bd { padding: 18px 16px; }
+  .info-modal { max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); overscroll-behavior: contain; }
+  .info-modal-bd { padding: 18px 16px 32px; }
   .info-overlay { align-items: flex-start; padding: 20px 16px; }
 }
