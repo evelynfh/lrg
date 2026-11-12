@@ -107,7 +107,6 @@ window.downloadCSV = function (rows, filename) {
     + '<li>Fixed the bottom of the FAQ, changelog and other pop-ups being cut off on mobile.</li>'
     + '</ul></div>'
     + '<div class="cl-entry"><span class="vtag">v1.1.0</span><ul>'
-    '<div class="cl-entry"><span class="vtag vtag-new">v1.1.0</span><ul>'
     + '<li>Dashboard now tracks licence progression, showing how far you are to the minimum thresholds for all endorsements.</li>'
     + '<li>Users can now flag past sessions in case of data error and send a comment to request a database edit.</li>'
     + '<li>Updated the website style, with choice of light/cream/dark themes (saved via cookies).</li>'
