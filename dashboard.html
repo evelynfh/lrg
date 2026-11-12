@@ -315,6 +315,70 @@
   .gap-popup-name { color: var(--ink); }
   .gap-popup-num { color: var(--ink-muted); font-weight: 500; flex-shrink: 0; }
 
+  /* ── Species gaps: comparison group dropdown ── */
+.section-card.gaps-card { overflow: visible; }   /* so the dropdown isn't clipped by the card */
+.gaps-card .section-header { border-radius: 4px 4px 0 0; }
+.gap-filter-wrap { position: relative; }
+.gap-filter-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 5px 12px;
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.gap-filter-btn:hover, .gap-filter-btn[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.gap-filter-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: min(300px, calc(100vw - 32px));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow-lg);
+  z-index: 60;
+}
+.gap-filter-panel.open { display: block; animation: ddFadeIn 0.15s ease; }
+.gap-filter-actions { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.gap-filter-actions button {
+  font-size: 0.7rem;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.gap-filter-actions button:hover { background: var(--accent-light); color: var(--accent); }
+.gap-filter-list { max-height: 280px; overflow-y: auto; padding: 4px 0; }
+.gap-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.gap-filter-item:hover { background: var(--accent-light); }
+.gap-filter-item input { accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; }
+.gap-filter-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gap-filter-tag {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--th);
+  color: var(--ink-muted);
+}
+.gap-note { padding: 10px 22px; font-size: 0.72rem; color: var(--ink-muted); border-bottom: 1px solid var(--border-soft); }
+
   /* ── Licence thresholds ── */
   .threshold-tabs {
     display: flex;
@@ -723,10 +787,21 @@
       <div id="species-table-wrap"></div>
     </div>
 
-    <div class="section-card">
+    <div class="section-card gaps-card">
       <div class="section-header">
         <h3>Species gaps</h3>
-        <span class="badge" id="missing-badge"></span>
+        <div class="gap-filter-wrap" id="gap-filter-wrap">
+          <button type="button" class="gap-filter-btn" id="gap-filter-btn" aria-haspopup="true" aria-expanded="false" onclick="toggleGapFilter(event)">
+            Compare against: <span id="gap-filter-label">all</span> &#9662;
+          </button>
+          <div class="gap-filter-panel" id="gap-filter-panel">
+            <div class="gap-filter-actions">
+              <button type="button" onclick="setAllGapRingers(true)">Select all</button>
+              <button type="button" onclick="setAllGapRingers(false)">Clear</button>
+            </div>
+            <div class="gap-filter-list" id="gap-filter-list"></div>
+          </div>
+        </div>
       </div>
       <div id="missing-area"></div>
     </div>
@@ -773,6 +848,7 @@
 // Init — populate ringer dropdown
 // ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {
+  loadTrainerData();
   showLoading('Loading ringers…');
   fetch(SCRIPT_URL + '?action=getTrainees')
     .then(function(r) { return r.json(); })
@@ -954,6 +1030,254 @@ function _attachChipListener() {
   });
 }
 
+  // ─────────────────────────────────────────────
+// Species gaps: trainer data + choosing who to compare against
+// ─────────────────────────────────────────────
+var TRAINER_CSV_URL = 'trainer-data.csv?v=1';   // bump the number after editing the file
+var GAP_EXCLUDED_KEY = 'rt-gap-excluded';
+var _trainerRows = [];
+var _gapState = null;
+var _gapExcluded = loadGapExcluded();   // names the person has UNticked (so new ringers default to included)
+
+function loadGapExcluded() {
+  try {
+    var a = JSON.parse(localStorage.getItem(GAP_EXCLUDED_KEY) || '[]'), o = {};
+    (Array.isArray(a) ? a : []).forEach(function(n) { o[n] = true; });
+    return o;
+  } catch (e) { return {}; }
+}
+function saveGapExcluded() {
+  try { localStorage.setItem(GAP_EXCLUDED_KEY, JSON.stringify(Object.keys(_gapExcluded))); } catch (e) {}
+}
+
+// Minimal CSV parser (handles quoted fields, escaped quotes and CRLF)
+function parseCSV(text) {
+  var rows = [], row = [], field = '', inQ = false;
+  text = String(text).replace(/^\uFEFF/, '');
+  for (var i = 0; i < text.length; i++) {
+    var c = text[i];
+    if (inQ) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else if (c === '"') inQ = true;
+    else if (c === ',') { row.push(field); field = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(field); field = ''; rows.push(row); row = [];
+    } else field += c;
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+function parseTrainerCSV(text) {
+  function tidy(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
+  var rows = parseCSV(text);
+  if (!rows.length) return [];
+
+  // Column positions from the header row; falls back to Ringer | Method | Species | Age | Count
+  var idx = { ringer: 0, method: 1, species: 2, age: 3, count: 4 };
+  var head = rows[0].map(function(h) { return tidy(h).toLowerCase(); });
+  var hasHeader = head.indexOf('ringer') !== -1 && head.indexOf('species') !== -1;
+  if (hasHeader) {
+    Object.keys(idx).forEach(function(k) { idx[k] = head.indexOf(k); });
+    rows = rows.slice(1);
+  }
+
+  var out = [];
+  rows.forEach(function(c) {
+    var ringer  = tidy(c[idx.ringer]);
+    var species = tidy(c[idx.species]);
+    if (!ringer || !species) return;
+
+    var raw = idx.count >= 0 ? tidy(c[idx.count]) : '';
+    var n = raw === '' ? 1 : parseInt(raw, 10);   // no Count value: treat the row as one bird
+    if (!(n > 0)) return;                         // 0 or not a number: nothing to add
+
+    out.push({
+      ringer:  ringer,
+      method:  idx.method >= 0 ? tidy(c[idx.method]) : '',
+      species: species,
+      age:     idx.age >= 0 ? tidy(c[idx.age]) : '',
+      count:   n
+    });
+  });
+  return out;
+}
+
+// The file is optional: if it's missing the gaps just use the site data
+function loadTrainerData() {
+  fetch(TRAINER_CSV_URL)
+    .then(function(r) { if (!r.ok) throw new Error('not found'); return r.text(); })
+    .then(function(text) {
+      _trainerRows = parseTrainerCSV(text);
+      if (_gapState) rebuildGapData();   // a dashboard is already showing: refresh it
+    })
+    .catch(function() {});
+}
+
+// Merge site data + trainer rows, work out who can be compared against, then redraw
+function rebuildGapData() {
+  var g = _gapState;
+  if (!g) return;
+  var freq = JSON.parse(JSON.stringify(g.siteFreq));
+  var proc = JSON.parse(JSON.stringify(g.siteProc));
+  var methodCanon = {}, ringerCanon = {}, speciesCanon = {}, trainers = {};
+
+  Object.keys(freq).forEach(function(m) {
+    methodCanon[m.toLowerCase()] = m;
+    Object.keys(freq[m]).forEach(function(sp) {
+      Object.keys(freq[m][sp]).forEach(function(r) { ringerCanon[r.toLowerCase()] = r; });
+    });
+  });
+  Object.keys(proc).forEach(function(sp) {
+    Object.keys(proc[sp]).forEach(function(r) { ringerCanon[r.toLowerCase()] = r; });
+  });
+  SPECIES_LIST.forEach(function(s) { speciesCanon[s.name.toLowerCase()] = s.name; });
+
+  _trainerRows.forEach(function(t) {
+    var r  = ringerCanon[t.ringer.toLowerCase()] || t.ringer;
+    var sp = speciesCanon[t.species.toLowerCase()] || t.species;
+    ringerCanon[r.toLowerCase()] = r;
+    trainers[r] = true;
+    if (t.method) {
+      var m = methodCanon[t.method.toLowerCase()] || t.method;
+      methodCanon[m.toLowerCase()] = m;
+      if (!freq[m]) freq[m] = {};
+      if (!freq[m][sp]) freq[m][sp] = {};
+      freq[m][sp][r] = (freq[m][sp][r] || 0) + t.count;
+    }
+    if (!/^pull/i.test(t.age)) {   // fledged birds count as processed too; pulli don't
+      if (!proc[sp]) proc[sp] = {};
+      proc[sp][r] = (proc[sp][r] || 0) + t.count;
+    }
+  });
+
+  var me = g.ringer.toLowerCase();
+  g.freq = freq;
+  g.proc = proc;
+  g.trainers = trainers;
+  g.ringers = Object.keys(ringerCanon)
+    .map(function(k) { return ringerCanon[k]; })
+    .filter(function(n) { return n.toLowerCase() !== me; })   // no point comparing someone with themselves
+    .sort(function(a, b) { return a.localeCompare(b); });
+
+  buildGapFilter();
+  renderGaps();
+}
+
+// ── The dropdown ──
+function buildGapFilter() {
+  var g = _gapState;
+  document.getElementById('gap-filter-list').innerHTML = g.ringers.length
+    ? g.ringers.map(function(n) {
+        return '<label class="gap-filter-item">'
+          + '<input type="checkbox" data-ringer="' + esc(n) + '"' + (_gapExcluded[n] ? '' : ' checked') + '>'
+          + '<span class="gap-filter-name">' + esc(n) + '</span>'
+          + (g.trainers[n] ? '<span class="gap-filter-tag">trainer</span>' : '')
+          + '</label>';
+      }).join('')
+    : '<div class="gap-note">No other ringers to compare against yet.</div>';
+}
+
+function setAllGapRingers(on) {
+  if (!_gapState) return;
+  _gapState.ringers.forEach(function(n) { if (on) delete _gapExcluded[n]; else _gapExcluded[n] = true; });
+  saveGapExcluded();
+  buildGapFilter();
+  renderGaps();
+}
+
+function toggleGapFilter(ev) {
+  ev.stopPropagation();
+  var open = document.getElementById('gap-filter-panel').classList.toggle('open');
+  document.getElementById('gap-filter-btn').setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function closeGapFilter() {
+  var p = document.getElementById('gap-filter-panel');
+  if (p) p.classList.remove('open');
+  var b = document.getElementById('gap-filter-btn');
+  if (b) b.setAttribute('aria-expanded', 'false');
+}
+document.addEventListener('click', function(ev) {
+  if (!ev.target.closest('#gap-filter-wrap')) closeGapFilter();
+});
+document.addEventListener('change', function(ev) {
+  var cb = ev.target.closest && ev.target.closest('#gap-filter-list input');
+  if (!cb) return;
+  var n = cb.getAttribute('data-ringer');
+  if (cb.checked) delete _gapExcluded[n]; else _gapExcluded[n] = true;
+  saveGapExcluded();
+  renderGaps();
+});
+
+// ── The gaps themselves, using only the ticked ringers ──
+function gapEntries(freqMap, mySet, sel) {
+  var out = [];
+  Object.keys(freqMap).forEach(function(sp) {
+    if (mySet.has(sp) || typeof freqMap[sp] !== 'object') return;
+    var by = {}, total = 0;
+    Object.keys(freqMap[sp]).forEach(function(r) {
+      if (sel[r]) { by[r] = freqMap[sp][r]; total += freqMap[sp][r]; }
+    });
+    if (total > 0) out.push([sp, total, by]);
+  });
+  return out.sort(function(a, b) { return b[1] - a[1]; });
+}
+
+function gapChipsHTML(entries) {
+  var byCategory = {};
+  entries.forEach(function(e) {
+    var cat = getSpeciesCategory(e[0]);
+    (byCategory[cat] = byCategory[cat] || []).push(e);
+  });
+  return CATEGORY_ORDER.filter(function(cat) { return byCategory[cat]; }).map(function(cat) {
+    return '<div class="missing-cat-block">'
+      + '<div class="missing-cat-label">' + cat + '</div>'
+      + '<div class="missing-grid">'
+      + byCategory[cat].map(function(e) {
+          var idx = _chipIndex++;
+          _chipData[idx] = { species: e[0], ringerMap: e[2] };   // the popup then only lists ticked ringers
+          return '<span class="missing-chip" data-chip="' + idx + '">' + esc(e[0])
+            + ' <span class="chip-count">' + e[1] + '</span></span>';
+        }).join('')
+      + '</div></div>';
+  }).join('');
+}
+
+function renderGaps() {
+  var g = _gapState;
+  if (!g) return;
+  var sel = {}, nSel = 0, nAll = g.ringers.length;
+  g.ringers.forEach(function(n) { if (!_gapExcluded[n]) { sel[n] = true; nSel++; } });
+
+  document.getElementById('gap-filter-label').textContent =
+    !nAll ? 'no other ringers' : nSel === nAll ? 'all ' + nAll + ' ringers' : nSel ? nSel + ' of ' + nAll + ' ringers' : 'none selected';
+
+  _chipData = {}; _chipIndex = 0;
+  var area = document.getElementById('missing-area');
+  if (!nSel) {
+    area.innerHTML = '<div class="missing-empty">Select at least one ringer to compare against.</div>';
+    return;
+  }
+
+  var missing = {};
+  function block(label, entries) {
+    entries.forEach(function(e) { missing[e[0]] = true; });
+    return entries.length
+      ? '<div class="missing-method-block"><div class="missing-method-label">' + label + '</div>' + gapChipsHTML(entries) + '</div>'
+      : '';
+  }
+  var html = Object.keys(g.freq).map(function(m) {
+    return block(esc(m), gapEntries(g.freq[m], g.mySpecies, sel));
+  }).join('') + block('Processing', gapEntries(g.proc, g.myProcessedSpecies, sel));
+
+  var n = Object.keys(missing).length;
+  area.innerHTML = n
+    ? '<div class="gap-note">' + n + ' species not yet logged by you \u00b7 totals from ' + nSel + ' selected ringer' + (nSel !== 1 ? 's' : '') + '</div>' + html
+    : '<div class="missing-empty">\u2713 You have logged every species recorded by the selected ringers.</div>';
+}
+
 // ─────────────────────────────────────────────
 // Render
 // ─────────────────────────────────────────────
@@ -1085,96 +1409,18 @@ function renderDashboard(data, ringer) {
   buildThresholdsSection(speciesMap, whooshExt, whooshFiringsTotal);
   
   // ── Species gaps ──
-  // NOTE (open items): the gaps compare against every species this ringer has logged under ANY
-  // method, although the FAQ describes gaps "for a method" (#8); and the badge count below does not
-  // apply the same total > 0 / object filters as the chips, so it can disagree with what is shown (#9).
-  var mySpecies         = new Set(Object.keys(speciesMap));
-  var myProcessedSpecies = new Set(
-    Object.entries(speciesMap).filter(function(e) { return e[1]._proc > 0; }).map(function(e) { return e[0]; })
-  );
-  var siteFreqByMethod  = data.siteFreqByMethod  || {};
-  var siteProcessedFreq = data.siteProcessedFreq || {};
-  var siteMethods       = Object.keys(siteFreqByMethod);
-
-  function missingChips(freqMap, mySet) {
-    // freqMap[species] is a per-ringer object: { ringerName: count }
-    var missing = Object.entries(freqMap)
-      .filter(function(e) { return !mySet.has(e[0]) && typeof e[1] === 'object'; })
-      .map(function(e) {
-        var total = Object.values(e[1]).reduce(function(s, n) { return s + n; }, 0);
-        return [e[0], total, e[1]];
-      })
-      .filter(function(e) { return e[1] > 0; })
-      .sort(function(a, b) { return b[1] - a[1]; });
-
-    if (!missing.length) return '<div class="missing-empty">&#x2713; None missing for this method.</div>';
-
-    var byCategory = {};
-    missing.forEach(function(e) {
-      var cat = getSpeciesCategory(e[0]);
-      if (!byCategory[cat]) byCategory[cat] = [];
-      byCategory[cat].push(e);
-    });
-
-    return CATEGORY_ORDER.filter(function(cat) { return byCategory[cat]; }).map(function(cat) {
-      return '<div class="missing-cat-block">'
-        + '<div class="missing-cat-label">' + cat + '</div>'
-        + '<div class="missing-grid">'
-        + byCategory[cat].map(function(e) {
-            var idx = _chipIndex++;
-            _chipData[idx] = { species: e[0], ringerMap: e[2] };
-            return '<span class="missing-chip" data-chip="' + idx + '">'
-              + esc(e[0])
-              + ' <span class="chip-count">' + e[1] + '</span></span>';
-          }).join('')
-        + '</div></div>';
-    }).join('');
-  }
-
-  var allMissingSpecies = new Set();
-  siteMethods.forEach(function(m) {
-    Object.keys(siteFreqByMethod[m]).forEach(function(sp) {
-      if (!mySpecies.has(sp)) allMissingSpecies.add(sp);
-    });
-  });
-  Object.keys(siteProcessedFreq).forEach(function(sp) {
-    if (!myProcessedSpecies.has(sp)) allMissingSpecies.add(sp);
-  });
-
-  document.getElementById('missing-badge').textContent = allMissingSpecies.size
-    ? 'Totals of species recorded by other ringers'
-    : 'no gaps \u2713';
-
-  _chipData  = {};
-  _chipIndex = 0;
-  var methodSections = siteMethods.map(function(m) {
-    var hasMissing = Object.keys(siteFreqByMethod[m]).some(function(sp) {
-      var total = typeof siteFreqByMethod[m][sp] === 'object' ? Object.values(siteFreqByMethod[m][sp]).reduce(function(s,n){return s+n;},0) : 0;
-      return !mySpecies.has(sp) && total > 0;
-    });
-    if (!hasMissing) return '';
-    return '<div class="missing-method-block">'
-      + '<div class="missing-method-label">' + esc(m) + '</div>'
-      + missingChips(siteFreqByMethod[m], mySpecies)
-      + '</div>';
-  }).join('');
-
-  var procHasMissing = Object.keys(siteProcessedFreq).some(function(sp) {
-    var total = typeof siteProcessedFreq[sp] === 'object' ? Object.values(siteProcessedFreq[sp]).reduce(function(s,n){return s+n;},0) : 0;
-    return !myProcessedSpecies.has(sp) && total > 0;
-  });
-  var procSection = procHasMissing
-    ? '<div class="missing-method-block">'
-      + '<div class="missing-method-label">Processing</div>'
-      + missingChips(siteProcessedFreq, myProcessedSpecies)
-      + '</div>'
-    : '';
-
-  document.getElementById('missing-area').innerHTML = allMissingSpecies.size
-    ? methodSections + procSection
-    : '<div class="missing-empty">\u2713 This ringer has logged every species recorded by other ringers.</div>';
+  _gapState = {
+    ringer: ringer,
+    siteFreq: data.siteFreqByMethod || {},
+    siteProc: data.siteProcessedFreq || {},
+    mySpecies: new Set(Object.keys(speciesMap)),
+    myProcessedSpecies: new Set(
+      Object.entries(speciesMap).filter(function(e) { return e[1]._proc > 0; }).map(function(e) { return e[0]; })
+    )
+  };
   _initGapPopup();
   _attachChipListener();
+  rebuildGapData();
 
   // ── Session history ──
   document.getElementById('session-badge').textContent = sessions.length + ' session' + (sessions.length !== 1 ? 's' : '');
@@ -1601,6 +1847,7 @@ window.closeOnEscape = function() {
   closeExportMenu();
   closeThresholdHelp();
   hideIaTip();
+  closeGapFilter();
 };
 
 // ─────────────────────────────────────────────
