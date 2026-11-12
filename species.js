@@ -484,18 +484,23 @@
     return { section: hit.category, row: hit.parent || hit.name };
   };
 
-  // Nest type, by category: words to look for in the Pullus method names (the Methods sheet), so the
-  // log page can pre-select a method when a species and Pullus are chosen. Categories not listed here
-  // (waders, waterfowl, seabirds on colonies...) have no single nest type, so nothing is pre-selected.
-  // If the Pullus methods on the sheet are named differently, change the words below.
-  var NEST_KEYWORDS = {};
-  NEST_KEYWORDS[OPEN]  = ['open'];
-  NEST_KEYWORDS[CAV]   = ['cavity', 'nest box', 'nestbox', 'box', 'hole'];
-  NEST_KEYWORDS[CLIFF] = ['cliff', 'ledge'];
+  // Default method for a Pullus row, by category. Ringing pulli means working at a nest, so every
+  // group defaults to "Nest" except waders/gamebirds and waterfowl, whose chicks are caught "By hand".
+  // These must match the names in the Pullus column of the Methods sheet (compared ignoring case).
+  // Species not in SPECIES_LIST (write-ins) have no category, so get no default.
+  var PULLUS_DEFAULT_METHOD = {};
+  PULLUS_DEFAULT_METHOD[OPEN]  = 'Nest';
+  PULLUS_DEFAULT_METHOD[CAV]   = 'Nest';
+  PULLUS_DEFAULT_METHOD[PREY]  = 'Nest';
+  PULLUS_DEFAULT_METHOD[COL]   = 'Nest';
+  PULLUS_DEFAULT_METHOD[CLIFF] = 'Nest';
+  PULLUS_DEFAULT_METHOD[HERON] = 'Nest';
+  PULLUS_DEFAULT_METHOD[WADE]  = 'Hand';
+  PULLUS_DEFAULT_METHOD[WATER] = 'Hand';
 
-  window.getNestKeywords = function (sp) {
+  window.getPulliMethod = function (sp) {
     var hit = byName[sp];
-    return (hit && NEST_KEYWORDS[hit.category]) || [];
+    return (hit && PULLUS_DEFAULT_METHOD[hit.category]) || '';
   };
 
   // Consistency check — returns a list of problems ([] = all good).
