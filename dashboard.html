@@ -1438,8 +1438,8 @@ function renderDashboard(data, ringer) {
   // ── Species gaps ──
   _gapState = {
     ringer: ringer,
-    siteFreq: data.siteFreqByMethod || {},
-    siteProc: data.siteProcessedFreq || {},
+    siteFreq: data.groupFreqByMethod || {},
+    siteProc: data.groupProcessedFreq || {},
     mySpecies: new Set(Object.keys(speciesMap)),
     myProcessedSpecies: new Set(
       Object.entries(speciesMap).filter(function(e) { return e[1]._proc > 0; }).map(function(e) { return e[0]; })
