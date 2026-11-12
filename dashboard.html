@@ -1118,12 +1118,26 @@ function loadTrainerData() {
     .catch(function() {});
 }
 
+// Merge { species: { ringer: count } } so subspecies add into their parent
+function rollUpSpeciesMap(map) {
+  var out = {};
+  Object.keys(map).forEach(function(sp) {
+    var p = getParentSpecies(sp);
+    if (!out[p]) out[p] = {};
+    Object.keys(map[sp]).forEach(function(r) {
+      out[p][r] = (out[p][r] || 0) + map[sp][r];
+    });
+  });
+  return out;
+}
+
 // Merge site data + trainer rows, work out who can be compared against, then redraw
 function rebuildGapData() {
   var g = _gapState;
   if (!g) return;
-  var freq = JSON.parse(JSON.stringify(g.siteFreq));
-  var proc = JSON.parse(JSON.stringify(g.siteProc));
+  var freq = {};
+  Object.keys(g.siteFreq).forEach(function(m) { freq[m] = rollUpSpeciesMap(g.siteFreq[m]); });
+  var proc = rollUpSpeciesMap(g.siteProc);
   var methodCanon = {}, ringerCanon = {}, speciesCanon = {}, trainers = {};
 
   Object.keys(freq).forEach(function(m) {
@@ -1139,7 +1153,7 @@ function rebuildGapData() {
 
   _trainerRows.forEach(function(t) {
     var r  = ringerCanon[t.ringer.toLowerCase()] || t.ringer;
-    var sp = speciesCanon[t.species.toLowerCase()] || t.species;
+    var sp = getParentSpecies(speciesCanon[t.species.toLowerCase()] || t.species);
     ringerCanon[r.toLowerCase()] = r;
     trainers[r] = true;
     if (t.method) {
@@ -1321,7 +1335,7 @@ function renderDashboard(data, ringer) {
       if (e.zeroCatch) return;   // a "no birds caught" whoosh session: nothing to tally except its firings (sumWhooshFirings)
       var ext  = e.extracted || 0;
       var proc = e.processed || 0;
-      var sp   = e.species   || 'Unknown';
+      var sp   = getParentSpecies(e.species || 'Unknown');
       var mt   = e.method    || 'Unknown';
 
       totalProc        += proc;
@@ -1442,7 +1456,7 @@ function renderDashboard(data, ringer) {
     var ext     = entries.reduce(function(n, e) { return n + (e.extracted || 0); }, 0);
     var proc    = entries.reduce(function(n, e) { return n + (e.processed || 0); }, 0);
     var methods = [...new Set(entries.map(function(e) { return e.method; }).filter(Boolean))];
-    var species = [...new Set(entries.map(function(e) { return e.species; }).filter(Boolean))];
+    var species = [...new Set(entries.map(function(e) { return getParentSpecies(e.species); }).filter(Boolean))];
     return '<div class="session-item">'
       + '<span class="session-date">' + esc(s.date) + '</span>'
       + '<div class="session-pills">'
