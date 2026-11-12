@@ -1655,9 +1655,9 @@ function autoSelectNestType(id) {
   // Never overwrite a method the person chose themselves
   if (methodInput.dataset.selected && methodInput.dataset.auto !== 'true') return;
 
-  const keywords = getNestKeywords(species);
-  const match = keywords.length
-    ? pullusMethodList.find(m => keywords.some(k => m.toLowerCase().includes(k)))
+  const wanted = getPulliMethod(species).toLowerCase();
+  const match = wanted
+    ? pullusMethodList.find(m => m.toLowerCase() === wanted)
     : undefined;
   if (match) {
     applyMethod(id, match, false, true);
