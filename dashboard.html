@@ -369,14 +369,16 @@
 .gap-filter-item:hover { background: var(--accent-light); }
 .gap-filter-item input { accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; }
 .gap-filter-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.gap-filter-tag {
-  font-size: 0.65rem;
-  padding: 1px 6px;
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  background: var(--th);
+.gap-filter-group {
+  padding: 6px 12px 5px;
+  font-size: 0.68rem;
+  font-weight: 600;
   color: var(--ink-muted);
+  background: var(--th);
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
 }
+.gap-filter-group:first-child { border-top: none; }
 .gap-note { padding: 10px 22px; font-size: 0.72rem; color: var(--ink-muted); border-bottom: 1px solid var(--border-soft); }
 
   /* ── Licence thresholds ── */
@@ -1169,14 +1171,25 @@ function rebuildGapData() {
 // ── The dropdown ──
 function buildGapFilter() {
   var g = _gapState;
+
+  function item(n) {
+    return '<label class="gap-filter-item">'
+      + '<input type="checkbox" data-ringer="' + esc(n) + '"' + (_gapExcluded[n] ? '' : ' checked') + '>'
+      + '<span class="gap-filter-name">' + esc(n) + '</span>'
+      + '</label>';
+  }
+  function group(label, names) {
+    return names.length
+      ? '<div class="gap-filter-group">' + label + '</div>' + names.map(item).join('')
+      : '';
+  }
+
+  // g.ringers is already alphabetical, and filtering keeps that order
+  var trainers = g.ringers.filter(function(n) { return g.trainers[n]; });
+  var trainees = g.ringers.filter(function(n) { return !g.trainers[n]; });
+
   document.getElementById('gap-filter-list').innerHTML = g.ringers.length
-    ? g.ringers.map(function(n) {
-        return '<label class="gap-filter-item">'
-          + '<input type="checkbox" data-ringer="' + esc(n) + '"' + (_gapExcluded[n] ? '' : ' checked') + '>'
-          + '<span class="gap-filter-name">' + esc(n) + '</span>'
-          + (g.trainers[n] ? '<span class="gap-filter-tag">trainer</span>' : '')
-          + '</label>';
-      }).join('')
+    ? group('Trainers', trainers) + group('Trainees', trainees)
     : '<div class="gap-note">No other ringers to compare against yet.</div>';
 }
 
