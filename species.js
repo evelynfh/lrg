@@ -457,10 +457,23 @@
   var byName = {};
   window.SPECIES_LIST.forEach(function (s) { byName[s.name] = s; });
 
+  // Roll-up rows that exist only as a `parent` (e.g. 'Redpoll', 'Crossbill') take their children's category
+  var parentCategory = {};
+  window.SPECIES_LIST.forEach(function (s) {
+    if (s.parent && !byName[s.parent]) parentCategory[s.parent] = s.category;
+  });
+
   // name -> dashboard category / BTO section, defaulting to 'Other'
   window.getSpeciesCategory = function (sp) {
     var hit = byName[sp];
-    return hit ? hit.category : 'Other';
+    if (hit) return hit.category;
+    return parentCategory[sp] || 'Other';
+  };
+
+  // The name to show on the dashboard: the parent if the species has one, otherwise itself
+  window.getParentSpecies = function (sp) {
+    var hit = byName[sp];
+    return hit && hit.parent ? hit.parent : sp;
   };
 
   // Where a logged species counts on the BTO form: { section, row }.
