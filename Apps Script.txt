@@ -4,14 +4,19 @@ const SS = SpreadsheetApp.getActiveSpreadsheet();
 // CONFIGURATION
 // ─────────────────────────────────────────────
 
-// Receives historical-data upload emails and edit requests
+// Receives historical-data upload emails, edit requests and cache-problem alerts
 const NOTIFY_EMAIL = 'your-email@example.com';
 
 // Backup spreadsheet (see BACKUP at the bottom)
 const BACKUP_SHEET_ID = 'YOUR_BACKUP_SPREADSHEET_ID';
 const KEEP_WEEKLY_BACKUPS = 12;
 
-// Species text stored for a whoosh session in which every bird escaped (only the firings are recorded)
+// The placeholder values above count as "not set up yet"
+const PLACEHOLDER_EMAIL     = 'your-email@example.com';
+const PLACEHOLDER_BACKUP_ID = 'YOUR_BACKUP_SPREADSHEET_ID';
+
+// Species text stored for a whoosh session in which every bird escaped (only the firings are recorded).
+// Reserved: a real submission may not use it as a species name.
 const ZERO_CATCH_SPECIES = '(No birds caught)';
 
 // Responses sheet columns (1-based):
@@ -41,7 +46,8 @@ const LIMITS = {
   MAX_FLAG_COMMENT:     1000,
   FLAG_COOLDOWN_S:      600,     // one edit request per ringer and session date in this window
   MAX_FLAGS_PER_WINDOW: 20,      // all edit requests together, per FLAG_WINDOW_S
-  FLAG_WINDOW_S:        21600
+  FLAG_WINDOW_S:        21600,
+  MAX_CACHE_VALUE_CHARS: 100000  // CacheService allows 100 KB per value; measured AFTER compression
 };
 
 // Uploaded files with these extensions are refused
@@ -50,20 +56,56 @@ const BLOCKED_EXTENSIONS = [
   'dll', 'apk', 'iso', 'html', 'htm', 'lnk', 'reg'
 ];
 
-// ── Dashboard cache ──
-// The dashboard needs, per ringer, their own sessions, plus two group-wide tallies (everyone's
-// extractions by method and species, and everyone's processed birds by species) for "Species gaps".
-// All three are built together from ONE pass over the Responses sheet and cached:
-//   ringer_<name>            { sessions }
-//   GROUP_FREQ_KEY           { method: { species: { ringer: count } } }
-//   GROUP_PROCESSED_KEY      { species: { ringer: count } }
-// The cache is rebuilt after every submission, every 5.5 hours by a self-rescheduling trigger
-// (CacheService entries live at most 6 hours), and on demand by running refreshAllCaches().
-const CACHE_TTL_S               = 21600;                 // CacheService's maximum (6 hours)
-const CACHE_REFRESH_INTERVAL_MS = 5.5 * 60 * 60 * 1000;  // must stay under CACHE_TTL_S
-const GROUP_FREQ_KEY            = 'group_freq_by_method';
-const GROUP_PROCESSED_KEY       = 'group_processed';
-const RINGER_INDEX_KEY          = 'ringer_index';        // list of the ringer_<name> keys currently cached
+// ── Cache ──
+// Everything the website reads is cached for up to 6 hours (CacheService's maximum). Every value is
+// JSON, gzipped and base64-encoded, so it stays well under the 100 KB per-key limit.
+//   ringer_<name>        { sessions }                                   one per ringer
+//   GROUP_FREQ_KEY       { method: { species: { ringer: count } } }     everyone's extractions
+//   GROUP_PROCESSED_KEY  { species: { ringer: count } }                 everyone's processed birds
+//   RINGER_INDEX_KEY     [ringer_<name> keys currently cached]
+//   TRAINEES_KEY         { trainees: [...] }                            the Ringers sheet
+//   METHODS_KEY          { fledgedMethods: [...], pullusMethods: [...] } the Methods sheet
+//
+// How it stays fresh:
+//  - A submission does NOT rebuild anything. Inside the lock it only bumps DATA_VERSION and deletes
+//    GROUP_FREQ_KEY (a dashboard read needs all three of its keys, so one missing key is a cache miss).
+//    Trainees/methods are deleted too, but only if the submission added a new ringer/method.
+//  - The next dashboard read rebuilds from one pass over the sheet, OUTSIDE the lock, and takes the lock
+//    only to check DATA_VERSION is unchanged and store the result.
+//  - A timed trigger rebuilds everything every CACHE_REFRESH_HOURS (set it up with setupRefreshTrigger).
+//  - After editing the sheet by hand, use the "Ringing Tracker" menu in the spreadsheet.
+const CACHE_TTL_S           = 21600;   // 6 hours
+const CACHE_REFRESH_HOURS   = 4;       // one of 1, 2, 4, 6, 8, 12 - and it must stay under CACHE_TTL_S
+const GROUP_FREQ_KEY        = 'group_freq_by_method';
+const GROUP_PROCESSED_KEY   = 'group_processed';
+const RINGER_INDEX_KEY      = 'ringer_index';
+const TRAINEES_KEY          = 'list_trainees';
+const METHODS_KEY           = 'list_methods';
+const DATA_VERSION_PROP     = 'DATA_VERSION';
+
+// ─────────────────────────────────────────────
+// Menu in the spreadsheet
+// ─────────────────────────────────────────────
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Ringing Tracker')
+    .addItem('Refresh dashboard cache', 'refreshCachesFromMenu')
+    .addToUi();
+}
+
+// Use after editing Responses, Ringers or Methods by hand: rebuilds the dashboard data AND the
+// ringer and method lists the website reads.
+function refreshCachesFromMenu() {
+  const ui = SpreadsheetApp.getUi();
+  try {
+    const cached = doRefreshAll_();
+    ui.alert(cached
+      ? 'Done. The dashboard, ringer list and method list now match the sheet.'
+      : 'The lists were refreshed, but the dashboard data could not be stored (the server was busy or an entry was too large). The next dashboard visit will rebuild it. See View > Logs if this keeps happening.');
+  } catch (err) {
+    ui.alert('Refresh failed: ' + (err && err.message ? err.message : err));
+  }
+}
 
 // ─────────────────────────────────────────────
 // GET / POST
@@ -108,9 +150,9 @@ function doPost(e) {
 // ─────────────────────────────────────────────
 // Session submission
 // ─────────────────────────────────────────────
-// Order of work: validate everything (nothing is written unless the whole submission is valid) →
-// take the script lock → ignore an identical retry → resolve the ringer and methods to the spelling
-// already on the sheet (adding them only if new) → write all rows in one call → refresh the cache → back up.
+// Under the lock (kept short): ignore an identical retry → resolve the ringer and methods to the spelling
+// already on the sheet (adding them only if new) → write all rows in one call → invalidate the cache.
+// After the lock is released: back up the new rows. Nothing is rebuilt here; the next read does that.
 function submitSession_(data) {
   const clean = validateSubmission_(data);
 
@@ -121,6 +163,7 @@ function submitSession_(data) {
     fail_('The server is busy — please try again in a moment.');
   }
 
+  let rows, now;
   try {
     const cache = CacheService.getScriptCache();
     const dupKey = submissionFingerprint_(clean);
@@ -132,14 +175,17 @@ function submitSession_(data) {
     const fledgedMap   = loadCanonMap_(methodsSheet, METHODS_COL.FLEDGED);
     const pullusMap    = loadCanonMap_(methodsSheet, METHODS_COL.PULLUS);
 
-    const ringer = canonicalise_(ringersSheet, RINGERS_COL, ringerMap, clean.trainee).value;
-    const now = new Date();
+    let methodsAdded = false;
+    const ringerRes = canonicalise_(ringersSheet, RINGERS_COL, ringerMap, clean.trainee);
+    const ringer = ringerRes.value;
+    now = new Date();
 
-    const rows = clean.entries.map(function (entry, index) {
+    rows = clean.entries.map(function (entry, index) {
       const isPullus = entry.age === 'Pullus';
       const method = isPullus
         ? canonicalise_(methodsSheet, METHODS_COL.PULLUS,  pullusMap,  entry.method)
         : canonicalise_(methodsSheet, METHODS_COL.FLEDGED, fledgedMap, entry.method);
+      if (method.added) methodsAdded = true;
 
       // Whoosh firings are a session-level number, stored on the FIRST row only
       // (the dashboard counts one value per submission — see sumWhooshFirings in dashboard.html)
@@ -162,21 +208,27 @@ function submitSession_(data) {
 
     const rSheet = SS.getSheetByName('Responses');
     rSheet.getRange(rSheet.getLastRow() + 1, 1, rows.length, COL_COUNT).setValues(rows);
+    SpreadsheetApp.flush();   // make sure the rows are visible to the next reader before the lock is released
 
     cache.put(dupKey, '1', LIMITS.DUPLICATE_WINDOW_S);
 
-    // Neither of these may fail a submission that has already been written
-    try { cacheAggregates_(buildAggregates_()); } catch (cacheErr) {
-      Logger.log('Cache refresh warning: ' + cacheErr.message);
+    // The rows are already written, so a cache problem must not fail the submission
+    try {
+      invalidateCaches_(ringerRes.added, methodsAdded);
+    } catch (cacheErr) {
+      alertOnce_('invalidate', 'cache invalidation failed',
+        'A submission was saved but the cache could not be invalidated, so the dashboard may be stale until the next refresh.\n\n' + cacheErr.message);
     }
-    try { backupNewRows(rows, now); } catch (backupErr) {
-      Logger.log('Backup warning: ' + backupErr.message);
-    }
-
-    return jsonResponse({ result: 'success' });
   } finally {
     lock.releaseLock();
   }
+
+  // Outside the main lock: the backup doesn't touch the cache, and has its own lock
+  try { backupNewRows(rows, now); } catch (backupErr) {
+    Logger.log('Backup warning: ' + backupErr.message);
+  }
+
+  return jsonResponse({ result: 'success' });
 }
 
 // ─────────────────────────────────────────────
@@ -210,6 +262,11 @@ function keyOf_(value) {
   return squash_(value).toLowerCase();
 }
 
+// Same definition of "whoosh" as isWhoosh() in the website's shared.js
+function isWhooshMethod_(method) {
+  return String(method == null ? '' : method).toLowerCase().indexOf('whoosh') !== -1;
+}
+
 // Required short text. Anything starting with = + - @ would be stored as a formula by Sheets.
 function cleanText_(value, label) {
   const text = squash_(value);
@@ -219,10 +276,18 @@ function cleanText_(value, label) {
   return text;
 }
 
-// Whole number 0..MAX_COUNT. Missing/blank counts as 0.
+// Whole number 0..MAX_COUNT. Missing/blank counts as 0. Only real numbers or plain digit strings pass
+// (so "1e2", "0x10" and arrays are refused).
 function toCount_(value, label) {
   if (value === undefined || value === null || value === '') return 0;
-  const n = Number(value);
+  let n;
+  if (typeof value === 'number') {
+    n = value;
+  } else if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
+    n = Number(value.trim());
+  } else {
+    fail_(label + ' must be a whole number between 0 and ' + LIMITS.MAX_COUNT + '.');
+  }
   if (!Number.isInteger(n) || n < 0 || n > LIMITS.MAX_COUNT) {
     fail_(label + ' must be a whole number between 0 and ' + LIMITS.MAX_COUNT + '.');
   }
@@ -260,6 +325,8 @@ function validateSubmission_(data) {
   if (!data.entries.length && !(whooshFirings > 0)) fail_('No entries in submission.');
   if (data.entries.length > LIMITS.MAX_ENTRIES) fail_('Too many entries in one submission.');
 
+  let anyWhoosh = false;
+
   const entries = data.entries.map(function (raw, i) {
     const where = 'Entry ' + (i + 1);
     if (!raw || typeof raw !== 'object') fail_(where + ' is invalid.');
@@ -267,8 +334,10 @@ function validateSubmission_(data) {
     const isPullus = raw.age === 'Pullus';
 
     const species = cleanText_(raw.species, where + ' species');
+    if (keyOf_(species) === keyOf_(ZERO_CATCH_SPECIES)) fail_(where + ': that species name is reserved.');
     const method  = cleanText_(raw.method,  where + ' method');
     const num     = toCount_(raw.num, where + ' extracted');
+    if (isWhooshMethod_(method)) anyWhoosh = true;
 
     // Fields that don't apply to the age class are forced to 0, whatever the browser sent
     const processed      = isPullus ? 0 : toCount_(raw.processed,     where + ' processed');
@@ -285,6 +354,9 @@ function validateSubmission_(data) {
       speciesWriteIn: raw.speciesWriteIn === 'Yes' ? 'Yes' : 'No'
     };
   });
+
+  // The form always asks for firings when a whoosh method is used (0 is a valid answer), so require it here too
+  if (anyWhoosh && whooshFirings === null) fail_('Whoosh net firings are required when a whoosh net method is used.');
 
   return { trainee, date, whooshFirings, entries };
 }
@@ -344,6 +416,7 @@ function appendToColumn_(sheet, colIndex, value) {
 // The ringer and session must exist, and requests are rate-limited, because every one sends an email.
 function flagSession_(data) {
   if (!data || typeof data !== 'object') fail_('Invalid request.');
+  if (!notifyConfigured_()) fail_('Edit requests are not set up yet.');
   const ringerIn = cleanText_(data.ringer, 'Ringer name');
   const date     = validateDate_(data.date);
   const comment  = String(data.comment == null ? '' : data.comment)
@@ -395,7 +468,9 @@ function flagSession_(data) {
       'Comment:',
       comment,
       '',
-      'Spreadsheet: ' + SS.getUrl()
+      'Spreadsheet: ' + SS.getUrl(),
+      '',
+      'After editing the sheet, use Ringing Tracker > Refresh dashboard cache so the dashboard shows the change.'
     ].join('\n')
   });
 
@@ -410,6 +485,7 @@ function flagSession_(data) {
 // Expects { action: 'uploadFiles', sender, notes, files: [{ name, mimeType, data: <base64> }] }
 // and emails the files to NOTIFY_EMAIL (Gmail's limit is 25 MB; the page and this function cap it at 20 MB).
 function handleFileUpload(data) {
+  if (!notifyConfigured_()) fail_('Uploads are not set up yet.');
   if (!Array.isArray(data.files) || !data.files.length) fail_('No files received.');
   if (data.files.length > LIMITS.MAX_FILES) fail_('Too many files in one upload.');
 
@@ -466,18 +542,38 @@ function handleFileUpload(data) {
 }
 
 // ─────────────────────────────────────────────
-// Ringer and method lists
+// Ringer and method lists (cached)
 // ─────────────────────────────────────────────
-function getTrainees() {
+function readTrainees_() {
   return { trainees: getColumnValues(SS.getSheetByName('Ringers'), RINGERS_COL) };
 }
 
-function getMethods() {
+function readMethods_() {
   const sheet = SS.getSheetByName('Methods');
   return {
     fledgedMethods: getColumnValues(sheet, METHODS_COL.FLEDGED),
     pullusMethods:  getColumnValues(sheet, METHODS_COL.PULLUS)
   };
+}
+
+// Cached copy if there is one, otherwise read the sheet and cache that
+function cachedList_(key, reader) {
+  const hit = cacheGet_(key);
+  if (hit) return hit;
+  const fresh = reader();
+  cachePutAll_(( function () { const o = {}; o[key] = fresh; return o; })());
+  return fresh;
+}
+
+function getTrainees() { return cachedList_(TRAINEES_KEY, readTrainees_); }
+function getMethods()  { return cachedList_(METHODS_KEY,  readMethods_); }
+
+// Rewrites both list caches from the sheets (used by the refresh)
+function warmListCaches_() {
+  const values = {};
+  values[TRAINEES_KEY] = readTrainees_();
+  values[METHODS_KEY]  = readMethods_();
+  cachePutAll_(values);
 }
 
 // ─────────────────────────────────────────────
@@ -486,6 +582,16 @@ function getMethods() {
 
 function ringerCacheKey_(name) {
   return 'ringer_' + keyOf_(name).replace(/\s+/g, '_');
+}
+
+// The stored spelling of a ringer on the Ringers sheet; throws a validation error if there is no such ringer.
+function resolveRinger_(raw) {
+  const k = keyOf_(raw);
+  const names = getTrainees().trainees;
+  for (let i = 0; i < names.length; i++) {
+    if (keyOf_(names[i]) === k) return names[i];
+  }
+  fail_('That ringer could not be found.');
 }
 
 // One pass over the Responses sheet. Returns everything the cache holds:
@@ -551,25 +657,59 @@ function buildAggregates_() {
   return { sessionsByKey: sessionsByKey, groupFreqByMethod: groupFreqByMethod, groupProcessedFreq: groupProcessedFreq };
 }
 
-// Store one cache entry. If it is too big for CacheService (100 KB per key) it is simply skipped,
-// and the next read of it falls back to a fresh pass over the sheet.
-function cachePut_(key, value) {
+// ── Cache storage: gzip + base64 ──
+function pack_(value) {
+  const blob = Utilities.newBlob(JSON.stringify(value), 'application/json', 'v.json');
+  return Utilities.base64Encode(Utilities.gzip(blob).getBytes());
+}
+
+function unpack_(text) {
+  const blob = Utilities.newBlob(Utilities.base64Decode(text), 'application/x-gzip', 'v.gz');
+  return JSON.parse(Utilities.ungzip(blob).getDataAsString());
+}
+
+// The parsed value for a key, or null if it is missing or unreadable
+function cacheGet_(key) {
+  const raw = CacheService.getScriptCache().get(key);
+  if (!raw) return null;
+  try { return unpack_(raw); } catch (e) { return null; }
+}
+
+// Store several entries with putAll, in batches. Values that are still too big after compression are
+// skipped and any older copy removed (so it is never stale). The first problem emails NOTIFY_EMAIL.
+function cachePutAll_(valuesByKey) {
+  const packed = {}, skipped = [];
+  Object.keys(valuesByKey).forEach(function (key) {
+    const text = pack_(valuesByKey[key]);
+    if (text.length > LIMITS.MAX_CACHE_VALUE_CHARS) skipped.push(key); else packed[key] = text;
+  });
+  storePacked_(packed, skipped);
+}
+
+function storePacked_(packed, skipped) {
   const cache = CacheService.getScriptCache();
-  try {
-    cache.put(key, JSON.stringify(value), CACHE_TTL_S);
-  } catch (e) {
-    cache.remove(key);   // never leave an older, now-stale entry behind
-    Logger.log('Cache entry not stored (' + key + '): ' + e.message);
+  if (skipped.length) {
+    for (let i = 0; i < skipped.length; i += 100) cache.removeAll(skipped.slice(i, i + 100));
+    alertOnce_('cache_too_big', 'cache entry too large',
+      'These cache entries are still over ' + LIMITS.MAX_CACHE_VALUE_CHARS + ' characters after compression and were not stored: '
+      + skipped.join(', ') + '.\n\nUntil this is fixed the dashboard rebuilds from the sheet on every visit and will be slow.');
+  }
+  const keys = Object.keys(packed);
+  for (let i = 0; i < keys.length; i += 100) {
+    const batch = {};
+    keys.slice(i, i + 100).forEach(function (k) { batch[k] = packed[k]; });
+    try {
+      cache.putAll(batch, CACHE_TTL_S);
+    } catch (e) {
+      Object.keys(batch).forEach(function (k) { cache.remove(k); });   // never leave an older, now-stale entry behind
+      alertOnce_('cache_put_failed', 'cache write failed', 'CacheService.putAll failed: ' + e.message);
+    }
   }
 }
 
-// Writes every entry, and removes entries for ringers that no longer appear (e.g. rows deleted by hand).
-// CacheService can't list its keys, so the keys written last time are kept in RINGER_INDEX_KEY.
-// Every ringer on the Ringers sheet gets an entry, empty if they have no rows yet.
-// Caller must hold the script lock.
-function cacheAggregates_(agg) {
-  const cache = CacheService.getScriptCache();
-
+// Step 1 of caching (no lock needed): compress everything. Every ringer on the Ringers sheet gets an
+// entry, empty if they have no rows yet.
+function prepareCache_(agg) {
   const sessionsByKey = Object.assign({}, agg.sessionsByKey);
   getColumnValues(SS.getSheetByName('Ringers'), RINGERS_COL).forEach(function (name) {
     const key = ringerCacheKey_(name);
@@ -577,79 +717,194 @@ function cacheAggregates_(agg) {
   });
   const keys = Object.keys(sessionsByKey);
 
-  let previous = [];
-  try { previous = JSON.parse(cache.get(RINGER_INDEX_KEY) || '[]'); } catch (e) {}
-  const stale = previous.filter(function (k) { return !(k in sessionsByKey); });
-  for (let i = 0; i < stale.length; i += 100) cache.removeAll(stale.slice(i, i + 100));   // 100 keys per call
-
-  cachePut_(GROUP_FREQ_KEY, agg.groupFreqByMethod);
-  cachePut_(GROUP_PROCESSED_KEY, agg.groupProcessedFreq);
-  keys.forEach(function (key) { cachePut_(key, { sessions: sessionsByKey[key] }); });
-  cachePut_(RINGER_INDEX_KEY, keys);
+  const packed = {}, skipped = [];
+  function add(key, value) {
+    const text = pack_(value);
+    if (text.length > LIMITS.MAX_CACHE_VALUE_CHARS) skipped.push(key); else packed[key] = text;
+  }
+  keys.forEach(function (key) { add(key, { sessions: sessionsByKey[key] }); });
+  add(GROUP_PROCESSED_KEY, agg.groupProcessedFreq);
+  add(GROUP_FREQ_KEY, agg.groupFreqByMethod);   // last: a read needs this key, so it goes in with the final batch
+  add(RINGER_INDEX_KEY, keys);
+  return { packed: packed, skipped: skipped, keys: keys };
 }
 
-function getRingerData(ringer) {
+// Step 2 (caller holds the script lock): remove entries for ringers that no longer appear (e.g. rows
+// deleted by hand), then write. CacheService can't list its keys, so RINGER_INDEX_KEY holds last time's.
+function storeCache_(prepared) {
+  const cache = CacheService.getScriptCache();
+  let previous = [];
+  try {
+    const raw = cache.get(RINGER_INDEX_KEY);
+    if (raw) previous = unpack_(raw);
+  } catch (e) {}
+  const now = {};
+  prepared.keys.forEach(function (k) { now[k] = true; });
+  const stale = previous.filter(function (k) { return !now[k]; });
+  for (let i = 0; i < stale.length; i += 100) cache.removeAll(stale.slice(i, i + 100));   // 100 keys per call
+  storePacked_(prepared.packed, prepared.skipped);
+}
+
+// ── Versioning and invalidation ──
+function dataVersion_() {
+  return Number(PropertiesService.getScriptProperties().getProperty(DATA_VERSION_PROP)) || 0;
+}
+
+// Caller must hold the script lock
+function bumpDataVersion_() {
+  PropertiesService.getScriptProperties().setProperty(DATA_VERSION_PROP, String(dataVersion_() + 1));
+}
+
+// Marks the cached dashboard data out of date. Deleting GROUP_FREQ_KEY is enough to make every dashboard
+// read miss (a hit needs all three of its keys); the per-ringer entries are overwritten by the next rebuild.
+// Caller must hold the script lock.
+function invalidateCaches_(ringersChanged, methodsChanged) {
+  bumpDataVersion_();
+  const keys = [GROUP_FREQ_KEY, GROUP_PROCESSED_KEY];
+  if (ringersChanged) keys.push(TRAINEES_KEY);
+  if (methodsChanged) keys.push(METHODS_KEY);
+  CacheService.getScriptCache().removeAll(keys);
+}
+
+// Rebuild from one pass over the sheet WITHOUT holding the lock while reading or compressing. The lock is
+// only taken to check no submission landed in the meantime (DATA_VERSION unchanged) and to store the result.
+// If one did, try once more; after that the fresh-as-possible data is returned but not cached.
+function rebuildCache_() {
+  let agg = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const v0 = dataVersion_();
+    agg = buildAggregates_();
+    const prepared = prepareCache_(agg);
+
+    const lock = LockService.getScriptLock();
+    let locked = false;
+    try { locked = lock.tryLock(10000); } catch (e) {}
+    if (!locked) return { agg: agg, cached: false };
+    try {
+      if (dataVersion_() === v0) {
+        storeCache_(prepared);
+        return { agg: agg, cached: prepared.skipped.length === 0 };
+      }
+    } finally {
+      lock.releaseLock();
+    }
+  }
+  return { agg: agg, cached: false };
+}
+
+function getRingerData(rawRinger) {
+  const ringer = resolveRinger_(rawRinger);   // unknown names are refused before any rebuild
   const key = ringerCacheKey_(ringer);
   const hit = CacheService.getScriptCache().getAll([key, GROUP_FREQ_KEY, GROUP_PROCESSED_KEY]);
 
   if (hit[key] && hit[GROUP_FREQ_KEY] && hit[GROUP_PROCESSED_KEY]) {
     try {
       return {
-        sessions: JSON.parse(hit[key]).sessions,
-        groupFreqByMethod: JSON.parse(hit[GROUP_FREQ_KEY]),
-        groupProcessedFreq: JSON.parse(hit[GROUP_PROCESSED_KEY])
+        sessions: unpack_(hit[key]).sessions,
+        groupFreqByMethod: unpack_(hit[GROUP_FREQ_KEY]),
+        groupProcessedFreq: unpack_(hit[GROUP_PROCESSED_KEY])
       };
     } catch (e) { /* a corrupt entry: fall through and rebuild */ }
   }
 
-  // Something is missing: rebuild and re-cache everything from one pass. This happens under the script
-  // lock so a submission can't land between reading the sheet and writing the cache. If the lock can't be
-  // had within 10s the data is still returned, just not cached.
-  const lock = LockService.getScriptLock();
-  let locked = false;
-  try { locked = lock.tryLock(10000); } catch (e) {}
-  try {
-    const agg = buildAggregates_();
-    const sessions = agg.sessionsByKey[key] || [];
-    if (locked) {
-      cacheAggregates_(agg);
-      if (!agg.sessionsByKey[key]) cachePut_(key, { sessions: [] });   // a ringer with no rows yet still gets a (warm) entry
-    }
-    return { sessions: sessions, groupFreqByMethod: agg.groupFreqByMethod, groupProcessedFreq: agg.groupProcessedFreq };
-  } finally {
-    if (locked) lock.releaseLock();
-  }
+  const res = rebuildCache_();
+  return {
+    sessions: res.agg.sessionsByKey[key] || [],
+    groupFreqByMethod: res.agg.groupFreqByMethod,
+    groupProcessedFreq: res.agg.groupProcessedFreq
+  };
 }
 
 // ─────────────────────────────────────────────
-// Keeping the cache warm
+// Refreshing the cache
 // ─────────────────────────────────────────────
-// Rebuilds the whole cache and books the next rebuild CACHE_REFRESH_INTERVAL_MS from now (Apps Script's
-// fixed-interval triggers only allow 1/2/4/6/8/12 hours, so this reschedules itself). Without it a
-// once-a-day visitor would always find an expired cache.
-//
-// Run it once by hand from the editor to start the chain. Run it again any time after editing the
-// Responses sheet directly (the form rebuilds the cache itself, but manual edits are only seen at the next
-// rebuild). It is safe to re-run: it replaces its own trigger, so there is only ever one.
+// Invalidates, then rebuilds the dashboard data AND re-reads the ringer and method lists. Returns true if
+// the dashboard data was stored. Throws on failure.
+function doRefreshAll_() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(LIMITS.LOCK_WAIT_MS);
+  try { invalidateCaches_(true, true); } finally { lock.releaseLock(); }   // also stops any in-flight rebuild storing old data
+
+  const res = rebuildCache_();
+  warmListCaches_();
+  return res.cached;
+}
+
+// The timed trigger calls this (see setupRefreshTrigger). It can also be run by hand from the editor.
 function refreshAllCaches() {
   try {
-    const lock = LockService.getScriptLock();
-    lock.waitLock(LIMITS.LOCK_WAIT_MS);
-    try { cacheAggregates_(buildAggregates_()); } finally { lock.releaseLock(); }
+    doRefreshAll_();
   } catch (err) {
-    Logger.log('refreshAllCaches failed: ' + (err && err.stack ? err.stack : err));
-  } finally {
-    // Always book the next run, even after an error, so one failure can't end the chain
-    ScriptApp.getProjectTriggers()
-      .filter(function (t) { return t.getHandlerFunction() === 'refreshAllCaches'; })
-      .forEach(function (t) { ScriptApp.deleteTrigger(t); });
-    ScriptApp.newTrigger('refreshAllCaches').timeBased().after(CACHE_REFRESH_INTERVAL_MS).create();
+    alertOnce_('refresh_failed', 'scheduled cache refresh failed', (err && err.stack ? err.stack : String(err)));
   }
+}
+
+// Run once by hand from the editor: sets up ONE trigger that runs refreshAllCaches every CACHE_REFRESH_HOURS,
+// and removes any older refresh triggers (including the previous self-rescheduling one). Safe to re-run.
+function setupRefreshTrigger() {
+  ScriptApp.getProjectTriggers()
+    .filter(function (t) { return t.getHandlerFunction() === 'refreshAllCaches'; })
+    .forEach(function (t) { ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('refreshAllCaches').timeBased().everyHours(CACHE_REFRESH_HOURS).create();
+  refreshAllCaches();   // warm everything now
+  Logger.log('Refresh trigger registered - every ' + CACHE_REFRESH_HOURS + ' hours.');
+}
+
+// ─────────────────────────────────────────────
+// One-off: store dates and names as plain text
+// ─────────────────────────────────────────────
+// Stops Sheets turning "2026-03-01" into a date (and values like "3" or "Mar-1" into numbers), which removes
+// the time-zone dependence in formatDate_. TAKE A BACKUP COPY FIRST. Run once by hand from the editor.
+// Existing dates are rewritten as "YYYY-MM-DD" text; formatDate_ reads text and real dates alike, so
+// nothing else needs to change.
+function setupTextFormats() {
+  const rSheet = SS.getSheetByName('Responses');
+  [COL.DATE, COL.RINGER, COL.SPECIES, COL.METHOD].forEach(function (c) {
+    const lastRow = rSheet.getLastRow();
+    let values = null;
+    if (lastRow >= 2) {
+      // Read BEFORE changing the format, while date cells still come back as dates
+      values = rSheet.getRange(2, c, lastRow - 1, 1).getValues().map(function (r) {
+        return [c === COL.DATE ? formatDate_(r[0]) : String(r[0] == null ? '' : r[0])];
+      });
+    }
+    rSheet.getRange(1, c, rSheet.getMaxRows(), 1).setNumberFormat('@');
+    if (values) rSheet.getRange(2, c, values.length, 1).setValues(values);
+  });
+
+  SS.getSheetByName('Ringers').getRange(1, RINGERS_COL, SS.getSheetByName('Ringers').getMaxRows(), 1).setNumberFormat('@');
+  const methodsSheet = SS.getSheetByName('Methods');
+  methodsSheet.getRange(1, 1, methodsSheet.getMaxRows(), 2).setNumberFormat('@');
+
+  Logger.log('Responses (date, ringer, species, method), Ringers and Methods are now plain text.');
 }
 
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
+
+function notifyConfigured_() {
+  return !!NOTIFY_EMAIL && NOTIFY_EMAIL !== PLACEHOLDER_EMAIL;
+}
+
+function backupConfigured_() {
+  return !!BACKUP_SHEET_ID && BACKUP_SHEET_ID !== PLACEHOLDER_BACKUP_ID;
+}
+
+// Log a problem, and email NOTIFY_EMAIL about it at most once per cache lifetime per `id`
+function alertOnce_(id, subject, body) {
+  Logger.log(subject + ': ' + body);
+  try {
+    if (!notifyConfigured_()) return;
+    const cache = CacheService.getScriptCache();
+    if (cache.get('alert_' + id)) return;
+    if (MailApp.getRemainingDailyQuota() < 1) return;
+    MailApp.sendEmail(NOTIFY_EMAIL, 'Ringing Tracker \u2013 ' + subject, body);
+    cache.put('alert_' + id, '1', CACHE_TTL_S);
+  } catch (e) {
+    Logger.log('Could not send alert: ' + e.message);
+  }
+}
 
 // Non-empty values below the header in one column (1-based column index)
 function getColumnValues(sheet, colIndex) {
@@ -664,7 +919,8 @@ function getColumnValues(sheet, colIndex) {
 
 // Dates are read in the SPREADSHEET's time zone, because that is the zone Sheets used when it turned the
 // stored "YYYY-MM-DD" text into a date. Set both to Europe/London: File > Settings in the sheet, and
-// Project Settings in the Apps Script editor.
+// Project Settings in the Apps Script editor. (After setupTextFormats() dates are plain text and this
+// no longer matters for new rows.)
 function formatDate_(value) {
   if (!value) return '';
   const tz = SS.getSpreadsheetTimeZone();
@@ -696,7 +952,9 @@ function jsonResponse(obj) {
 // BACKUP
 // ═════════════════════════════════════════════
 // Per submission: backupNewRows() appends the new rows to a monthly tab ("Sessions 2026-03") in the backup
-// spreadsheet. Weekly: backupResponses() copies Responses, Ringers and Methods to dated snapshot tabs
+// spreadsheet. It runs AFTER the submission lock is released and takes the document lock instead, so two
+// submissions can't append to the monthly tab at once while the main lock stays short.
+// Weekly: backupResponses() copies Responses, Ringers and Methods to dated snapshot tabs
 // and keeps the newest KEEP_WEEKLY_BACKUPS of each (the monthly tabs are never deleted).
 //
 // Setup (once): create a backup spreadsheet, paste its ID into BACKUP_SHEET_ID, then run
@@ -717,27 +975,32 @@ function setupBackupTrigger() {
   Logger.log('Backup trigger registered — will run every Monday at 07:00.');
 }
 
-// Called inside the lock in submitSession_, so two submissions can't append to the monthly tab at once.
 function backupNewRows(rows, now) {
-  if (!BACKUP_SHEET_ID) return;
+  if (!backupConfigured_()) return;
 
-  const backupSS = SpreadsheetApp.openById(BACKUP_SHEET_ID);
-  const tabName = 'Sessions ' + formatDate_(now).slice(0, 7);
-  let tab = backupSS.getSheetByName(tabName);
+  const lock = LockService.getDocumentLock();
+  lock.waitLock(LIMITS.LOCK_WAIT_MS);
+  try {
+    const backupSS = SpreadsheetApp.openById(BACKUP_SHEET_ID);
+    const tabName = 'Sessions ' + formatDate_(now).slice(0, 7);
+    let tab = backupSS.getSheetByName(tabName);
 
-  if (!tab) {
-    tab = backupSS.insertSheet(tabName);
-    const header = SS.getSheetByName('Responses').getRange(1, 1, 1, COL_COUNT).getValues();
-    tab.getRange(1, 1, 1, COL_COUNT).setValues(header);
-    tab.setFrozenRows(1);
+    if (!tab) {
+      tab = backupSS.insertSheet(tabName);
+      const header = SS.getSheetByName('Responses').getRange(1, 1, 1, COL_COUNT).getValues();
+      tab.getRange(1, 1, 1, COL_COUNT).setValues(header);
+      tab.setFrozenRows(1);
+    }
+
+    tab.getRange(tab.getLastRow() + 1, 1, rows.length, COL_COUNT).setValues(rows);
+  } finally {
+    lock.releaseLock();
   }
-
-  tab.getRange(tab.getLastRow() + 1, 1, rows.length, COL_COUNT).setValues(rows);
 }
 
 // Runs weekly, and can be run by hand at any time.
 function backupResponses() {
-  if (!BACKUP_SHEET_ID) throw new Error('Backup aborted: please set BACKUP_SHEET_ID before running.');
+  if (!backupConfigured_()) throw new Error('Backup aborted: please set BACKUP_SHEET_ID before running.');
 
   const backupSS = SpreadsheetApp.openById(BACKUP_SHEET_ID);
   const today = formatDate_(new Date());
