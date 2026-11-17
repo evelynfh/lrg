@@ -1409,7 +1409,7 @@ function renderDashboard(data, ringer) {
   document.getElementById('stat-sessions-sub').textContent  = firstDate ? fmtMonth(firstDate) + ' \u2192 ' + fmtMonth(lastDate) : '\u2014';
   document.getElementById('stat-whoosh-sub').textContent    = 'across ' + whooshFiringsTotal + ' firing' + (whooshFiringsTotal !== 1 ? 's' : '');
   document.getElementById('stat-mistnet-sub').textContent   = 'across ' + mistSpecies.size + ' species';
-  document.getElementById('stat-pulli-sub').textContent     = 'across ' + totalBroods + ' brood' + (totalBroods !== 1 ? 's' : '');
+  document.getElementById('stat-pulli-sub').textContent     = 'with ' + totalBroods + ' brood assessments' + (totalBroods !== 1 ? 's' : '');
   document.getElementById('stat-proc-sub').textContent      = 'across ' + Object.keys(speciesMap).length + ' species';
   document.getElementById('stat-ringed-sub').textContent    = 'across ' + ringedSpecies.size + ' species';
 
