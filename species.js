@@ -326,6 +326,8 @@
     { name: 'Wood Warbler', code: 'WOOWA', category: OPEN },
     { name: 'Chiffchaff', code: 'CHIFF', category: OPEN },
     { name: 'Willow Warbler', code: 'WILWA', category: OPEN },
+    { name: 'Sardinian Warbler', code: '', category: OPEN },
+    { name: 'Zitting cisticola', code: '', category: OPEN },
     { name: 'Goldcrest', code: 'GOLDC', category: OPEN },
     { name: 'Firecrest', code: 'FIREC', category: OPEN },
     { name: 'Spotted Flycatcher', code: 'SPOFL', category: OPEN },
