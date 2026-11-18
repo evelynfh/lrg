@@ -1315,6 +1315,8 @@ window._exportRinger   = '';
 
 function renderDashboard(data, ringer) {
   var sessions = (data.sessions || []).slice().sort(function(a, b) {
+    var ad = a.date === 'Undated', bd = b.date === 'Undated';
+    if (ad !== bd) return ad ? 1 : -1;
     return b.date.localeCompare(a.date);
   });
 
