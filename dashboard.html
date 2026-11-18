@@ -2305,7 +2305,8 @@ function setFlagStatus(msg, ok) {
 
 function openFlagModal(date) {
   _flagDate = date;
-  document.getElementById('flag-session-label').textContent = 'Session on ' + date + ' (' + window._exportRinger + ')';
+  document.getElementById('flag-session-label').textContent =
+    (date === 'Undated' ? 'Undated sessions' : 'Session on ' + date) + ' (' + window._exportRinger + ')';
   document.getElementById('flag-comment').value = '';
   document.getElementById('flag-send').disabled = false;
   setFlagStatus('', null);
