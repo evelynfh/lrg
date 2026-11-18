@@ -19,6 +19,9 @@ const PLACEHOLDER_BACKUP_ID = 'YOUR_BACKUP_SPREADSHEET_ID';
 // Reserved: a real submission may not use it as a species name.
 const ZERO_CATCH_SPECIES = '(No birds caught)';
 
+// Date text the dashboard uses for sessions with no date
+const UNDATED = 'Undated';
+
 // Responses sheet columns (1-based):
 // Date | Ringer | Species | Age | Extracted | Method | Processed | Fledged ringed | Pulli ringed |
 // Broods assessed | Whoosh net active firings | Submitted at | Written-in species? | Written-in method?
@@ -418,7 +421,7 @@ function flagSession_(data) {
   if (!data || typeof data !== 'object') fail_('Invalid request.');
   if (!notifyConfigured_()) fail_('Edit requests are not set up yet.');
   const ringerIn = cleanText_(data.ringer, 'Ringer name');
-  const date     = validateDate_(data.date);
+  const date     = keyOf_(data.date) === keyOf_(UNDATED) ? UNDATED : validateDate_(data.date);
   const comment  = String(data.comment == null ? '' : data.comment)
     .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
     .trim();
@@ -435,7 +438,7 @@ function flagSession_(data) {
   let rowCount = 0;
   if (lastRow >= 2) {
     rSheet.getRange(2, 1, lastRow - 1, COL.SUBMITTED_AT).getValues().forEach(function (row) {
-      if (keyOf_(row[COL.RINGER - 1]) === keyOf_(ringer) && formatDate_(row[COL.DATE - 1]) === date) {
+      if (keyOf_(row[COL.RINGER - 1]) === keyOf_(ringer) && keyOf_(formatDate_(row[COL.DATE - 1])) === keyOf_(date)) {
         rowCount++;
         const ts = formatTimestamp_(row[COL.SUBMITTED_AT - 1]);
         if (ts) submitted[ts] = true;
@@ -455,13 +458,12 @@ function flagSession_(data) {
   const timestamps = Object.keys(submitted).sort();
   MailApp.sendEmail({
     to:      NOTIFY_EMAIL,
-    subject: 'Ringing Tracker \u2013 edit request from ' + ringer + ' (session ' + date + ')',
-    body: [
+    subject: 'Ringing Tracker \u2013 edit request from ' + ringer + ' (' + (date === UNDATED ? 'undated sessions' : 'session ' + date) + ')',    body: [
       'A ringer has asked for one of their sessions to be edited.',
       '',
       'Ringer: ' + ringer,
       'Date of entry (session date): ' + date,
-      'Rows for that session: ' + rowCount,
+      'Rows for that session: ' + rowCount + (date === UNDATED ? ' (all of this ringer\u2019s undated rows)' : ''),
       'Submitted at: ' + (timestamps.length ? timestamps.join(', ') : '(no timestamp recorded)'),
       'Edit requested on: ' + Utilities.formatDate(new Date(), 'Europe/London', 'yyyy-MM-dd HH:mm') + ' (Europe/London)',
       '',
