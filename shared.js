@@ -101,7 +101,12 @@ window.downloadCSV = function (rows, filename) {
     + '<p>Yes \u2014 every time you log a new session the responses sheet is backed up to a separate spreadsheet, and there are also regular weekly backups to cover manual edits. It\'s also worth using the "Export data" button on the dashboard to download your data (as a session-level .csv or a BTO-format .xlsx) so you have an offline copy.</p>';
 
   var changelog =
-    '<div class="cl-entry"><span class="vtag vtag-new">v1.1.1 \u00b7 Latest</span><ul>'
+    '<div class="cl-entry"><span class="vtag vtag-new">v1.1.2 \u00b7 Latest</span><ul>'
+    + '<li>The Sessions tile now handles undated sessions, with a + to indicate presence of undated sessions.</li>'
+    + '<li>Undated sessions now sit at the bottom of the session history instead of the top.</li>'
+    + '<li>The Flag button now works for undated sessions, with one request covering all undated rows.</li>'
+    + '</ul></div>'
+    + '<div class="cl-entry"><span class="vtag">v1.1.1</span><ul>'
     + '<li>Species gaps now include the group\u2019s trainer data, so you can see what the wider group is catching.</li>'
     + '<li>Choose which ringers (including trainers) to compare against in the Species gaps header.</li>'
     + '<li>Fixed the bottom of the FAQ, changelog and other pop-ups being cut off on mobile.</li>'
