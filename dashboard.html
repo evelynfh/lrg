@@ -1387,8 +1387,14 @@ function renderDashboard(data, ringer) {
     return methodMap[b].extracted - methodMap[a].extracted;
   });
 
-  var firstDate = sessions.length ? sessions[sessions.length - 1].date : null;
-  var lastDate  = sessions.length ? sessions[0].date : null;
+  // Undated sessions come back from the sheet with the date "Undated". They are grouped into
+  // one bucket, so the real count is "at least this many".
+  var datedSessions = sessions.filter(function(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s.date); });
+  var hasUndated    = datedSessions.length < sessions.length;
+  
+  // sessions are newest-first, so the dated ones run lastDate -> firstDate
+  var firstDate = datedSessions.length ? datedSessions[datedSessions.length - 1].date : null;
+  var lastDate  = datedSessions.length ? datedSessions[0].date : null;
 
   function fmtMonth(iso) {
     if (!iso) return '—';
@@ -1400,13 +1406,15 @@ function renderDashboard(data, ringer) {
   document.getElementById('ringer-title').textContent = ringer;
 
   // ── Tiles ──
-  document.getElementById('stat-sessions').textContent  = sessions.length;
+  document.getElementById('stat-sessions').textContent = sessions.length + (hasUndated ? '+' : '');
   document.getElementById('stat-whoosh').textContent    = whooshExt;
   document.getElementById('stat-mistnet').textContent   = mistExt;
   document.getElementById('stat-pulli').textContent     = totalPulliRinged;
   document.getElementById('stat-processed').textContent = totalProc;
   document.getElementById('stat-ringed').textContent    = totalRinged;
-  document.getElementById('stat-sessions-sub').textContent  = firstDate ? fmtMonth(firstDate) + ' \u2192 ' + fmtMonth(lastDate) : '\u2014';
+  document.getElementById('stat-sessions-sub').textContent = firstDate
+    ? fmtMonth(firstDate) + ' \u2192 ' + fmtMonth(lastDate)
+    : (sessions.length ? 'Undated' : '\u2014');
   document.getElementById('stat-whoosh-sub').textContent    = 'across ' + whooshFiringsTotal + ' firing' + (whooshFiringsTotal !== 1 ? 's' : '');
   document.getElementById('stat-mistnet-sub').textContent   = 'across ' + mistSpecies.size + ' species';
   document.getElementById('stat-pulli-sub').textContent     = 'with ' + totalBroods + ' brood assessments' + (totalBroods !== 1 ? 's' : '');
