@@ -1,0 +1,286 @@
+/* Ringing Tracker: styles shared by every page — themes (light, cream, dark), base, page layout,
+   header, settings menu and the info modals. Load FIRST, before the page's own <style>.
+   Themes are just sets of colour variables on <html data-theme="light|cream|dark"> (see theme.js,
+   which also says which one is the default). The un-themed :root block below is the Light palette. */
+
+/* ── Themes ── */
+:root {
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --ink: #14181c;
+  --ink-muted: #5a6270;
+  --accent: #1f5fd6;
+  --accent-hover: #174bb0;
+  --accent-light: #e8f0fe;
+  --on-accent: #ffffff;
+  --border: #d9dce0;
+  --border-soft: #eceef1;
+  --border-focus: #1f5fd6;
+  --row-alt: #f9fafb;
+  --th: #eef0f3;
+  --hdr-bg: #ffffff;
+  --danger: #b3261e;
+  --warn-bg: #fff8e6;
+  --warn-border: #e8d88a;
+  --warn-ink: #6b5700;
+  --warn-strong: #c9a800;
+  --shadow: 0 1px 2px rgba(20,24,28,0.06);
+  --shadow-lg: 0 8px 24px rgba(20,24,28,0.14);
+  color-scheme: light;
+}
+
+:root[data-theme="cream"] {
+  --bg: #f5f0e8;
+  --surface: #fffdf8;
+  --ink: #1a1a14;
+  --ink-muted: #6b6657;
+  --accent: #2d5a27;
+  --accent-hover: #234a1f;
+  --accent-light: #e8f0e6;
+  --on-accent: #ffffff;
+  --border: #d9d2c0;
+  --border-soft: #f0ebe0;
+  --border-focus: #2d5a27;
+  --row-alt: #faf7f0;
+  --th: #ece6d8;
+  --hdr-bg: #fffdf8;
+  --danger: #8b2e2e;
+  --shadow: 0 1px 3px rgba(26,26,20,0.08);
+  --shadow-lg: 0 8px 24px rgba(26,26,20,0.18);
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f1316;
+  --surface: #171c21;
+  --ink: #e6eaee;
+  --ink-muted: #9aa5b1;
+  --accent: #6ea0ff;
+  --accent-hover: #8db4ff;
+  --accent-light: #1c2a40;
+  --on-accent: #0b1220;
+  --border: #2e373f;
+  --border-soft: #242c33;
+  --border-focus: #6ea0ff;
+  --row-alt: #1b2127;
+  --th: #212830;
+  --hdr-bg: #0b0e11;
+  --danger: #ff8a8a;
+  --warn-bg: #2b2410;
+  --warn-border: #5c4d1a;
+  --warn-ink: #f0d88a;
+  --warn-strong: #e0bd1a;
+  --shadow: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  color-scheme: dark;
+}
+
+/* ── Base ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+}
+
+button, input, select, textarea { font-family: inherit; }
+button { touch-action: manipulation; }   /* no tap delay / double-tap zoom on buttons (touch screens) */
+
+/* Focus ring for every text-like control */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* Page container. .screen is the same container for pages that swap between screens (the log page). */
+main, .screen {
+  max-width: 1260px;
+  margin: 40px auto;
+  padding: 0 20px 60px;
+}
+
+@keyframes spin       { to { transform: rotate(360deg); } }
+@keyframes ddFadeIn   { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes infoOvFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalIn    { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ── Header ── */
+header {
+  background: var(--hdr-bg);
+  color: var(--ink);
+  padding: 18px 40px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+header h1 { font-size: 1.25rem; font-weight: 700; color: var(--ink); margin-right: 16px; }
+header nav { display: flex; flex: 1; gap: 4px; align-items: center; }
+header nav a {
+  color: var(--ink-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 8px 12px 4px;
+  transition: color 0.15s, background 0.15s;
+}
+header nav a:hover { color: var(--ink); background: var(--th); }
+header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
+
+/* ── Settings button & dropdown ── */
+.settings-wrap { position: relative; margin-left: auto; }
+
+.settings-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s;
+}
+.settings-btn:hover, .settings-btn.open { color: var(--ink); background: var(--th); }
+
+.settings-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow-lg);
+  min-width: 220px;
+  z-index: 500;
+  overflow: hidden;
+}
+.settings-dropdown.open { display: block; animation: ddFadeIn 0.15s ease; }
+
+.settings-item {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+.settings-item:last-child { border-bottom: none; }
+.settings-item:hover { background: var(--accent-light); color: var(--accent); }
+
+/* Theme picker: Light | Cream | Dark */
+.settings-theme { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.settings-theme-label { display: block; font-size: 0.72rem; color: var(--ink-muted); margin-bottom: 6px; }
+.theme-options { display: flex; gap: 4px; }
+.theme-opt {
+  flex: 1;
+  padding: 6px 4px;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.theme-opt:hover { background: var(--accent-light); color: var(--accent); }
+.theme-opt[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+
+/* ── Info modals (FAQ, changelog, report issues; also reused for the dashboard's edit request) ── */
+.info-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20,24,28,0.55);
+  z-index: 600;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.info-overlay.open { display: flex; animation: infoOvFade 0.18s ease; }
+
+.info-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 540px;
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: modalIn 0.22s ease;
+}
+.info-modal-hd {
+  background: var(--th);
+  color: var(--ink);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.info-modal-hd h2 { font-size: 1rem; font-weight: 600; }
+.info-modal-x {
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.info-modal-x:hover { color: var(--ink); }
+
+.info-modal-bd { padding: 22px 24px; font-size: 0.85rem; line-height: 1.7; color: var(--ink-muted); }
+.info-modal-bd h3 { font-size: 0.95rem; color: var(--ink); margin: 18px 0 6px; font-weight: 600; }
+.info-modal-bd h3:first-child { margin-top: 0; }
+.info-modal-bd p { margin-bottom: 8px; }
+.info-modal-bd a { color: var(--accent); text-decoration: underline; }
+
+.vtag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 2px;
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  margin-bottom: 4px;
+  vertical-align: middle;
+}
+.vtag-new { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-border); }
+
+.cl-entry { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.cl-entry:last-child { border-bottom: none; }
+.cl-entry ul { margin: 6px 0 0 16px; }
+.cl-entry li { margin-bottom: 3px; }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  main, .screen { margin: 16px auto; padding: 0 12px 40px; }
+
+  header { padding: 14px 16px; gap: 0; }
+  header h1 { font-size: 1.3rem; width: 88px; flex-shrink: 0; margin-right: 8px; }
+  header nav { justify-content: space-evenly; }
+  header nav a { padding: 4px 0; white-space: nowrap; flex: 1; text-align: center; }
+  .settings-wrap { margin-left: 0; flex: 1; text-align: center; }
+  .settings-btn { margin: 0 auto; }
+  .settings-btn .settings-label { display: none; }
+  .settings-dropdown { right: 0; left: auto; min-width: 210px; text-align: left; }
+  .info-modal { max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); overscroll-behavior: contain; }
+  .info-modal-bd { padding: 18px 16px 32px; }
+  .info-overlay { align-items: flex-start; padding: 20px 16px; }
+}

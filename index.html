@@ -3,135 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f5f0e8">
 <title>Ringing Tracker</title>
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="manifest" href="site.webmanifest">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css?v=4">
 <style>
-  :root {
-    --bg: #f5f0e8;
-    --surface: #fffdf7;
-    --ink: #1a1a14;
-    --ink-muted: #6b6657;
-    --accent: #2d5a27;
-    --accent-light: #e8f0e6;
-    --accent-hover: #1e3e1b;
-    --border: #d4ccb8;
-    --border-focus: #2d5a27;
-    --danger: #8b2e2e;
-    --row-alt: #faf7f0;
-    --shadow: 0 2px 8px rgba(26,26,20,0.08);
-    --shadow-lg: 0 8px 32px rgba(26,26,20,0.12);
-    --amber: #c9a800;
-    --amber-bg: #fff8e6;
-    --amber-border: #e8d88a;
-    --amber-ink: #6b5700;
-    --modal-overlay: rgba(26,26,20,0.55);
+  /* ── Screens (form / confirmation / success) — layout comes from .screen in shared.css ── */
+  .screen { display: none; }
+  .screen.visible { display: block; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    font-family: 'IBM Plex Mono', monospace;
-    color: var(--ink);
-    min-height: 100vh;
-    padding: 0;
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-
-  /* Header */
-  header {
-    background: var(--ink);
-    color: var(--bg);
-    padding: 28px 40px;
-    display: flex;
-    align-items: center;
-    border-bottom: 3px solid var(--accent);
+  @keyframes fadeSlideOut {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-8px); }
   }
+  .screen-enter { animation: fadeSlideIn 0.3s ease forwards; }
+  .screen-exit  { animation: fadeSlideOut 0.2s ease forwards; pointer-events: none; }
 
-  header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.7rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: #f5f0e8;
-    margin-right: 16px;
-  }
-
-  header nav {
-    display: flex;
-    flex: 1;
-    gap: 4px;
-    align-items: center;
-  }
-
-  header nav a {
-    color: #9a9480;
-    text-decoration: none;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    padding: 8px 12px 4px;
-    border-radius: 3px;
-    transition: color 0.15s, background 0.15s;
-  }
-
-  header nav a:hover { color: var(--bg); background: rgba(255,255,255,0.08); }
-  header nav a.active { color: var(--bg); }
-  header nav span { margin-left: auto; }
-
-  /* Main layout */
-  main {
-    max-width: 1260px;
-    margin: 40px auto;
-    padding: 0 20px 60px;
-  }
-
-  /* Session header card */
+  /* ── Session header card ── */
   .session-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-top: 3px solid var(--accent);
     border-radius: 4px;
     padding: 28px 24px;
     margin-bottom: 32px;
     box-shadow: var(--shadow);
   }
+  .session-card h2 { font-size: 1.1rem; margin-bottom: 20px; color: var(--ink); }
+  .session-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-  .session-card h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
-    margin-bottom: 20px;
-    color: var(--ink);
-    letter-spacing: -0.01em;
-  }
-
-  .session-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  /* Form fields */
+  /* ── Form fields ── */
   label {
     display: block;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     color: var(--ink-muted);
     margin-bottom: 6px;
   }
-
-  label .required {
-    color: var(--accent);
-    margin-left: 2px;
-  }
+  label .required { color: var(--accent); margin-left: 2px; }
 
   input[type="text"],
-  input[type="search"],
   input[type="date"],
   select {
     width: 100%;
@@ -140,23 +63,25 @@
     border: 1px solid var(--border);
     border-radius: 3px;
     background: var(--surface);
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.85rem;
     color: var(--ink);
     transition: border-color 0.15s, box-shadow 0.15s;
     appearance: none;
   }
 
-  input[type="text"]:focus,
-  input[type="search"]:focus,
-  input[type="date"]:focus,
-  select:focus {
-    outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
+  /* Confirmed / error states (after the focus rule in shared.css, so they win while focused) */
+  input.input-confirmed {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
   }
+  input.input-error {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
+  }
+  div.input-error { outline: 2px solid var(--danger); outline-offset: 2px; border-radius: 3px; }
 
-  /* Species entries section */
+  /* ── Species entries section ── */
   .species-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -164,27 +89,17 @@
     box-shadow: var(--shadow);
     margin-bottom: 24px;
   }
-
   .species-section-header {
-    background: var(--ink);
-    color: var(--bg);
+    background: var(--th);
+    color: var(--ink);
+    border-bottom: 1px solid var(--border);
     padding: 14px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-
-  .species-section-header h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .species-section-header span {
-    font-size: 0.7rem;
-    color: #9a9480;
-    letter-spacing: 0.08em;
-  }
+  .species-section-header h2 { font-size: 1rem; font-weight: 600; }
+  .species-section-header span { font-size: 0.75rem; color: var(--ink-muted); }
 
   /* Column headers */
   .col-headers {
@@ -195,24 +110,18 @@
     background: var(--accent-light);
     border-bottom: 1px solid var(--border);
   }
-
   .col-headers span {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    min-width: 0;
   }
 
-  /* ── Info icon tooltip ── */
-  .tip-wrap {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  }
-
+  /* ── Info icon tooltip (the bubble itself is #js-tip, positioned by script so grid/overflow can't clip it) ── */
+  .tip-wrap { display: inline-flex; align-items: center; gap: 5px; }
   .tip-icon {
-    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -220,72 +129,36 @@
     height: 14px;
     border-radius: 50%;
     background: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
     font-size: 0.6rem;
     font-weight: 700;
     font-style: normal;
-    font-family: serif;
     line-height: 1;
     cursor: pointer;
     flex-shrink: 0;
     user-select: none;
     border: none;
     padding: 0;
-    text-transform: none;
-    letter-spacing: 0;
-    /* reset any inherited button styles */
-    -webkit-appearance: none;
     appearance: none;
   }
-
-  .tip-icon::after {
-    content: attr(data-tip);
-    position: absolute;
-    bottom: calc(100% + 7px);
-    left: 50%;
-    transform: translateX(-50%);
+  #js-tip {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
     background: var(--ink);
     color: var(--bg);
-    font-size: 0.68rem;
-    font-weight: 400;
-    font-family: 'IBM Plex Mono', monospace;
-    letter-spacing: 0.02em;
-    text-transform: none;
-    line-height: 1.45;
-    padding: 6px 10px;
-    border-radius: 3px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    z-index: 200;
-    box-shadow: var(--shadow-lg);
-    max-width: 260px;
+    border: 1px solid var(--border);
+    font-size: 0.72rem;
+    line-height: 1.5;
+    padding: 7px 11px;
+    border-radius: 4px;
+    max-width: min(260px, calc(100vw - 24px));
     white-space: normal;
-    width: max-content;
-    text-align: left;
+    box-shadow: var(--shadow-lg);
   }
 
-  /* Arrow */
-  .tip-icon::before {
-    content: '';
-    position: absolute;
-    bottom: calc(100% + 2px);
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: var(--ink);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    z-index: 201;
-  }
-
-  /* Tooltips rendered by #js-tip across all screen sizes —
-     prevents clipping by grid/overflow containers on desktop */
-  .tip-icon::after,
-  .tip-icon::before { display: none !important; }
-
-  /* Species rows */
+  /* ── Species rows ── */
   #species-rows { padding: 12px 24px; }
 
   .species-row {
@@ -297,62 +170,28 @@
     border-bottom: 1px solid var(--border);
     animation: slideIn 0.2s ease;
   }
+  .species-row:last-child { border-bottom: none; }
 
-  /* Age-conditional field visibility — display:none removes cells from grid flow
-     so grid-template-columns (set by JS) always matches the number of visible cells.
-     In mixed mode (.age-mixed), switch to visibility:hidden so hidden cells still
-     occupy their designated grid column — spinners align with headers correctly. */
+  /* Age-conditional field visibility — display:none removes cells from grid flow so the
+     grid-template-columns (set by JS) always matches the number of visible cells.
+     In mixed mode (.age-mixed) use visibility:hidden instead, so hidden cells still hold
+     their grid column and the spinners line up with the headers. */
   .species-row .pullus-only { display: none; }
   .species-row.age-pullus .fledged-only { display: none; }
   .species-row.age-pullus .pullus-only  { display: flex; }
 
-  /* Mixed mode: keep cells in flow, just visually hide the inapplicable ones */
-  #species-section.age-mixed .species-row .pullus-only         { display: flex;  visibility: hidden; pointer-events: none; }
-  #species-section.age-mixed .species-row.age-pullus .fledged-only { display: flex;  visibility: hidden; pointer-events: none; }
-  #species-section.age-mixed .species-row.age-pullus .pullus-only  { display: flex;  visibility: visible; pointer-events: auto; }
+  #species-section.age-mixed .species-row .pullus-only             { display: flex; visibility: hidden;  pointer-events: none; }
+  #species-section.age-mixed .species-row.age-pullus .fledged-only { display: flex; visibility: hidden;  pointer-events: none; }
+  #species-section.age-mixed .species-row.age-pullus .pullus-only  { display: flex; visibility: visible; pointer-events: auto; }
 
   #col-headers .fledged-only,
   #col-headers .pullus-only  { display: none; }
   #col-headers.col-has-fledged .fledged-only { display: block; }
   #col-headers.col-has-pullus  .pullus-only  { display: block; }
 
-  /* Prevent header label text from wrapping in tight columns */
-  #col-headers span { white-space: nowrap; overflow: hidden; min-width: 0; }
-
-  .species-row:last-child { border-bottom: none; }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Searchable species dropdown */
-  .species-search-wrap {
-    position: relative;
-  }
-
-  .species-input,
-  .method-input {
-    font-size: 0.8rem;
-  }
-
-  .input-confirmed {
-    border-color: var(--accent) !important;
-    background: var(--accent-light) !important;
-    box-shadow: 0 0 0 3px rgba(45,90,39,0.15) !important;
-  }
-
-  input.input-error {
-    border-color: var(--danger) !important;
-    box-shadow: 0 0 0 3px rgba(139,46,46,0.15) !important;
-    outline: none !important;
-  }
-
-  div.input-error {
-    outline: 2px solid var(--danger);
-    outline-offset: 2px;
-    border-radius: 3px;
-  }
+  /* Searchable dropdowns */
+  .species-search-wrap { position: relative; }
+  .species-input, .method-input { font-size: 0.8rem; }
 
   .species-dropdown {
     display: none;
@@ -368,7 +207,6 @@
     z-index: 100;
     box-shadow: var(--shadow-lg);
   }
-
   .species-dropdown.open { display: block; }
 
   .species-option {
@@ -378,22 +216,15 @@
     border-bottom: 1px solid var(--border);
     transition: background 0.1s;
   }
-
   .species-option:last-child { border-bottom: none; }
-  .species-option:hover, .species-option.highlighted {
-    background: var(--accent-light);
-    color: var(--accent);
-  }
-
+  .species-option:hover, .species-option.highlighted { background: var(--accent-light); color: var(--accent); }
   .species-option .match { font-weight: 600; color: var(--accent); }
+  .species-option.is-selected { font-weight: 600; }
+  .species-option.is-selected::after { content: ' \2713'; color: var(--accent); }
+  .opt-hint { color: var(--ink-muted); font-size: 0.72rem; }
+  .species-code { color: var(--ink-muted); font-size: 0.72rem; margin-left: 6px; }
 
-  .no-results {
-    padding: 10px 12px;
-    font-size: 0.78rem;
-    color: var(--ink-muted);
-    font-style: italic;
-  }
-
+  .no-results { padding: 10px 12px; font-size: 0.78rem; color: var(--ink-muted); font-style: italic; }
   .dropdown-loading {
     padding: 10px 12px;
     font-size: 0.78rem;
@@ -402,7 +233,6 @@
     align-items: center;
     gap: 8px;
   }
-
   .dropdown-spinner {
     display: inline-block;
     width: 11px;
@@ -411,14 +241,12 @@
     border-top-color: var(--accent);
     border-radius: 50%;
     flex-shrink: 0;
+    animation: spin 0.7s linear infinite;
   }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Row inputs */
   .row-input {
     font-size: 0.8rem;
-    font-family: 'IBM Plex Mono', monospace;
     color: var(--ink);
     background: var(--surface);
     border: 1px solid var(--border);
@@ -426,60 +254,29 @@
     width: 100%;
     transition: border-color 0.15s;
   }
+  input[type="number"].row-input { -moz-appearance: textfield; }
+  input[type="number"].row-input::-webkit-inner-spin-button { display: none; }
 
-  .row-input:focus {
-    outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
-  }
-
-  .age-toggle {
-    display: flex;
-    gap: 4px;
-  }
-
+  .age-toggle { display: flex; gap: 4px; }
   .age-btn {
     flex: 1;
     padding: 8px 4px;
     border: 1px solid var(--border);
     border-radius: 3px;
     background: var(--surface);
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.72rem;
     color: var(--ink-muted);
     cursor: pointer;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
     white-space: nowrap;
   }
-
   .age-btn:hover { background: var(--accent-light); color: var(--accent); }
+  .age-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
-  .age-btn.active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
-
-  input[type="number"].row-input {
-    -moz-appearance: textfield;
-  }
-  input[type="number"].row-input::-webkit-inner-spin-button { display: none; }
-
-  .num-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-  }
-
+  .num-wrap { display: flex; flex-direction: column; align-items: stretch; gap: 2px; }
   .proc-mob-label, .ringed-mob-label,
   .pulli-ringed-mob-label, .broods-mob-label { display: none; }
-
-  .num-input {
-    text-align: center;
-    padding: 4px 6px;
-  }
-
+  .num-input { text-align: center; padding: 4px 6px; }
   .num-btn {
     background: var(--accent-light);
     border: 1px solid var(--border);
@@ -492,10 +289,8 @@
     transition: background 0.1s;
     width: 100%;
   }
-
   .num-btn:hover { background: var(--border); }
 
-  /* Remove row button */
   .remove-row {
     width: 28px;
     height: 28px;
@@ -512,37 +307,44 @@
     transition: background 0.15s, color 0.15s, border-color 0.15s;
     flex-shrink: 0;
   }
-
-  .remove-row:hover {
-    background: #fde8e8;
+  .remove-row:hover, .upload-file-remove:hover {
+    background: color-mix(in srgb, var(--danger) 15%, var(--surface));
     color: var(--danger);
     border-color: var(--danger);
   }
 
-  /* Add row button */
-  .add-row-wrap {
-    padding: 16px 24px;
-    border-top: 1px dashed var(--border);
+  .add-row-wrap { padding: 16px 24px; border-top: 1px dashed var(--border); }
+  .add-row-btn {
+    background: none;
+    border: 1px dashed var(--accent);
+    color: var(--accent);
+    padding: 8px 16px;
+    border-radius: 3px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
+  .add-row-btn:hover { background: var(--accent-light); }
 
   /* Whoosh net firing question */
   .whoosh-section {
     display: none;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 16px;
     padding: 16px 24px;
     border-top: 1px solid var(--border);
     background: var(--row-alt);
   }
-
   .whoosh-section.visible { display: flex; }
-
+  .whoosh-note { flex-basis: 100%; text-align: center; font-size: 0.72rem; color: var(--ink-muted); }
   .whoosh-label {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     color: var(--ink-muted);
     display: flex;
     align-items: center;
@@ -550,14 +352,7 @@
     white-space: nowrap;
     margin: 0;
   }
-
-  .whoosh-spinner {
-    display: flex;
-    align-items: stretch;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-
+  .whoosh-spinner { display: flex; align-items: stretch; gap: 6px; flex-shrink: 0; }
   .whoosh-spinner .num-btn {
     width: 36px;
     height: auto;
@@ -566,12 +361,10 @@
     flex-shrink: 0;
     border-radius: 3px;
   }
-
   .whoosh-input {
     width: 64px;
     height: 36px;
     text-align: center;
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.85rem;
     color: var(--ink);
     background: var(--surface);
@@ -581,122 +374,61 @@
     transition: border-color 0.15s;
   }
 
-  .whoosh-input:focus {
-    outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
-  }
-
-  .whoosh-input.input-error {
-    border-color: var(--danger) !important;
-    box-shadow: 0 0 0 3px rgba(139,46,46,0.15) !important;
-  }
-
-  /* on mobile, centre and stack label above spinner */
-  @media (max-width: 600px) {
-    .whoosh-section { flex-direction: column; align-items: center; gap: 10px; }
-  }
-
-  .add-row-btn {
-    background: none;
-    border: 1px dashed var(--accent);
-    color: var(--accent);
-    padding: 8px 16px;
-    border-radius: 3px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: background 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .add-row-btn:hover { background: var(--accent-light); }
-
-  /* Submit */
-  .submit-row {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
+  /* ── Submit row ── */
+  .submit-row { display: flex; align-items: center; gap: 16px; }
   .submit-btn {
     background: var(--accent);
-    color: white;
+    color: var(--on-accent);
     border: none;
     padding: 14px 36px;
     border-radius: 3px;
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.85rem;
     font-weight: 500;
-    letter-spacing: 0.06em;
     cursor: pointer;
     transition: background 0.15s, transform 0.1s;
   }
-
   .submit-btn:hover { background: var(--accent-hover); }
   .submit-btn:active { transform: scale(0.98); }
   .submit-btn:disabled { background: var(--ink-muted); cursor: not-allowed; }
 
-  #status-msg {
-    font-size: 0.78rem;
-    letter-spacing: 0.04em;
+  #status-msg, #upload-status { font-size: 0.78rem; }
+  .status-ok  { color: var(--accent); }
+  .status-err { color: var(--danger); }
+
+  .upload-prev-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 18px;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    white-space: nowrap;
   }
+  .upload-prev-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
 
-  /* ── Screen transitions ── */
-  @keyframes fadeSlideIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fadeSlideOut {
-    from { opacity: 1; transform: translateY(0); }
-    to   { opacity: 0; transform: translateY(-8px); }
-  }
-
-  .screen-enter {
-    animation: fadeSlideIn 0.3s ease forwards;
-  }
-
-  .screen-exit {
-    animation: fadeSlideOut 0.2s ease forwards;
-    pointer-events: none;
-  }
-
-  /* ── Confirmation screen ── */
-  #confirm-screen {
-    display: none;
-    max-width: 1260px;
-    margin: 40px auto;
-    padding: 0 20px 60px;
-  }
-
-  #confirm-screen.visible { display: block; }
-
+  /* ── Warning banner (also used for the list-load warning) ── */
   .confirm-banner {
-    background: #fff8e6;
-    border: 1px solid #e8d88a;
-    border-left: 3px solid #c9a800;
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-left: 3px solid var(--warn-strong);
     border-radius: 3px;
     padding: 12px 18px;
     margin-bottom: 24px;
     font-size: 0.78rem;
-    color: #6b5700;
-    letter-spacing: 0.03em;
+    color: var(--warn-ink);
   }
 
+  /* ── Confirmation screen ── */
   .confirm-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-top: 3px solid var(--accent);
     border-radius: 4px;
     margin-bottom: 20px;
     box-shadow: var(--shadow);
     overflow: hidden;
   }
-
   .confirm-card-header {
     padding: 14px 24px;
     border-bottom: 1px solid var(--border);
@@ -704,84 +436,38 @@
     justify-content: space-between;
     align-items: center;
   }
-
-  .confirm-card-header h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .confirm-meta-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-
+  .confirm-card-header h2 { font-size: 1rem; font-weight: 600; }
+  .confirm-meta-grid { display: grid; grid-template-columns: 1fr 1fr; }
   .confirm-meta-item {
     padding: 14px 24px;
-    border-bottom: 1px solid #f0ebe0;
+    border-bottom: 1px solid var(--border-soft);
     display: flex;
     flex-direction: column;
     gap: 4px;
   }
+  .confirm-meta-label { font-size: 0.7rem; font-weight: 500; color: var(--ink-muted); }
+  .confirm-meta-value { font-size: 0.88rem; color: var(--ink); }
 
-  .confirm-meta-label {
-    font-size: 0.62rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-muted);
-  }
-
-  .confirm-meta-value {
-    font-size: 0.88rem;
-    color: var(--ink);
-  }
-
-  .confirm-table-header {
-    display: grid;
-    grid-template-columns: 1.5fr 0.85fr 1fr 0.6fr 0.7fr 0.8fr 0.65fr 0.6fr;
-    gap: 10px;
-    padding: 8px 24px;
-    background: var(--accent-light);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .confirm-col-head {
-    font-size: 0.62rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--accent);
-    white-space: nowrap;
-  }
-
-  .confirm-table-row {
+  .confirm-table-header, .confirm-table-row, .confirm-totals-row {
     display: grid;
     grid-template-columns: 1.5fr 0.85fr 1fr 0.6fr 0.7fr 0.8fr 0.65fr 0.6fr;
     gap: 10px;
     padding: 10px 24px;
-    border-bottom: 1px solid #f0ebe0;
-    align-items: center;
   }
-
+  .confirm-table-header { padding: 8px 24px; background: var(--accent-light); border-bottom: 1px solid var(--border); }
+  .confirm-col-head { font-size: 0.7rem; font-weight: 500; color: var(--accent); white-space: nowrap; }
+  .confirm-table-row { border-bottom: 1px solid var(--border-soft); align-items: center; }
   .confirm-table-row:last-child { border-bottom: none; }
   .confirm-table-row:nth-child(even) { background: var(--row-alt); }
-
-  .confirm-totals-row {
-    display: grid;
-    grid-template-columns: 1.5fr 0.85fr 1fr 0.6fr 0.7fr 0.8fr 0.65fr 0.6fr;
-    gap: 10px;
-    padding: 10px 24px;
-    background: var(--bg);
-    border-top: 2px solid var(--border);
-  }
+  .confirm-totals-row { background: var(--th); border-top: 2px solid var(--border); }
 
   .confirm-cell { font-size: 0.82rem; color: var(--ink-muted); }
   .confirm-cell-primary { font-size: 0.85rem; color: var(--ink); }
   .confirm-cell-num { font-size: 0.85rem; color: var(--ink); text-align: right; }
   .confirm-cell-total { font-size: 0.82rem; font-weight: 600; color: var(--ink); text-align: right; }
-  .confirm-cell-label { font-size: 0.62rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); }
+  .confirm-cell-label { font-size: 0.7rem; font-weight: 500; color: var(--ink-muted); }
   .confirm-mob-label { display: none; }
+  .write-in-tag { font-size: 0.65rem; color: var(--ink-muted); }
 
   .confirm-actions {
     display: flex;
@@ -790,7 +476,6 @@
     align-items: center;
     margin-top: 8px;
   }
-
   .confirm-back-btn {
     background: none;
     border: 1px solid var(--border);
@@ -801,39 +486,22 @@
     white-space: nowrap;
     color: var(--ink-muted);
     cursor: pointer;
-    font-family: 'IBM Plex Mono', monospace;
     transition: border-color 0.15s, color 0.15s;
   }
-
-  #confirm-submit-btn {
-    height: 48px;
-    padding: 0 36px;
-  }
-
   .confirm-back-btn:hover { border-color: var(--accent); color: var(--accent); }
+  #confirm-submit-btn { height: 48px; padding: 0 36px; }
 
-  /* Success screen */
-  #success-screen {
-    display: none;
-    max-width: 1260px;
-    margin: 40px auto;
-    padding: 0 20px 60px;
-  }
-
-  #success-screen.visible { display: block; }
-
+  /* ── Success screen ── */
   .success-card {
     max-width: 420px;
     margin: 60px auto 0;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-top: 3px solid var(--accent);
     border-radius: 4px;
     padding: 48px 40px;
     text-align: center;
     box-shadow: var(--shadow-lg);
   }
-
   .success-icon {
     width: 56px;
     height: 56px;
@@ -847,106 +515,48 @@
     margin: 0 auto 20px;
     border: 2px solid var(--accent);
   }
-
-  .success-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.3rem;
-    margin-bottom: 8px;
-    color: var(--ink);
-  }
-
-  .success-sub {
-    font-size: 0.78rem;
-    color: var(--ink-muted);
-    margin-bottom: 28px;
-    line-height: 1.6;
-  }
-
+  .success-title { font-size: 1.3rem; margin-bottom: 8px; color: var(--ink); }
+  .success-sub { font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 28px; line-height: 1.6; }
   .success-new-btn {
     background: var(--accent);
-    color: white;
+    color: var(--on-accent);
     border: none;
     border-radius: 3px;
     padding: 12px 28px;
     font-size: 0.82rem;
     cursor: pointer;
-    font-family: 'IBM Plex Mono', monospace;
-    letter-spacing: 0.06em;
     transition: background 0.15s;
   }
-
   .success-new-btn:hover { background: var(--accent-hover); }
 
-  .status-ok  { color: var(--accent); }
-  .status-err { color: var(--danger); }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .dropdown-spinner { animation: spin 0.7s linear infinite; }
-
-  /* ── Upload previous records button ── */
-  .upload-prev-btn {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 10px 18px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--ink-muted);
-    cursor: pointer;
-    letter-spacing: 0.04em;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-    white-space: nowrap;
-  }
-
-  .upload-prev-btn:hover {
-    border-color: var(--amber, #c9a800);
-    color: #4a3c00;
-    background: #fff8e6;
-  }
-
-  /* ─────────────────────────────────────────
-     Upload modal
-  ───────────────────────────────────────── */
-
+  /* ── Upload previous records modal ── */
   .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: var(--modal-overlay);
+    background: rgba(20,24,28,0.55);
     z-index: 200;
     align-items: center;
     justify-content: center;
     padding: 20px;
   }
-
-  .modal-overlay.open {
-    display: flex;
-    animation: fadeIn 0.18s ease;
-  }
-
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal-overlay.open { display: flex; animation: infoOvFade 0.18s ease; }
 
   .modal {
     background: var(--surface);
-    border: 1px solid #e8d88a;
-    border-top: 3px solid #c9a800;
+    border: 1px solid var(--border);
     border-radius: 4px;
-    box-shadow: 0 16px 48px rgba(26,26,20,0.22);
+    box-shadow: var(--shadow-lg);
     width: 100%;
     max-width: 560px;
     max-height: 90vh;
     overflow-y: auto;
     animation: modalIn 0.22s ease;
   }
-
-  @keyframes modalIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: none; }
-  }
-
   .modal-header {
-    background: #4a3c00;
-    color: #fff8e6;
+    background: var(--th);
+    color: var(--ink);
+    border-bottom: 1px solid var(--border);
     padding: 14px 20px;
     display: flex;
     justify-content: space-between;
@@ -955,91 +565,47 @@
     top: 0;
     z-index: 1;
   }
-
-  .modal-header h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
+  .modal-header h2 { font-size: 1rem; font-weight: 600; }
   .modal-close {
     background: none;
     border: none;
-    color: #c9a800;
+    color: var(--ink-muted);
     font-size: 1.3rem;
     line-height: 1;
     cursor: pointer;
     padding: 2px 4px;
     border-radius: 2px;
-    transition: color 0.12s;
   }
+  .modal-close:hover { color: var(--ink); }
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
 
-  .modal-close:hover { color: #fff8e6; }
-
-  .modal-body {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-  }
-
-  /* Drop zone */
   .upload-drop-zone {
-    border: 2px dashed var(--amber-border);
+    border: 2px dashed var(--accent);
     border-radius: 4px;
-    background: var(--amber-bg);
+    background: var(--accent-light);
     padding: 32px 24px;
     text-align: center;
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
     position: relative;
   }
-
-  .upload-drop-zone:hover,
-  .upload-drop-zone.drag-over {
-    border-color: var(--amber);
-    background: #fff3cc;
+  .upload-drop-zone:hover, .upload-drop-zone.drag-over {
+    border-color: var(--accent-hover);
+    background: color-mix(in srgb, var(--accent) 14%, var(--accent-light));
   }
-
   .upload-drop-zone input[type="file"] {
     position: absolute;
     inset: 0;
     opacity: 0;
     cursor: pointer;
     width: 100%;
-    height: 100% !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
+    height: 100%;
   }
+  .drop-icon { font-size: 1.6rem; margin-bottom: 8px; display: block; opacity: 0.7; }
+  .drop-label { font-size: 0.82rem; color: var(--accent); font-weight: 500; margin-bottom: 4px; }
+  .drop-hint { font-size: 0.7rem; color: var(--ink-muted); }
 
-  .drop-icon {
-    font-size: 1.6rem;
-    margin-bottom: 8px;
-    display: block;
-    opacity: 0.7;
-  }
-
-  .drop-label {
-    font-size: 0.82rem;
-    color: var(--amber-ink);
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-
-  .drop-hint {
-    font-size: 0.68rem;
-    color: #8b7000;
-    letter-spacing: 0.03em;
-  }
-
-  /* File list */
-  .upload-file-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
+  .upload-file-list { display: flex; flex-direction: column; gap: 6px; }
   .upload-file-item {
     display: flex;
     align-items: center;
@@ -1050,30 +616,9 @@
     border-radius: 3px;
     animation: slideIn 0.15s ease;
   }
-
-  .upload-file-icon {
-    font-size: 1rem;
-    flex-shrink: 0;
-    width: 20px;
-    text-align: center;
-  }
-
-  .upload-file-name {
-    flex: 1;
-    font-size: 0.78rem;
-    color: var(--ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .upload-file-size {
-    font-size: 0.68rem;
-    color: var(--ink-muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
+  .upload-file-icon { font-size: 1rem; flex-shrink: 0; width: 20px; text-align: center; }
+  .upload-file-name { flex: 1; font-size: 0.78rem; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .upload-file-size { font-size: 0.7rem; color: var(--ink-muted); white-space: nowrap; flex-shrink: 0; }
   .upload-file-remove {
     background: none;
     border: 1px solid var(--border);
@@ -1091,33 +636,11 @@
     line-height: 1;
   }
 
-  .upload-file-remove:hover {
-    background: #fde8e8;
-    color: var(--danger);
-    border-color: var(--danger);
-  }
-
-  /* Size warning */
-  .upload-size-warn {
-    display: none;
-    font-size: 0.72rem;
-    color: var(--danger);
-    padding: 4px 0;
-  }
-
+  .upload-size-warn { display: none; font-size: 0.72rem; color: var(--danger); padding: 4px 0; }
   .upload-size-warn.visible { display: block; }
 
-  /* Meta row: name + notes */
-  .upload-meta-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-
-  .upload-meta-grid label {
-    margin-bottom: 5px;
-  }
-
+  .upload-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .upload-meta-grid label { margin-bottom: 5px; }
   textarea.upload-notes {
     width: 100%;
     height: 42px;
@@ -1126,103 +649,52 @@
     border: 1px solid var(--border);
     border-radius: 3px;
     background: var(--surface);
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.82rem;
     color: var(--ink);
     resize: vertical;
     transition: border-color 0.15s, box-shadow 0.15s;
     line-height: 1.5;
   }
-
-  textarea.upload-notes:focus {
-    outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(45,90,39,0.12);
-  }
-
   textarea.upload-notes::placeholder { color: var(--ink-muted); }
 
-  /* Upload submit row */
-  .upload-submit-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
+  .upload-submit-row { display: flex; align-items: center; gap: 14px; }
   .upload-btn {
-    background: #4a3c00;
-    color: #fff8e6;
+    background: var(--accent);
+    color: var(--on-accent);
     border: none;
     padding: 12px 28px;
     border-radius: 3px;
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.82rem;
     font-weight: 500;
-    letter-spacing: 0.06em;
     cursor: pointer;
     transition: background 0.15s, transform 0.1s;
     white-space: nowrap;
   }
-
-  .upload-btn:hover   { background: #332900; }
-  .upload-btn:active  { transform: scale(0.98); }
+  .upload-btn:hover { background: var(--accent-hover); }
+  .upload-btn:active { transform: scale(0.98); }
   .upload-btn:disabled { background: var(--ink-muted); cursor: not-allowed; }
 
-  #upload-status {
-    font-size: 0.76rem;
-    letter-spacing: 0.04em;
-  }
-
-  /* Progress bar */
-  .upload-progress-wrap {
-    display: none;
-    height: 4px;
-    background: var(--amber-border);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
+  .upload-progress-wrap { display: none; height: 4px; background: var(--accent-light); border-radius: 2px; overflow: hidden; }
   .upload-progress-wrap.visible { display: block; }
-
-  .upload-progress-bar {
-    height: 100%;
-    background: var(--amber);
-    border-radius: 2px;
-    transition: width 0.2s ease;
-    width: 0%;
-  }
+  .upload-progress-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.2s ease; width: 0%; }
 
   /* ── Responsive ── */
-  @media (max-width: 600px) {
-    #confirm-screen { margin: 16px auto; padding: 0 12px 40px; }
+  @media (max-width: 640px) {
+    .whoosh-section { flex-direction: column; align-items: center; gap: 10px; }
+
+    /* Confirmation screen */
     .confirm-table-header { display: none; }
     .confirm-mob-label {
       display: block;
-      font-size: 0.62rem;
+      font-size: 0.7rem;
       font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
       color: var(--ink-muted);
       margin-bottom: 2px;
     }
-    .confirm-table-row {
-      grid-template-columns: 1fr 1fr;
-      gap: 6px 12px;
-      padding: 12px 16px;
-    }
-    .confirm-table-row .confirm-cell-primary {
-      grid-column: 1 / -1;
-      font-size: 0.9rem;
-      margin-bottom: 2px;
-    }
-    .confirm-cell-num, .confirm-cell-warn, .confirm-cell-total { text-align: left; }
-    .confirm-totals-row {
-      display: flex;
-      flex-direction: column;
-      padding: 12px 16px;
-      gap: 6px;
-      border-top: 2px solid var(--border);
-    }
+    .confirm-table-row { grid-template-columns: 1fr 1fr; gap: 6px 12px; padding: 12px 16px; }
+    .confirm-table-row .confirm-cell-primary { grid-column: 1 / -1; font-size: 0.9rem; margin-bottom: 2px; }
+    .confirm-cell-num, .confirm-cell-total { text-align: left; }
+    .confirm-totals-row { display: flex; flex-direction: column; padding: 12px 16px; gap: 6px; border-top: 2px solid var(--border); }
     .confirm-totals-row span { display: none; }
     .confirm-totals-row .confirm-cell-total {
       display: flex;
@@ -1230,15 +702,9 @@
       align-items: baseline;
       font-size: 0.82rem;
     }
-    .confirm-totals-row .confirm-cell-total::before {
-      font-size: 0.68rem;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--ink-muted);
-    }
-    #confirm-tot-ext::before    { content: 'Extracted'; }
-    #confirm-tot-proc::before   { content: 'Processed'; }
+    .confirm-totals-row .confirm-cell-total::before { font-size: 0.72rem; font-weight: 500; color: var(--ink-muted); }
+    #confirm-tot-ext::before     { content: 'Extracted'; }
+    #confirm-tot-proc::before    { content: 'Processed'; }
     #confirm-tot-fringed::before { content: 'Fledged ringed'; }
     #confirm-tot-pringed::before { content: 'Pulli ringed'; }
     #confirm-tot-broods::before  { content: 'Broods assessed'; }
@@ -1247,12 +713,7 @@
     .confirm-back-btn, #confirm-submit-btn { width: 100%; text-align: center; }
     .success-card { padding: 36px 24px; }
 
-    header { padding: 14px 16px; display: flex; flex-direction: row; align-items: center; gap: 0; }
-    header h1 { font-size: 1.3rem; width: 88px; flex-shrink: 0; margin-right: 8px; }
-    header nav { display: flex; flex: 1; justify-content: space-evenly; align-items: center; }
-    header nav a { padding: 4px 0; white-space: nowrap; flex: 1; text-align: center; }
-    header nav span { margin-left: 0 !important; flex: 1; text-align: center; }
-    main { margin: 16px auto; padding: 0 12px 40px; }
+    /* Form */
     .session-card { padding: 20px 16px; margin-bottom: 20px; }
     .session-grid { grid-template-columns: 1fr; }
     .col-headers { display: none; }
@@ -1265,7 +726,6 @@
       padding: 14px 0;
       border-bottom: 2px solid var(--border);
     }
-
     .species-row > .species-search-wrap,
     .species-row > .age-toggle,
     .species-row > .num-wrap,
@@ -1282,10 +742,10 @@
     }
 
     /* On mobile, hide non-applicable fields (remove from flex flow).
-       age-mixed is not used on mobile since col-headers is hidden anyway. */
-    .species-row .pullus-only                { display: none !important; }
-    .species-row.age-pullus .fledged-only    { display: none !important; }
-    .species-row.age-pullus .pullus-only     { display: flex !important; visibility: visible !important; }
+       age-mixed isn't used on mobile since col-headers is hidden anyway. */
+    .species-row .pullus-only             { display: none !important; }
+    .species-row.age-pullus .fledged-only { display: none !important; }
+    .species-row.age-pullus .pullus-only  { display: flex !important; visibility: visible !important; }
 
     .species-row > .species-search-wrap::before,
     .species-row > .age-toggle::before,
@@ -1294,22 +754,20 @@
       display: block;
       width: 120px;
       min-width: 120px;
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
       color: var(--ink-muted);
     }
     .species-row > .species-search-wrap::before { content: 'Species'; }
     .species-row > .age-toggle::before          { content: 'Age'; }
     .species-row > .num-wrap::before            { content: 'Extracted'; }
     .species-row > .method-wrap::before         { content: 'Method'; }
-    .species-row > .proc-wrap::before           { content: none; }
-    .species-row > .ringed-wrap::before         { content: none; }
-    .species-row > .pulli-ringed-wrap::before   { content: none; }
+    .species-row > .proc-wrap::before,
+    .species-row > .ringed-wrap::before,
+    .species-row > .pulli-ringed-wrap::before,
     .species-row > .broods-wrap::before         { content: none; }
 
-    /* HTML labels for spinner wraps with tooltips — same width as ::before labels */
+    /* HTML labels for spinner wraps with tooltips — same width as the ::before labels */
     .proc-mob-label, .ringed-mob-label,
     .pulli-ringed-mob-label, .broods-mob-label {
       display: flex;
@@ -1318,34 +776,14 @@
       width: 120px;
       min-width: 120px;
       flex-shrink: 0;
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
       color: var(--ink-muted);
     }
 
-    /* Suppress the CSS ::after tooltip on mobile — JS bubble handles it instead */
+    input[type="text"], input[type="date"], input[type="number"], select { font-size: 1rem !important; }
 
-    input[type="text"],
-    input[type="search"],
-    input[type="date"],
-    input[type="number"],
-    select {
-      font-size: 1rem !important;
-    }
-
-    .species-row > .species-search-wrap > .species-input {
-      flex: 1;
-      min-width: 0;
-      width: 0 !important;
-      padding: 10px;
-      font-size: 1rem;
-    }
-    .species-row > .species-search-wrap > .species-dropdown {
-      position: absolute;
-    }
-
+    .species-row > .species-search-wrap > .species-input,
     .species-row > .method-wrap > .method-input {
       flex: 1;
       min-width: 0;
@@ -1353,15 +791,10 @@
       padding: 10px;
       font-size: 1rem;
     }
-    .species-row > .method-wrap > .species-dropdown {
-      position: absolute;
-    }
+    .species-row > .species-search-wrap > .species-dropdown,
+    .species-row > .method-wrap > .species-dropdown { position: absolute; }
 
-    .age-btn {
-      flex: 1;
-      padding: 7px 4px;
-      font-size: 0.72rem;
-    }
+    .age-btn { flex: 1; padding: 7px 4px; font-size: 0.72rem; }
     .age-btn + .age-btn { margin-left: 4px; }
 
     .num-btn {
@@ -1381,6 +814,7 @@
       margin: 0 4px;
     }
 
+    /* Spinner order on mobile: ▼ value ▲ */
     .num-wrap .num-btn:first-child,
     .proc-wrap .num-btn:first-of-type,
     .ringed-wrap .num-btn:first-of-type,
@@ -1397,13 +831,7 @@
     .pulli-ringed-wrap .num-btn:last-child,
     .broods-wrap .num-btn:last-child       { order: 1; }
 
-    .remove-row {
-      width: 100%;
-      height: 40px;
-      font-size: 0.78rem;
-      font-family: 'IBM Plex Mono', monospace;
-      border-radius: 3px;
-    }
+    .remove-row { width: 100%; height: 40px; font-size: 0.78rem; border-radius: 3px; }
     .remove-row::after { content: '\00a0 Remove entry'; }
 
     .add-row-wrap { padding: 12px; }
@@ -1412,239 +840,34 @@
     .submit-row { flex-direction: column; align-items: stretch; }
     .upload-prev-btn { width: 100%; margin-left: 0 !important; text-align: center; }
 
-    /* Upload modal on mobile */
-    .modal { max-height: 92vh; border-radius: 4px; }
+    /* Upload modal */
+    .modal { max-height: 92vh; }
     .modal-overlay { padding: 16px; align-items: center; }
     .upload-meta-grid { grid-template-columns: 1fr; }
-    .settings-wrap { margin-left: 0; }
-    .settings-btn .settings-label { display: none; }
-    .settings-dropdown { right: 0; left: auto; min-width: 160px; }
-    .info-modal { max-height: calc(100vh - 40px); }
-    .info-modal-bd { padding: 18px 16px; }
-    .info-overlay { align-items: flex-start; padding: 20px 16px; }
   }
-
-  /* ── Settings button & dropdown ── */
-  .settings-wrap {
-    position: relative;
-    margin-left: auto;
-  }
-
-  .settings-btn {
-    background: none;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 3px;
-    color: #9a9480;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    padding: 5px 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
-    white-space: nowrap;
-  }
-
-  .settings-btn:hover,
-  .settings-btn.open {
-    color: var(--bg);
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(255,255,255,0.3);
-  }
-
-  .settings-dropdown {
-    display: none;
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    box-shadow: 0 8px 28px rgba(26,26,20,0.18);
-    min-width: 180px;
-    z-index: 500;
-    overflow: hidden;
-  }
-
-  .settings-dropdown.open {
-    display: block;
-    animation: ddFadeIn 0.15s ease;
-  }
-
-  @keyframes ddFadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: none; }
-  }
-
-  .settings-item {
-    display: block;
-    width: 100%;
-    padding: 10px 16px;
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--ink);
-    cursor: pointer;
-    text-align: left;
-    text-decoration: none;
-    letter-spacing: 0.02em;
-    transition: background 0.1s;
-  }
-
-  .settings-item:last-child { border-bottom: none; }
-  .settings-item:hover { background: var(--accent-light); color: var(--accent); }
-
-  /* ── Info overlays / modals ── */
-  .info-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(26,26,20,0.55);
-    z-index: 600;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-
-  .info-overlay.open {
-    display: flex;
-    animation: infoOvFade 0.18s ease;
-  }
-
-  @keyframes infoOvFade { from { opacity: 0; } to { opacity: 1; } }
-
-  .info-modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--accent);
-    border-radius: 4px;
-    box-shadow: 0 16px 48px rgba(26,26,20,0.22);
-    width: 100%;
-    max-width: 540px;
-    max-height: 88vh;
-    overflow-y: auto;
-    animation: modalIn 0.22s ease;
-  }
-
-  .info-modal-hd {
-    background: var(--ink);
-    color: var(--bg);
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-
-  .info-modal-hd h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .info-modal-x {
-    background: none;
-    border: none;
-    color: #9a9480;
-    font-size: 1.3rem;
-    line-height: 1;
-    cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 2px;
-    transition: color 0.12s;
-  }
-
-  .info-modal-x:hover { color: var(--bg); }
-
-  .info-modal-bd {
-    padding: 22px 24px;
-    font-size: 0.82rem;
-    line-height: 1.7;
-    color: var(--ink-muted);
-  }
-
-  .info-modal-bd h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 0.92rem;
-    color: var(--ink);
-    margin: 18px 0 6px;
-    font-weight: 600;
-  }
-
-  .info-modal-bd h3:first-child { margin-top: 0; }
-  .info-modal-bd p { margin-bottom: 8px; }
-  .info-modal-bd a { color: var(--accent); text-decoration: underline; }
-
-  .vtag {
-    display: inline-block;
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    padding: 2px 7px;
-    border-radius: 2px;
-    background: var(--accent-light);
-    color: var(--accent);
-    border: 1px solid #c8dcc5;
-    margin-bottom: 4px;
-    vertical-align: middle;
-  }
-
-  .vtag-new {
-    background: #fff8e6;
-    color: #6b5700;
-    border-color: #e8d88a;
-  }
-
-  .cl-entry {
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .cl-entry:last-child { border-bottom: none; }
-  .cl-entry ul { margin: 6px 0 0 16px; }
-  .cl-entry li { margin-bottom: 3px; }
 </style>
+<script src="theme.js?v=4"></script>
 </head>
-<body>
+<body data-page="log">
 
-<header>
-  <h1>Ringing Tracker</h1>
-  <nav>
-    <a href="index.html" class="active">Log session</a>
-    <a href="dashboard.html">Dashboard</a>
-    <div class="settings-wrap">
-      <button class="settings-btn" id="settings-btn"
-              onclick="toggleSettings(event)" aria-label="Settings">
-        ⚙ <span class="settings-label">Settings</span>
-      </button>
-      <div class="settings-dropdown" id="settings-dropdown">
-        <button class="settings-item" onclick="openInfoModal('about-modal')">FAQ</button>
-        <button class="settings-item" onclick="openInfoModal('changelog-modal')">Changelog</button>
-        <button class="settings-item" onclick="openInfoModal('report-modal')">Report issues</button>
-      </div>
-    </div>
-  </nav>
-</header>
+<!-- ═══ Form screen ═══ -->
+<main class="screen visible" id="form-screen">
 
-<main>
+  <div class="confirm-banner" id="list-warning" style="display:none">
+    <span id="list-warning-msg"></span>
+    <button type="button" class="confirm-back-btn" style="height:auto;padding:4px 12px;margin-left:10px" onclick="retryLists()">Retry</button>
+  </div>
 
   <!-- Session Details -->
   <div class="session-card">
     <h2>Session Details</h2>
     <div class="session-grid">
       <div>
-        <label>Name <span class="required">*</span></label>
+        <label for="trainee-name">Name <span class="required">*</span></label>
         <div class="species-search-wrap">
           <input type="text" id="trainee-name" class="species-input"
                  placeholder="Type to search or add name"
-                 autocomplete="off"
-                 data-is-new="false"
+                 autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore="true" data-form-type="other"
                  data-selected=""
                  oninput="filterTrainees(this.value)"
                  onkeydown="handleTraineeKey(event)"
@@ -1654,7 +877,7 @@
         </div>
       </div>
       <div>
-        <label>Session Date</label>
+        <label for="session-date">Session Date</label>
         <input type="date" id="session-date">
       </div>
     </div>
@@ -1672,10 +895,10 @@
       <span>Age</span>
       <span>Extracted</span>
       <span>Method</span>
-      <span class="fledged-only tip-wrap">Processed <button class="tip-icon" data-tip="Fledged birds ringed and retraps processed, always >= Ringed" aria-label="Info">i</button></span>
-      <span class="fledged-only tip-wrap" id="hdr-fledged-ringed">Ringed <button class="tip-icon" data-tip="Number of new fledged birds that you ringed, always <= Processed" aria-label="Info">i</button></span>
-      <span class="pullus-only tip-wrap" id="hdr-pulli-ringed">Ringed <button class="tip-icon" data-tip="Number of new pulli that you ringed" aria-label="Info">i</button></span>
-      <span class="pullus-only tip-wrap">Broods Ass. <button class="tip-icon" data-tip="Number of broods/nests visited, whether or not pulli were ringed" aria-label="Info">i</button></span>
+      <span class="fledged-only tip-wrap">Processed <span data-tip-for="processed"></span></span>
+      <span class="fledged-only tip-wrap" id="hdr-fledged-ringed">Ringed <span data-tip-for="ringed"></span></span>
+      <span class="pullus-only tip-wrap" id="hdr-pulli-ringed">Ringed <span data-tip-for="pulliRinged"></span></span>
+      <span class="pullus-only tip-wrap">Broods Ass. <span data-tip-for="broods"></span></span>
       <span></span>
     </div>
 
@@ -1688,19 +911,20 @@
     </div>
 
     <div class="whoosh-section" id="whoosh-section">
-      <label class="whoosh-label">
+      <label class="whoosh-label" for="whoosh-firings">
         Whoosh net active firings
-        <button class="tip-icon" data-tip="Number of active firings onto birds where you made the decision to fire" aria-label="Info">i</button>
+        <span data-tip-for="whoosh"></span>
       </label>
       <div class="whoosh-spinner">
-        <button type="button" class="num-btn" onmousedown="changeWhoosh(-1)">▼</button>
+        <button type="button" class="num-btn" aria-label="Decrease" onclick="changeWhoosh(-1)">▼</button>
         <input type="text" class="whoosh-input" id="whoosh-firings"
                value="—" data-value="null"
                onchange="whooshInputChange(this)"
-               onblur="whooshInputBlur(this)"
-               autocomplete="off">
-        <button type="button" class="num-btn" onmousedown="changeWhoosh(1)">▲</button>
+               onblur="whooshInputChange(this)"
+               autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore="true" data-form-type="other">
+        <button type="button" class="num-btn" aria-label="Increase" onclick="changeWhoosh(1)">▲</button>
       </div>
+      <p class="whoosh-note">No birds caught? Leave that whoosh row's species and counts blank and only the firings are recorded.</p>
     </div>
   </div>
 
@@ -1715,7 +939,7 @@
 
 </main>
 
-<!-- ── Upload previous records modal ── -->
+<!-- ═══ Upload previous records modal ═══ -->
 <div class="modal-overlay" id="upload-modal" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-header">
@@ -1732,7 +956,7 @@
            ondragleave="handleDragLeave(event)"
            ondrop="handleDrop(event)">
         <input type="file" id="upload-file-input" multiple
-               accept=".csv,.xlsx,.xls,.ods,.pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.heic"
+               aria-label="Choose files to upload"
                onchange="handleFileSelect(this.files)">
         <span class="drop-icon">📂</span>
         <div class="drop-label">Drop files here, or click to browse</div>
@@ -1754,7 +978,7 @@
       <div class="upload-meta-grid">
         <div>
           <label for="upload-sender">Your name <span class="required">*</span></label>
-          <input type="text" id="upload-sender" placeholder="Type your full name" autocomplete="off">
+          <input type="text" id="upload-sender" placeholder="Type your full name" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore="true" data-form-type="other">
         </div>
         <div>
           <label for="upload-notes">Notes</label>
@@ -1772,22 +996,26 @@
     </div>
 
     <!-- Success panel (shown after send) -->
-    <div class="modal-body upload-success-panel" id="upload-success-panel" style="display:none; text-align:center; padding: 36px 24px;">
+    <div class="modal-body" id="upload-success-panel" style="display:none; text-align:center; padding: 36px 24px;">
       <div class="success-icon" style="margin: 0 auto 16px;">✓</div>
-      <h3 class="success-title" style="margin-bottom:8px;" id="upload-success-title">Files uploaded</h3>
+      <h3 class="success-title" style="margin-bottom:8px;">Files uploaded</h3>
       <p class="success-sub" id="upload-success-sub"></p>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px;">
         <button class="upload-btn" onclick="resetUploadModal()">Upload more files</button>
-        <a href="index.html"><button class="confirm-back-btn">← Back to log session</button></a>
+        <button class="confirm-back-btn" onclick="closeUploadModal()">← Back to log session</button>
       </div>
     </div>
 
   </div>
 </div>
 
-<!-- Confirmation screen -->
-<div id="confirm-screen">
+<!-- ═══ Confirmation screen ═══ -->
+<div class="screen" id="confirm-screen">
   <div class="confirm-banner">⚠ Please review your session before submitting</div>
+  <div class="confirm-banner" id="confirm-zero-note" style="display:none">
+    <strong>No birds were caught in the whoosh net firings.</strong> Only the
+    <span id="confirm-zero-count">0</span> live firing(s) are being recorded for the whoosh row. Please double-check that this is correct before you submit.
+  </div>
 
   <div class="confirm-card">
     <div class="confirm-card-header">
@@ -1805,7 +1033,7 @@
     </div>
   </div>
 
-  <div class="confirm-card">
+  <div class="confirm-card" id="confirm-species-card">
     <div class="confirm-card-header">
       <h2>Species Recorded</h2>
     </div>
@@ -1850,8 +1078,8 @@
   </div>
 </div>
 
-<!-- Success screen -->
-<div id="success-screen">
+<!-- ═══ Success screen ═══ -->
+<div class="screen" id="success-screen">
   <div class="success-card">
     <div class="success-icon">✓</div>
     <h2 class="success-title">Session submitted</h2>
@@ -1860,357 +1088,107 @@
   </div>
 </div>
 
-<script>
-// ─────────────────────────────────────────────
-// CONFIGURATION — edit these values
-// ─────────────────────────────────────────────
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_325ASJS3a7eWO0SF1VKzMLJyePOAVuk46kxnRf6voyz_u1lIBJYvnZ9gbkczMrpH/exec';
+<div id="js-tip" role="tooltip" aria-hidden="true"></div>
 
-const SPECIES_LIST = [
-  { name: "Mute Swan", code: "MUTSW" },
-  { name: "Bewick's Swan", code: "BEWSW" },
-  { name: "Whooper Swan", code: "WHOSW" },
-  { name: "Black Swan", code: "" },
-  { name: "Bar-headed Goose", code: "" },
-  { name: "Bean Goose", code: "BEAGO" },
-  { name: "Bean Goose (Taiga)", code: "" },
-  { name: "Bean Goose (Tundra)", code: "" },
-  { name: "Pink-footed Goose", code: "PIFGO" },
-  { name: "White-fronted Goose", code: "WHFGO" },
-  { name: "White-fronted Goose (Greenland)", code: "" },
-  { name: "White-fronted Goose (European)", code: "" },
-  { name: "Greylag Goose", code: "GREGO" },
-  { name: "Greylag Goose (domestic)", code: "" },
-  { name: "Snow Goose", code: "SNOGO" },
-  { name: "Canada Goose", code: "CANGO" },
-  { name: "Barnacle Goose", code: "BARGO" },
-  { name: "Brent Goose", code: "BREGO" },
-  { name: "Brent Goose (Dark-bellied)", code: "" },
-  { name: "Brent Goose (Light-bellied)", code: "" },
-  { name: "Brent Goose (Black Brant)", code: "" },
-  { name: "Egyptian Goose", code: "EGYGO" },
-  { name: "Ruddy Shelduck", code: "RUDSH" },
-  { name: "Shelduck", code: "SHELD" },
-  { name: "Mandarin Duck", code: "MANDA" },
-  { name: "Wood Duck", code: "WOODU" },
-  { name: "Wigeon", code: "WIGEO" },
-  { name: "American Wigeon", code: "AMEWI" },
-  { name: "Gadwall", code: "GADWA" },
-  { name: "Teal", code: "TEAL." },
-  { name: "Green-winged Teal", code: "GRWTE" },
-  { name: "Mallard", code: "MALLA" },
-  { name: "Mallard (domestic)", code: "" },
-  { name: "Pintail", code: "PINTA" },
-  { name: "Garganey", code: "GARGA" },
-  { name: "Shoveler", code: "SHOVE" },
-  { name: "Red-crested Pochard", code: "RECPO" },
-  { name: "Pochard", code: "POCHA" },
-  { name: "Ring-necked Duck", code: "RINDU" },
-  { name: "Ferruginous Duck", code: "FERDU" },
-  { name: "Tufted Duck", code: "TUFDU" },
-  { name: "Scaup", code: "SCAUP" },
-  { name: "Eider", code: "EIDER" },
-  { name: "Long-tailed Duck", code: "LOTDU" },
-  { name: "Common Scoter", code: "COMSC" },
-  { name: "Surf Scoter", code: "SURSC" },
-  { name: "Velvet Scoter", code: "VELSC" },
-  { name: "Goldeneye", code: "GOLDE" },
-  { name: "Smew", code: "SMEW." },
-  { name: "Red-breasted Merganser", code: "REBME" },
-  { name: "Goosander", code: "GOOSA" },
-  { name: "Ruddy Duck", code: "RUDDU" },
-  { name: "Muscovy Duck", code: "MUSDU" },
-  { name: "Red Grouse", code: "REDGR" },
-  { name: "Ptarmigan", code: "PTARM" },
-  { name: "Black Grouse", code: "BLAGR" },
-  { name: "Capercaillie", code: "CAPER" },
-  { name: "Red-legged Partridge", code: "RELPA" },
-  { name: "Grey Partridge", code: "GREPA" },
-  { name: "Quail", code: "QUAIL" },
-  { name: "Pheasant", code: "PHEAS" },
-  { name: "Golden Pheasant", code: "GOLPH" },
-  { name: "Lady Amherst's Pheasant", code: "LAAPH" },
-  { name: "Chukar", code: "" },
-  { name: "Indian Peafowl", code: "" },
-  { name: "Red-throated Diver", code: "RETDI" },
-  { name: "Black-throated Diver", code: "BLTDI" },
-  { name: "Great Northern Diver", code: "GRNDI" },
-  { name: "Little Grebe", code: "LITGR" },
-  { name: "Great Crested Grebe", code: "GRCGR" },
-  { name: "Red-necked Grebe", code: "RENGR" },
-  { name: "Slavonian Grebe", code: "SLAGR" },
-  { name: "Black-necked Grebe", code: "BLNGR" },
-  { name: "Bittern", code: "BITTE" },
-  { name: "Night-heron", code: "NIGHE" },
-  { name: "Little Egret", code: "LITEG" },
-  { name: "Great White Egret", code: "GRWEG" },
-  { name: "Grey Heron", code: "GREHE" },
-  { name: "Purple Heron", code: "PURHE" },
-  { name: "White Stork", code: "WHIST" },
-  { name: "Glossy Ibis", code: "GLOIB" },
-  { name: "Spoonbill", code: "SPOON" },
-  { name: "Honey-buzzard", code: "HONBU" },
-  { name: "Black Kite", code: "BLAKI" },
-  { name: "Red Kite", code: "REDKI" },
-  { name: "White-tailed Eagle", code: "WHTEA" },
-  { name: "Marsh Harrier", code: "MARHA" },
-  { name: "Hen Harrier", code: "HENHA" },
-  { name: "Montagu's Harrier", code: "MONHA" },
-  { name: "Goshawk", code: "GOSHA" },
-  { name: "Sparrowhawk", code: "SPARR" },
-  { name: "Buzzard", code: "BUZZA" },
-  { name: "Rough-legged Buzzard", code: "ROLBU" },
-  { name: "Golden Eagle", code: "GOLEA" },
-  { name: "Osprey", code: "OSPRE" },
-  { name: "Kestrel", code: "KESTR" },
-  { name: "Red-footed Falcon", code: "REFFA" },
-  { name: "Merlin", code: "MERLI" },
-  { name: "Hobby", code: "HOBBY" },
-  { name: "Peregrine", code: "PEREG" },
-  { name: "Water Rail", code: "WATRA" },
-  { name: "Spotted Crake", code: "SPOCR" },
-  { name: "Corncrake", code: "CORNC" },
-  { name: "Moorhen", code: "MOORH" },
-  { name: "Coot", code: "COOT." },
-  { name: "Crane", code: "CRANE" },
-  { name: "Oystercatcher", code: "OYSTE" },
-  { name: "Black-winged Stilt", code: "BLWST" },
-  { name: "Avocet", code: "AVOCE" },
-  { name: "Stone-curlew", code: "STOCU" },
-  { name: "Little Ringed Plover", code: "LIRPL" },
-  { name: "Ringed Plover", code: "RINPL" },
-  { name: "Kentish Plover", code: "KENPL" },
-  { name: "Dotterel", code: "DOTTE" },
-  { name: "American Golden Plover", code: "AMGPL" },
-  { name: "Golden Plover", code: "GOLPL" },
-  { name: "Grey Plover", code: "GREPL" },
-  { name: "Lapwing", code: "LAPWI" },
-  { name: "Knot", code: "KNOT." },
-  { name: "Sanderling", code: "SANDE" },
-  { name: "Little Stint", code: "LITST" },
-  { name: "Temminck's Stint", code: "TEMST" },
-  { name: "White-rumped Sandpiper", code: "WHRSA" },
-  { name: "Pectoral Sandpiper", code: "PECSA" },
-  { name: "Curlew Sandpiper", code: "CURSA" },
-  { name: "Purple Sandpiper", code: "PURSA" },
-  { name: "Dunlin", code: "DUNLI" },
-  { name: "Buff-breasted Sandpiper", code: "BUBSA" },
-  { name: "Ruff", code: "RUFF." },
-  { name: "Jack Snipe", code: "JACSN" },
-  { name: "Snipe", code: "SNIPE" },
-  { name: "Woodcock", code: "WOODC" },
-  { name: "Black-tailed Godwit", code: "BLTGO" },
-  { name: "Bar-tailed Godwit", code: "BATGO" },
-  { name: "Whimbrel", code: "WHIMB" },
-  { name: "Curlew", code: "CURLE" },
-  { name: "Spotted Redshank", code: "SPORE" },
-  { name: "Redshank", code: "REDSH" },
-  { name: "Greenshank", code: "GRESH" },
-  { name: "Lesser Yellowlegs", code: "LESYE" },
-  { name: "Green Sandpiper", code: "GRESA" },
-  { name: "Wood Sandpiper", code: "WOOSA" },
-  { name: "Common Sandpiper", code: "COMSA" },
-  { name: "Turnstone", code: "TURNS" },
-  { name: "Red-necked Phalarope", code: "RENPH" },
-  { name: "Grey Phalarope", code: "GREPH" },
-  { name: "Pomarine Skua", code: "POMSK" },
-  { name: "Arctic Skua", code: "ARCSK" },
-  { name: "Long-tailed Skua", code: "LOTSK" },
-  { name: "Great Skua", code: "GRESK" },
-  { name: "Mediterranean Gull", code: "MEDGU" },
-  { name: "Little Gull", code: "LITGU" },
-  { name: "Sabine's Gull", code: "SABGU" },
-  { name: "Black-headed Gull", code: "BLHGU" },
-  { name: "Ring-billed Gull", code: "RIBGU" },
-  { name: "Common Gull", code: "COMGU" },
-  { name: "Lesser Black-backed Gull", code: "LBBGU" },
-  { name: "Herring Gull", code: "HERGU" },
-  { name: "Yellow-legged Gull", code: "YELGU" },
-  { name: "Caspian Gull", code: "" },
-  { name: "Iceland Gull", code: "ICEGU" },
-  { name: "Glaucous Gull", code: "GLAGU" },
-  { name: "Great Black-backed Gull", code: "GBBGU" },
-  { name: "Kittiwake", code: "KITTI" },
-  { name: "Sandwich Tern", code: "SANTE" },
-  { name: "Roseate Tern", code: "ROSTE" },
-  { name: "Common Tern", code: "COMTE" },
-  { name: "Arctic Tern", code: "ARCTE" },
-  { name: "Little Tern", code: "LITTE" },
-  { name: "Black Tern", code: "BLATE" },
-  { name: "White-winged Black Tern", code: "WWBTE" },
-  { name: "Guillemot", code: "GUILL" },
-  { name: "Razorbill", code: "RAZOR" },
-  { name: "Black Guillemot", code: "BLAGU" },
-  { name: "Little Auk", code: "LITAU" },
-  { name: "Puffin", code: "PUFFI" },
-  { name: "Fulmar", code: "FULMA" },
-  { name: "Cory's Shearwater", code: "CORSH" },
-  { name: "Great Shearwater", code: "GRTSH" },
-  { name: "Sooty Shearwater", code: "SOOSH" },
-  { name: "Manx Shearwater", code: "MANSH" },
-  { name: "Balearic Shearwater", code: "BALSH" },
-  { name: "Wilson's Petrel", code: "WILPE" },
-  { name: "Storm Petrel", code: "STOPE" },
-  { name: "Leach's Petrel", code: "LEAPE" },
-  { name: "Gannet", code: "GANNE" },
-  { name: "Cormorant", code: "CORMO" },
-  { name: "Cormorant (Continental)", code: "" },
-  { name: "Shag", code: "SHAG." },
-  { name: "Rock Dove", code: "ROCDO" },
-  { name: "Feral Pigeon", code: "" },
-  { name: "Stock Dove", code: "STODO" },
-  { name: "Woodpigeon", code: "WOODP" },
-  { name: "Collared Dove", code: "COLDO" },
-  { name: "Turtle Dove", code: "TURDO" },
-  { name: "Ring-necked Parakeet", code: "RINPA" },
-  { name: "Cuckoo", code: "CUCKO" },
-  { name: "Barn Owl", code: "BAROW" },
-  { name: "Little Owl", code: "LITOW" },
-  { name: "Tawny Owl", code: "TAWOW" },
-  { name: "Long-eared Owl", code: "LOEOW" },
-  { name: "Short-eared Owl", code: "SHEOW" },
-  { name: "Nightjar", code: "NIJAR" },
-  { name: "Swift", code: "SWIFT" },
-  { name: "Alpine Swift", code: "ALPSW" },
-  { name: "Kingfisher", code: "KINGF" },
-  { name: "Bee-eater", code: "BEEEA" },
-  { name: "Hoopoe", code: "HOOPO" },
-  { name: "Wryneck", code: "WRYNE" },
-  { name: "Green Woodpecker", code: "GREWO" },
-  { name: "Great Spotted Woodpecker", code: "GRSWO" },
-  { name: "Lesser Spotted Woodpecker", code: "LESWO" },
-  { name: "Short-toed Lark", code: "SHTLA" },
-  { name: "Woodlark", code: "WOODL" },
-  { name: "Skylark", code: "SKYLA" },
-  { name: "Shore Lark", code: "SHOLA" },
-  { name: "Sand Martin", code: "SANMA" },
-  { name: "Swallow", code: "SWALL" },
-  { name: "Red-rumped Swallow", code: "RERSW" },
-  { name: "House Martin", code: "HOUMA" },
-  { name: "Richard's Pipit", code: "RICPI" },
-  { name: "Tawny Pipit", code: "TAWPI" },
-  { name: "Tree Pipit", code: "TREPI" },
-  { name: "Meadow Pipit", code: "MEAPI" },
-  { name: "Red-throated Pipit", code: "RETPI" },
-  { name: "Rock Pipit", code: "ROCPI" },
-  { name: "Water Pipit", code: "WATPI" },
-  { name: "Yellow Wagtail", code: "YELWA" },
-  { name: "Yellow Wagtail (Blue-headed)", code: "" },
-  { name: "Yellow Wagtail (Grey-headed)", code: "" },
-  { name: "Grey Wagtail", code: "GREWA" },
-  { name: "Pied/White Wagtail", code: "PIEWA" },
-  { name: "Pied Wagtail (yarrellii)", code: "" },
-  { name: "White Wagtail (alba)", code: "" },
-  { name: "Waxwing", code: "WAXWI" },
-  { name: "Dipper", code: "DIPPE" },
-  { name: "Wren", code: "WREN." },
-  { name: "Dunnock", code: "DUNNO" },
-  { name: "Robin", code: "ROBIN" },
-  { name: "Nightingale", code: "NIGAL" },
-  { name: "Bluethroat", code: "BLUTH" },
-  { name: "Bluethroat (White-spotted)", code: "" },
-  { name: "Bluethroat (Red-spotted)", code: "" },
-  { name: "Black Redstart", code: "BLARE" },
-  { name: "Redstart", code: "REDST" },
-  { name: "Whinchat", code: "WHINC" },
-  { name: "Stonechat", code: "STOCH" },
-  { name: "Wheatear", code: "WHEAT" },
-  { name: "Wheatear (Greenland)", code: "" },
-  { name: "Ring Ouzel", code: "RINOU" },
-  { name: "Blackbird", code: "BLABI" },
-  { name: "Fieldfare", code: "FIELD" },
-  { name: "Song Thrush", code: "SONTH" },
-  { name: "Redwing", code: "REDWI" },
-  { name: "Mistle Thrush", code: "MISTH" },
-  { name: "Cetti's Warbler", code: "CETWA" },
-  { name: "Grasshopper Warbler", code: "GRAWA" },
-  { name: "Savi's Warbler", code: "SAVWA" },
-  { name: "Aquatic Warbler", code: "AQUWA" },
-  { name: "Sedge Warbler", code: "SEDWA" },
-  { name: "Marsh Warbler", code: "MARWA" },
-  { name: "Reed Warbler", code: "REEWA" },
-  { name: "Icterine Warbler", code: "ICTWA" },
-  { name: "Melodious Warbler", code: "MELWA" },
-  { name: "Blackcap", code: "BLACA" },
-  { name: "Garden Warbler", code: "GARWA" },
-  { name: "Barred Warbler", code: "BARWA" },
-  { name: "Lesser Whitethroat", code: "LESWH" },
-  { name: "Whitethroat", code: "WHITE" },
-  { name: "Dartford Warbler", code: "DARWA" },
-  { name: "Subalpine Warbler", code: "SUBWA" },
-  { name: "Greenish Warbler", code: "GSHWA" },
-  { name: "Arctic Warbler", code: "ARCWA" },
-  { name: "Pallas's Warbler", code: "PALWA" },
-  { name: "Yellow-browed Warbler", code: "YEBWA" },
-  { name: "Radde's Warbler", code: "RADWA" },
-  { name: "Dusky Warbler", code: "DUSWA" },
-  { name: "Wood Warbler", code: "WOOWA" },
-  { name: "Chiffchaff", code: "CHIFF" },
-  { name: "Willow Warbler", code: "WILWA" },
-  { name: "Goldcrest", code: "GOLDC" },
-  { name: "Firecrest", code: "FIREC" },
-  { name: "Spotted Flycatcher", code: "SPOFL" },
-  { name: "Red-breasted Flycatcher", code: "REBFL" },
-  { name: "Pied Flycatcher", code: "PIEFL" },
-  { name: "Bearded Tit", code: "BEATI" },
-  { name: "Long-tailed Tit", code: "LOTTI" },
-  { name: "Long-tailed Tit (Northern)", code: "" },
-  { name: "Marsh Tit", code: "MARTI" },
-  { name: "Willow Tit", code: "WILTI" },
-  { name: "Crested Tit", code: "CRETI" },
-  { name: "Coal Tit", code: "COATI" },
-  { name: "Coal Tit (Continental)", code: "" },
-  { name: "Blue Tit", code: "BLUTI" },
-  { name: "Great Tit", code: "GRETI" },
-  { name: "Nuthatch", code: "NUTHA" },
-  { name: "Treecreeper", code: "TREEC" },
-  { name: "Golden Oriole", code: "GOLOR" },
-  { name: "Red-backed Shrike", code: "REBSH" },
-  { name: "Great Grey Shrike", code: "GRGSH" },
-  { name: "Woodchat Shrike", code: "WOOSH" },
-  { name: "Jay", code: "JAY.." },
-  { name: "Magpie", code: "MAGPI" },
-  { name: "Chough", code: "CHOUG" },
-  { name: "Jackdaw", code: "JACKD" },
-  { name: "Rook", code: "ROOK." },
-  { name: "Carrion Crow", code: "CARCR" },
-  { name: "Hooded Crow", code: "HOOCR" },
-  { name: "Carrion/Hooded Crow hybrid", code: "INTCR" },
-  { name: "Raven", code: "RAVEN" },
-  { name: "Starling", code: "STARL" },
-  { name: "Rose-coloured Starling", code: "ROCST" },
-  { name: "House Sparrow", code: "HOUSP" },
-  { name: "Tree Sparrow", code: "TRESP" },
-  { name: "Chaffinch", code: "CHAFF" },
-  { name: "Brambling", code: "BRAMB" },
-  { name: "Serin", code: "SERIN" },
-  { name: "Greenfinch", code: "GREFI" },
-  { name: "Goldfinch", code: "GOLDF" },
-  { name: "Siskin", code: "SISKI" },
-  { name: "Linnet", code: "LINNE" },
-  { name: "Twite", code: "TWITE" },
-  { name: "Common Redpoll", code: "COMRE" },
-  { name: "Lesser Redpoll", code: "LESRE" },
-  { name: "Common Redpoll (Mealy)", code: "" },
-  { name: "Common Redpoll (Greenland)", code: "" },
-  { name: "Redpoll (Common/Lesser)", code: "REDPO" },
-  { name: "Arctic Redpoll", code: "ARCRE" },
-  { name: "Common Crossbill", code: "CROSS" },
-  { name: "Scottish Crossbill", code: "SCOCR" },
-  { name: "Parrot Crossbill", code: "PARCR" },
-  { name: "Common Rosefinch", code: "SCARO" },
-  { name: "Bullfinch", code: "BULLF" },
-  { name: "Hawfinch", code: "HAWFI" },
-  { name: "Lapland Bunting", code: "LAPBU" },
-  { name: "Snow Bunting", code: "SNOBU" },
-  { name: "Yellowhammer", code: "YELHA" },
-  { name: "Cirl Bunting", code: "CIRBU" },
-  { name: "Ortolan Bunting", code: "ORTBU" },
-  { name: "Rustic Bunting", code: "RUSBU" },
-  { name: "Little Bunting", code: "LITBU" },
-  { name: "Reed Bunting", code: "REEBU" },
-  { name: "Corn Bunting", code: "CORBU" }
-];
+<script src="species.js?v=4"></script>
+<script>
+// SCRIPT_URL, esc(), highlight() and isWhoosh() come from shared.js.
+// SPECIES_LIST comes from species.js, shared with dashboard.html.
+
+// ─────────────────────────────────────────────
+// Tooltips: one source for the text, used by the column headers, the mobile row labels
+// and the whoosh question.
+// ─────────────────────────────────────────────
+const TIPS = {
+  processed:   'Fledged birds ringed and retraps processed, always >= Ringed',
+  ringed:      'Number of new fledged birds that you ringed, always <= Processed',
+  pulliRinged: 'Number of new pulli that you ringed',
+  broods:      'Number of broods/nests visited, whether or not pulli were ringed',
+  whoosh:      'Number of active firings onto birds where you made the decision to fire'
+};
+
+function tipIcon(key) {
+  const text = esc(TIPS[key]);
+  return `<button type="button" class="tip-icon" data-tip="${text}" aria-label="${text}">i</button>`;
+}
+
+function initTooltips() {
+  document.querySelectorAll('[data-tip-for]').forEach(el => { el.outerHTML = tipIcon(el.dataset.tipFor); });
+
+  const bubble = document.getElementById('js-tip');
+  const canHover = window.matchMedia && matchMedia('(hover: hover)').matches;
+  let activeIcon = null;
+
+  function show(icon) {
+    bubble.textContent = icon.dataset.tip;
+    bubble.style.display = 'block';
+    bubble.setAttribute('aria-hidden', 'false');
+    activeIcon = icon;
+    // Measure after display so the size is right; centre above the icon, 8px clear of each edge
+    requestAnimationFrame(() => {
+      const r = icon.getBoundingClientRect();
+      const left = Math.max(8, Math.min(r.left + r.width / 2 - bubble.offsetWidth / 2, window.innerWidth - bubble.offsetWidth - 8));
+      let top = r.top - bubble.offsetHeight - 8;
+      if (top < 8) top = r.bottom + 8;          // no room above: go below
+      bubble.style.left = left + 'px';
+      bubble.style.top  = top + 'px';
+    });
+  }
+
+  function hide() {
+    bubble.style.display = 'none';
+    bubble.setAttribute('aria-hidden', 'true');
+    activeIcon = null;
+  }
+
+  // Mouse: show on hover. Touch: tap to toggle. (Touch devices also fire emulated mouse events,
+  // so hover handling is only used where the device can really hover.)
+  document.addEventListener('mouseover', e => {
+    const icon = canHover && e.target.closest('.tip-icon');
+    if (icon) show(icon);
+  });
+  document.addEventListener('mouseout', e => {
+    if (canHover && e.target.closest('.tip-icon')) hide();
+  });
+  document.addEventListener('click', e => {
+    const icon = e.target.closest('.tip-icon');
+    if (!icon) { hide(); return; }
+    if (canHover) return;                       // hover already handles it
+    e.preventDefault();
+    if (activeIcon === icon) hide(); else show(icon);
+  });
+  window.addEventListener('scroll', hide, { passive: true });
+}
+
+// ─────────────────────────────────────────────
+// Screens: form (<main>), confirmation and success all use the .visible class.
+// switchScreen slides one out, swaps, slides the next in and scrolls to the top.
+// ─────────────────────────────────────────────
+const formScreen    = document.getElementById('form-screen');
+const confirmScreen = document.getElementById('confirm-screen');
+const successScreen = document.getElementById('success-screen');
+const SCREEN_EXIT_MS = 200;
+
+function prefersReducedMotion() {
+  return window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function switchScreen(from, to, onShown) {
+  const reduce = prefersReducedMotion();
+  const swap = () => {
+    from.classList.remove('visible', 'screen-exit');
+    to.classList.add('visible');
+    if (!reduce) {
+      to.classList.add('screen-enter');
+      to.addEventListener('animationend', () => to.classList.remove('screen-enter'), { once: true });
+    }
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    if (onShown) onShown();
+  };
+  if (reduce) { swap(); return; }
+  from.classList.add('screen-exit');
+  setTimeout(swap, SCREEN_EXIT_MS);
+}
 
 // ─────────────────────────────────────────────
 // Row management
@@ -2243,10 +1221,9 @@ function updateHeaderVisibility() {
   if (hdrFl) hdrFl.firstChild.textContent = both ? 'Fl. Ringed ' : 'Ringed ';
   if (hdrPu) hdrPu.firstChild.textContent = both ? 'Pu. Ringed ' : 'Ringed ';
 
-  // Dynamically fit grid columns to only the visible fields
-  // Always-visible: Species, Age, Extracted, Method, × (5 cols)
-  // Fledged-only: Processed, Ringed (+2)
-  // Pullus-only:  Pulli ringed, Broods Ass. (+2)
+  // Fit grid columns to only the visible fields
+  // Always visible: Species, Age, Extracted, Method, × (5 cols)
+  // Fledged only: Processed, Ringed (+2). Pullus only: Pulli ringed, Broods Ass. (+2)
   const grid = both
     ? '1.4fr 0.9fr 0.7fr 0.9fr 0.7fr 0.7fr 0.7fr 0.7fr 36px'
     : '2.2fr 1.5fr 0.85fr 1.4fr 0.85fr 0.85fr 36px';
@@ -2259,7 +1236,7 @@ function updateWhooshVisibility() {
   const section = document.getElementById('whoosh-section');
   if (!section) return;
   const hasWhoosh = [...document.querySelectorAll('.method-input')]
-    .some(inp => inp.dataset.selected.toLowerCase().includes('whoosh'));
+    .some(inp => isWhoosh(inp.dataset.selected));
   section.classList.toggle('visible', hasWhoosh);
   if (!hasWhoosh) {
     // Reset when all whoosh rows removed
@@ -2286,7 +1263,20 @@ function whooshInputChange(inp) {
   inp.classList.remove('input-error');
 }
 
-function whooshInputBlur(inp) { whooshInputChange(inp); }
+// One ▲ value ▼ spinner cell
+function spinnerHTML(id, key, extraClass, mobLabelClass, mobLabel, tipKey) {
+  const label = mobLabel
+    ? `<span class="${mobLabelClass}">${mobLabel} ${tipKey ? tipIcon(tipKey) : ''}</span>`
+    : '';
+  return `
+    <div class="num-wrap ${extraClass}">
+      ${label}
+      <button type="button" class="num-btn" aria-label="Increase" onclick="changeSpinner(${id}, '${key}', 1)">▲</button>
+      <input type="number" class="row-input num-input" id="${key}-${id}"
+             min="0" value="0" oninput="sanitiseSpinner(this)">
+      <button type="button" class="num-btn" aria-label="Decrease" onclick="changeSpinner(${id}, '${key}', -1)">▼</button>
+    </div>`;
+}
 
 function addRow(skipFocus = false) {
   rowCount++;
@@ -2300,7 +1290,8 @@ function addRow(skipFocus = false) {
     <div class="species-search-wrap">
       <input class="species-input" type="text"
              placeholder="Type to search"
-             autocomplete="off"
+             autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore="true" data-form-type="other"
+             aria-label="Species"
              oninput="filterSpecies(${id}, this.value)"
              onkeydown="handleKey(event, ${id})"
              onblur="delayClose('dd-${id}')"
@@ -2315,17 +1306,13 @@ function addRow(skipFocus = false) {
       <button type="button" class="age-btn" onclick="selectAge(${id}, 'Pullus', this)">Pullus</button>
     </div>
 
-    <div class="num-wrap">
-      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'num', 1)">▲</button>
-      <input type="number" class="row-input num-input" id="num-${id}"
-             min="0" value="0" oninput="sanitiseSpinner(this)">
-      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'num', -1)">▼</button>
-    </div>
+    ${spinnerHTML(id, 'num', '')}
 
     <div class="species-search-wrap method-wrap" id="method-wrap-${id}">
       <input class="method-input" type="text"
              placeholder="Type or select"
-             autocomplete="off"
+             autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore="true" data-form-type="other"
+             aria-label="Method"
              oninput="filterMethod(${id}, this.value)"
              onkeydown="handleMethodKey(event, ${id})"
              onblur="delayClose('dd-method-${id}')"
@@ -2335,39 +1322,12 @@ function addRow(skipFocus = false) {
       <div class="species-dropdown" id="dd-method-${id}"></div>
     </div>
 
-    <div class="num-wrap proc-wrap fledged-only">
-      <span class="proc-mob-label">Processed <button class="tip-icon" data-tip="Fledged birds ringed and retraps processed, always >= Ringed" aria-label="Info">i</button></span>
-      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'proc', 1)">▲</button>
-      <input type="number" class="row-input num-input" id="proc-${id}"
-             min="0" value="0" oninput="sanitiseSpinner(this)">
-      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'proc', -1)">▼</button>
-    </div>
+    ${spinnerHTML(id, 'proc',         'proc-wrap fledged-only',             'proc-mob-label',         'Processed',   'processed')}
+    ${spinnerHTML(id, 'ringed',       'ringed-wrap fledged-only',           'ringed-mob-label',       'Ringed',      'ringed')}
+    ${spinnerHTML(id, 'pulli-ringed', 'pulli-ringed-wrap pullus-only',      'pulli-ringed-mob-label', 'Ringed',      'pulliRinged')}
+    ${spinnerHTML(id, 'broods',       'broods-wrap pullus-only',            'broods-mob-label',       'Broods Ass.', 'broods')}
 
-    <div class="num-wrap ringed-wrap fledged-only">
-      <span class="ringed-mob-label">Ringed <button class="tip-icon" data-tip="Number of new fledged birds that you ringed, always <= Processed" aria-label="Info">i</button></span>
-      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'ringed', 1)">▲</button>
-      <input type="number" class="row-input num-input" id="ringed-${id}"
-             min="0" value="0" oninput="sanitiseSpinner(this)">
-      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'ringed', -1)">▼</button>
-    </div>
-
-    <div class="num-wrap pulli-ringed-wrap pullus-only">
-      <span class="pulli-ringed-mob-label">Ringed <button class="tip-icon" data-tip="Number of new pulli that you ringed" aria-label="Info">i</button></span>
-      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'pulli-ringed', 1)">▲</button>
-      <input type="number" class="row-input num-input" id="pulli-ringed-${id}"
-             min="0" value="0" oninput="sanitiseSpinner(this)">
-      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'pulli-ringed', -1)">▼</button>
-    </div>
-
-    <div class="num-wrap broods-wrap pullus-only">
-      <span class="broods-mob-label">Broods Ass. <button class="tip-icon" data-tip="Number of broods/nests visited, whether or not pulli were ringed" aria-label="Info">i</button></span>
-      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'broods', 1)">▲</button>
-      <input type="number" class="row-input num-input" id="broods-${id}"
-             min="0" value="0" oninput="sanitiseSpinner(this)">
-      <button type="button" class="num-btn" onmousedown="changeSpinner(${id}, 'broods', -1)">▼</button>
-    </div>
-
-    <button class="remove-row" onclick="removeRow(${id})" title="Remove row">×</button>
+    <button class="remove-row" onclick="removeRow(${id})" title="Remove row" aria-label="Remove row">×</button>
   `;
   container.appendChild(row);
   updateHeaderVisibility();
@@ -2385,6 +1345,9 @@ function removeRow(id) {
 // Searchable species dropdown
 // ─────────────────────────────────────────────
 let highlightIndex = {};
+
+// Some mobile keyboards don't report e.key === 'Enter', so also check the key code
+function isEnterKey(e) { return e.key === 'Enter' || e.keyCode === 13; }
 
 function filterSpecies(id, query) {
   const dd = document.getElementById(`dd-${id}`);
@@ -2409,12 +1372,13 @@ function filterSpecies(id, query) {
     (s.code && s.code.toLowerCase().includes(q))
   ).slice(0, 40);
 
-  const alreadySelected = input && input.dataset.selected === query.trim();
-  const exactMatch = alreadySelected || SPECIES_LIST.some(s => s.name.toLowerCase() === q);
+  const exactMatch = SPECIES_LIST.some(s => s.name.toLowerCase() === q);
+  // The first row is always highlighted: the first match, or the write-in if nothing matches
   const writeIn = !exactMatch
-    ? `<div class="species-option write-in-option"
-         onmousedown="selectSpecies(${id}, '${query.trim().replace(/'/g,"\\'")}', true)">
-         <span style="color:var(--ink-muted);font-size:0.72rem;">Use as written: </span>${query.trim()}
+    ? `<div class="species-option write-in-option${matches.length ? '' : ' highlighted'}"
+         data-name="${esc(query.trim())}"
+         onmousedown="selectSpecies(${id}, this.dataset.name, true)">
+         <span class="opt-hint">Use as written: </span>${esc(query.trim())}
        </div>` : '';
 
   if (!matches.length && !writeIn) {
@@ -2424,13 +1388,11 @@ function filterSpecies(id, query) {
   }
 
   dd.innerHTML = matches.map((s, i) => {
-    const nameHl = s.name.replace(new RegExp(`(${escapeRe(q)})`, 'gi'), '<span class="match">$1</span>');
-    const codeDisplay = s.code
-      ? `<span style="color:var(--ink-muted);font-size:0.72rem;margin-left:6px;">${s.code.replace(new RegExp(`(${escapeRe(q.toUpperCase())})`, 'g'), '<span class="match">$1</span>')}</span>`
-      : '';
-    return `<div class="species-option${i === 0 && !writeIn ? ' highlighted' : ''}"
-      onmousedown="selectSpecies(${id}, '${s.name.replace(/'/g,"\\'")}', false)">
-      ${nameHl}${codeDisplay}
+    const code = s.code ? `<span class="species-code">${highlight(s.code, q)}</span>` : '';
+    return `<div class="species-option${i === 0 ? ' highlighted' : ''}"
+      data-name="${esc(s.name)}"
+      onmousedown="selectSpecies(${id}, this.dataset.name, false)">
+      ${highlight(s.name, q)}${code}
     </div>`;
   }).join('') + writeIn;
 
@@ -2447,7 +1409,20 @@ function selectSpecies(id, name, isWriteIn) {
   const dd = document.getElementById(`dd-${id}`);
   dd.classList.remove('open');
   dd.innerHTML = '';
-  setTimeout(() => input.focus(), 0);
+  autoSelectNestType(id);
+  if (isMobileLayout()) {
+    // Close the keyboard (no extra Back press needed) and bring the whole row into view, so the
+    // age, method and counts are right there after choosing a species.
+    input.blur();
+    setTimeout(() => document.getElementById(`row-${id}`).scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+  } else {
+    setTimeout(() => input.focus(), 0);
+  }
+}
+
+// The phone layout stacks every field of a row vertically (same breakpoint as the CSS).
+function isMobileLayout() {
+  return !!(window.matchMedia && matchMedia('(max-width: 640px)').matches);
 }
 
 function delayClose(ddId) {
@@ -2508,6 +1483,7 @@ function selectAge(id, value, btn) {
       methodInput.value = '';
       methodInput.dataset.selected = '';
       methodInput.dataset.writeIn = 'false';
+      methodInput.dataset.auto = '';
       methodInput.classList.remove('input-confirmed');
     }
   }
@@ -2521,6 +1497,8 @@ function selectAge(id, value, btn) {
     document.getElementById(`broods-${id}`).value = 0;
   }
 
+  if (isPullus) autoSelectNestType(id);
+  updateWhooshVisibility();   // switching age can clear the method, which may have been the whoosh one
   updateHeaderVisibility();
 }
 
@@ -2533,18 +1511,40 @@ function getMethodListForRow(id) {
   return isPullus ? pullusMethodList : fledgedMethodList;
 }
 
+// Set when a list fails to load, so the page can warn and offer a retry
+const listLoadFailed = { trainees: false, methods: false };
+
+function updateListWarning() {
+  const failed = [];
+  if (listLoadFailed.trainees) failed.push('ringer names');
+  if (listLoadFailed.methods)  failed.push('catching methods');
+  const box = document.getElementById('list-warning');
+  if (!box) return;
+  box.style.display = failed.length ? '' : 'none';
+  document.getElementById('list-warning-msg').textContent = failed.length
+    ? '⚠ Could not load the list of ' + failed.join(' and ') + '. Check your connection and retry before submitting, so nothing is added as a duplicate.'
+    : '';
+}
+
+function retryLists() {
+  fetchTrainees();
+  fetchMethods();
+}
+
 let fledgedMethodList = [];
 let pullusMethodList  = [];
 let methodsLoading = false;
 
 function fetchMethods() {
-  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') return;
   methodsLoading = true;
   fetch(SCRIPT_URL + '?action=getMethods')
     .then(r => r.json())
     .then(data => {
-      if (Array.isArray(data.fledgedMethods)) fledgedMethodList = data.fledgedMethods;
-      if (Array.isArray(data.pullusMethods))  pullusMethodList  = data.pullusMethods;
+      if (!Array.isArray(data.fledgedMethods) || !Array.isArray(data.pullusMethods)) throw new Error('Unexpected response');
+      fledgedMethodList = data.fledgedMethods;
+      pullusMethodList  = data.pullusMethods;
+      listLoadFailed.methods = false;
+      updateListWarning();
       document.querySelectorAll('.method-input').forEach(input => {
         const row = input.closest('.species-row');
         if (!row) return;
@@ -2552,8 +1552,10 @@ function fetchMethods() {
         const dd = document.getElementById(`dd-method-${id}`);
         if (dd && dd.classList.contains('open')) filterMethod(id, input.value);
       });
+      // The lists have arrived: pre-select nest types for any Pullus rows that were waiting for them
+      document.querySelectorAll('.species-row').forEach(r => autoSelectNestType(r.id.replace('row-', '')));
     })
-    .catch(() => {})
+    .catch(() => { listLoadFailed.methods = true; updateListWarning(); })
     .finally(() => { methodsLoading = false; });
 }
 
@@ -2562,12 +1564,16 @@ let methodHighlightIndex = {};
 function filterMethod(id, query) {
   const dd = document.getElementById(`dd-method-${id}`);
   const q = query.trim().toLowerCase();
-  methodHighlightIndex[id] = 0;
 
   const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
+  // Clicking a method that is already chosen (text unchanged) lists every method, so it is easy to change
+  const showAll = !!(methodInput && methodInput.dataset.selected && methodInput.dataset.selected === query.trim());
+  const chosen = methodInput ? methodInput.dataset.selected : '';
   if (methodInput && methodInput.dataset.selected !== query.trim()) {
     methodInput.classList.remove('input-confirmed');
     methodInput.dataset.selected = '';
+    methodInput.dataset.auto = '';   // typing is a manual choice
+    updateWhooshVisibility();   // editing the text un-selects the method, so re-check for whoosh rows
   }
 
   const activeList = getMethodListForRow(id);
@@ -2578,12 +1584,19 @@ function filterMethod(id, query) {
     return;
   }
 
-  const matches = q ? activeList.filter(m => m.toLowerCase().includes(q)) : activeList;
+  const matches = (q && !showAll) ? activeList.filter(m => m.toLowerCase().includes(q)) : activeList;
   const exactMatch = activeList.some(m => m.toLowerCase() === q);
+
+  // Top option is highlighted. The exception is re-opening an already-chosen method:
+  // there the highlight starts on that method, so pressing Enter can't change it by accident.
+  const startIdx = showAll ? Math.max(0, matches.indexOf(chosen)) : 0;
+  methodHighlightIndex[id] = startIdx;
+
   const writeIn = q && !exactMatch
-    ? `<div class="species-option write-in-option"
-         onmousedown="selectMethod(${id}, '${query.trim().replace(/'/g,"\\'")}', true)">
-         <span style="color:var(--ink-muted);font-size:0.72rem;">Use as written: </span>${query.trim()}
+    ? `<div class="species-option write-in-option${matches.length ? '' : ' highlighted'}"
+         data-name="${esc(query.trim())}"
+         onmousedown="selectMethod(${id}, this.dataset.name, true)">
+         <span class="opt-hint">Use as written: </span>${esc(query.trim())}
        </div>` : '';
 
   if (!matches.length && !writeIn) {
@@ -2592,23 +1605,26 @@ function filterMethod(id, query) {
     return;
   }
 
-  dd.innerHTML = matches.map((m, i) => {
-    const hl = q ? m.replace(new RegExp(`(${escapeRe(q)})`, 'gi'), '<span class="match">$1</span>') : m;
-    return `<div class="species-option${i === 0 && !writeIn ? ' highlighted' : ''}"
-      onmousedown="selectMethod(${id}, '${m.replace(/'/g,"\\'")}', false)">${hl}</div>`;
-  }).join('') + writeIn;
+  dd.innerHTML = matches.map((m, i) => `<div class="species-option${m === chosen ? ' is-selected' : ''}${i === startIdx ? ' highlighted' : ''}"
+      data-name="${esc(m)}"
+      onmousedown="selectMethod(${id}, this.dataset.name, false)">${highlight(m, q)}</div>`
+  ).join('') + writeIn;
 
   dd.classList.add('open');
 }
 
-function selectMethod(id, value, isWriteIn) {
+// Set a row's method. `auto` marks a value chosen by the nest-type lookup rather than by the person,
+// so the lookup may change it again (e.g. if the species changes) but never overrides a manual choice.
+function applyMethod(id, value, isWriteIn, auto) {
   const input = document.querySelector(`#method-wrap-${id} .method-input`);
   input.value = value;
   input.dataset.selected = value;
   input.dataset.writeIn = isWriteIn ? 'true' : 'false';
+  input.dataset.auto = auto ? 'true' : '';
   input.classList.remove('input-error');
   input.classList.add('input-confirmed');
   if (isWriteIn) {
+    // Remember it locally so other rows offer it too (the server adds it to the sheet on submit)
     const ageBtn = document.querySelector(`#age-${id} .age-btn.active`);
     const isPullus = ageBtn && ageBtn.textContent.trim() === 'Pullus';
     if (isPullus) {
@@ -2623,22 +1639,59 @@ function selectMethod(id, value, isWriteIn) {
   updateWhooshVisibility();
 }
 
+function selectMethod(id, value, isWriteIn) {
+  applyMethod(id, value, isWriteIn, false);
+  if (isMobileLayout()) document.querySelector(`#method-wrap-${id} .method-input`).blur();   // close the keyboard
+}
+
+// Pullus rows: once a species is chosen, pre-select the method whose name matches that species'
+// nest type (species.js: getNestKeywords). Always still changeable.
+function autoSelectNestType(id) {
+  const ageBtn = document.querySelector(`#age-${id} .age-btn.active`);
+  if (!ageBtn || ageBtn.textContent.trim() !== 'Pullus') return;
+  const species = document.querySelector(`#row-${id} .species-input`).dataset.selected;
+  if (!species) return;
+  const methodInput = document.querySelector(`#method-wrap-${id} .method-input`);
+  // Never overwrite a method the person chose themselves
+  if (methodInput.dataset.selected && methodInput.dataset.auto !== 'true') return;
+
+  const wanted = getPulliMethod(species).toLowerCase();
+  const match = wanted
+    ? pullusMethodList.find(m => m.toLowerCase() === wanted)
+    : undefined;
+  if (match) {
+    applyMethod(id, match, false, true);
+  } else if (methodInput.dataset.auto === 'true') {
+    // The species changed to one with no nest type: drop the old automatic choice
+    methodInput.value = '';
+    methodInput.dataset.selected = '';
+    methodInput.dataset.writeIn = 'false';
+    methodInput.dataset.auto = '';
+    methodInput.classList.remove('input-confirmed');
+    updateWhooshVisibility();
+  }
+}
+
 function handleMethodKey(e, id) {
   const dd = document.getElementById(`dd-method-${id}`);
   const items = dd.querySelectorAll('.species-option');
   if (!items.length) return;
+  const idx = methodHighlightIndex[id] ?? 0;
+
   if (e.key === 'ArrowDown') {
     e.preventDefault();
-    methodHighlightIndex[id] = Math.min((methodHighlightIndex[id] || 0) + 1, items.length - 1);
+    methodHighlightIndex[id] = Math.min(idx + 1, items.length - 1);
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
-    methodHighlightIndex[id] = Math.max((methodHighlightIndex[id] || 0) - 1, 0);
-  } else if (e.key === 'Enter') {
+    methodHighlightIndex[id] = Math.max(idx - 1, 0);
+  } else if (isEnterKey(e)) {
     e.preventDefault();
-    items[methodHighlightIndex[id] || 0]?.dispatchEvent(new MouseEvent('mousedown'));
+    items[idx]?.dispatchEvent(new MouseEvent('mousedown'));
     return;
   } else if (e.key === 'Escape') {
     dd.classList.remove('open');
+    return;
+  } else {
     return;
   }
   items.forEach((el, i) => el.classList.toggle('highlighted', i === methodHighlightIndex[id]));
@@ -2667,6 +1720,25 @@ function sanitiseSpinner(input) {
   row.querySelectorAll('.num-wrap').forEach(w => w.classList.remove('input-error'));
 }
 
+function changeSpinner(id, type, delta) {
+  const input = document.getElementById(`${type}-${id}`);
+  let newVal = Math.max(0, (parseInt(input.value) || 0) + delta);
+  if (type === 'ringed') {
+    const procVal = parseInt(document.getElementById(`proc-${id}`).value) || 0;
+    newVal = Math.min(newVal, procVal);
+  }
+  input.value = newVal;
+  // Lowering Processed below Ringed pulls Ringed down with it (the same rule sanitiseSpinner
+  // applies when the number is typed)
+  if (type === 'proc') {
+    const ringedInput = document.getElementById(`ringed-${id}`);
+    if (ringedInput && (parseInt(ringedInput.value) || 0) > newVal) ringedInput.value = newVal;
+  }
+  // Clear error states for all spinner wraps in this row
+  const row = document.getElementById(`row-${id}`);
+  row.querySelectorAll('.num-wrap').forEach(w => w.classList.remove('input-error'));
+}
+
 // ─────────────────────────────────────────────
 // Trainee name list
 // ─────────────────────────────────────────────
@@ -2675,16 +1747,18 @@ let traineeHighlight = 0;
 let traineesLoading = false;
 
 function fetchTrainees() {
-  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') return;
   traineesLoading = true;
   fetch(SCRIPT_URL + '?action=getTrainees')
     .then(r => r.json())
     .then(data => {
-      if (Array.isArray(data.trainees)) traineeList = data.trainees.sort();
+      if (!Array.isArray(data.trainees)) throw new Error('Unexpected response');
+      traineeList = data.trainees.sort((a, b) => a.localeCompare(b));
+      listLoadFailed.trainees = false;
+      updateListWarning();
       const input = document.getElementById('trainee-name');
       if (input && input.value.trim()) filterTrainees(input.value);
     })
-    .catch(() => {})
+    .catch(() => { listLoadFailed.trainees = true; updateListWarning(); })
     .finally(() => { traineesLoading = false; });
 }
 
@@ -2716,29 +1790,28 @@ function filterTrainees(query) {
 
   const exactMatch = traineeList.some(n => n.toLowerCase() === q);
   const newOption = !exactMatch
-    ? `<div class="species-option new-trainee-option"
-         onmousedown="selectTrainee('${query.trim().replace(/'/g,"\\'")}', true)">
-         <span style="color:var(--ink-muted);font-size:0.72rem;">Add new: </span>${query.trim()}
+    ? `<div class="species-option new-trainee-option${matches.length ? '' : ' highlighted'}"
+         data-name="${esc(query.trim())}"
+         onmousedown="selectTrainee(this.dataset.name)">
+         <span class="opt-hint">Add new: </span>${esc(query.trim())}
        </div>` : '';
 
   if (!matches.length && exactMatch) {
     dd.innerHTML = ''; dd.classList.remove('open'); return;
   }
 
-  dd.innerHTML = matches.map((n, i) => {
-    const hl = n.replace(new RegExp(`(${escapeRe(q)})`, 'gi'), '<span class="match">$1</span>');
-    return `<div class="species-option${i === 0 && !newOption ? ' highlighted' : ''}"
-      onmousedown="selectTrainee('${n.replace(/'/g,"\\'")}', false)">${hl}</div>`;
-  }).join('') + newOption;
+  dd.innerHTML = matches.map((n, i) => `<div class="species-option${i === 0 ? ' highlighted' : ''}"
+      data-name="${esc(n)}"
+      onmousedown="selectTrainee(this.dataset.name)">${highlight(n, q)}</div>`
+  ).join('') + newOption;
 
   dd.classList.add('open');
 }
 
-function selectTrainee(name, isNew) {
+function selectTrainee(name) {
   const input = document.getElementById('trainee-name');
   input.value = name;
   input.dataset.selected = name;
-  input.dataset.isNew = isNew ? 'true' : 'false';
   input.classList.remove('input-error');
   input.classList.add('input-confirmed');
   showStatus('', null);
@@ -2746,6 +1819,7 @@ function selectTrainee(name, isNew) {
   const dd = document.getElementById('dd-trainee');
   dd.classList.remove('open');
   dd.innerHTML = '';
+  if (isMobileLayout()) input.blur();   // close the keyboard
 }
 
 function handleTraineeKey(e) {
@@ -2758,7 +1832,7 @@ function handleTraineeKey(e) {
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     traineeHighlight = Math.max(traineeHighlight - 1, 0);
-  } else if (e.key === 'Enter') {
+  } else if (isEnterKey(e)) {
     e.preventDefault();
     items[traineeHighlight]?.dispatchEvent(new MouseEvent('mousedown'));
     return;
@@ -2769,23 +1843,6 @@ function handleTraineeKey(e) {
   items[traineeHighlight]?.scrollIntoView({ block: 'nearest' });
 }
 
-function changeSpinner(id, type, delta) {
-  const input = document.getElementById(`${type}-${id}`);
-  let newVal = Math.max(0, (parseInt(input.value) || 0) + delta);
-  if (type === 'ringed') {
-    const procVal = parseInt(document.getElementById(`proc-${id}`).value) || 0;
-    newVal = Math.min(newVal, procVal);
-  }
-  input.value = newVal;
-  // Clear error states for all spinner wraps in this row
-  const row = document.getElementById(`row-${id}`);
-  row.querySelectorAll('.num-wrap').forEach(w => w.classList.remove('input-error'));
-}
-
-function escapeRe(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 // ─────────────────────────────────────────────
 // Session form submission
 // ─────────────────────────────────────────────
@@ -2793,7 +1850,7 @@ let pendingPayload = null;
 
 function submitForm() {
   const nameInput = document.getElementById('trainee-name');
-  const name = nameInput.value.trim();
+  let name = nameInput.value.trim();
   const date = document.getElementById('session-date').value;
 
   if (!name) {
@@ -2803,9 +1860,14 @@ function submitForm() {
   }
   // If the user typed a name without picking from the dropdown, confirm it now
   if (!nameInput.dataset.selected) {
-    const isKnown = traineeList.some(n => n.toLowerCase() === name.toLowerCase());
+    if (listLoadFailed.trainees) {
+      showStatus('The ringer list has not loaded, so this name cannot be checked yet. Please use Retry (see the warning above) before submitting.', false);
+      return;
+    }
+    const known = traineeList.find(n => n.toLowerCase() === name.toLowerCase());
+    if (known) name = known;   // use the stored spelling, e.g. "evelyn howatson" -> "Evelyn Howatson"
+    nameInput.value = name;
     nameInput.dataset.selected = name;
-    nameInput.dataset.isNew = isKnown ? 'false' : 'true';
     nameInput.classList.add('input-confirmed');
   }
   nameInput.classList.remove('input-error');
@@ -2819,13 +1881,25 @@ function submitForm() {
   dateInput.classList.remove('input-error');
   showStatus('', null);
 
-  const rows = document.querySelectorAll('.species-row');
-  if (!rows.length) { showStatus('Please add at least one species.', false); return; }
+  // Whoosh net firings — required whenever the whoosh question is showing
+  const whooshVisible = document.getElementById('whoosh-section').classList.contains('visible');
+  let whooshFirings = null;
+  if (whooshVisible) {
+    const whooshInp = document.getElementById('whoosh-firings');
+    if (whooshInp.dataset.value === 'null') {
+      whooshInp.classList.add('input-error');
+      showStatus('Please enter the number of whoosh net active firings (0 is a valid answer).', false);
+      return;
+    }
+    whooshFirings = parseInt(whooshInp.dataset.value);
+    whooshInp.classList.remove('input-error');
+  }
 
   const entries = [];
   let valid = true;
+  let noCatchWhoosh = false;   // a whoosh row where nothing was caught: only the firings count
 
-  rows.forEach(row => {
+  document.querySelectorAll('.species-row').forEach(row => {
     const id = row.id.replace('row-', '');
     const speciesInput = row.querySelector('.species-input');
     const species = speciesInput.dataset.selected;
@@ -2847,6 +1921,20 @@ function submitForm() {
     // Pullus-only fields
     const pulliRinged    = isPullus ? Math.max(0, parseInt(document.getElementById(`pulli-ringed-${id}`).value) || 0) : 0;
     const broodsAssessed = isPullus ? Math.max(0, parseInt(document.getElementById(`broods-${id}`).value) || 0) : 0;
+
+    // Whoosh method chosen but no bird data: the requirements for the row are waived (no species, age,
+    // extracted or processed needed). The live firings are what gets recorded, so they must be at least 1.
+    const noBirds = !species && !num && !processed && !fledgedRinged && !pulliRinged && !broodsAssessed;
+    if (isWhoosh(method) && noBirds) {
+      if (!whooshFirings) {
+        document.getElementById('whoosh-firings').classList.add('input-error');
+        showStatus('A whoosh row with no birds needs at least one whoosh net firing. Enter the firings below, or add the bird details.', false);
+        valid = false;
+        return;
+      }
+      noCatchWhoosh = true;
+      return;
+    }
 
     if (!species) {
       speciesInput.classList.add('input-error');
@@ -2877,121 +1965,76 @@ function submitForm() {
     entries.push({ species, speciesWriteIn, age, num, method, methodWriteIn, processed, fledgedRinged, pulliRinged, broodsAssessed });
   });
 
-  if (!valid) { showStatus('Please check all rows: species and age are required. Fledged rows need a method and at least one extracted or processed bird. Pullus rows need at least one pulli ringed or brood assessed.', false); return; }
-
-  // Whoosh net firings — required if whoosh section is visible
-  const whooshSection = document.getElementById('whoosh-section');
-  const whooshVisible = whooshSection && whooshSection.classList.contains('visible');
-  let whooshFirings = null;
-  if (whooshVisible) {
-    const whooshInp = document.getElementById('whoosh-firings');
-    if (whooshInp.dataset.value === 'null') {
-      whooshInp.classList.add('input-error');
-      showStatus('Please enter the number of whoosh net active firings (0 is a valid answer).', false);
-      return;
+  if (!valid) {
+    // (the whoosh-firings message above, if that was the problem, is already showing)
+    if (!document.getElementById('whoosh-firings').classList.contains('input-error')) {
+      showStatus('Please check all rows: species, age and method are required. Fledged rows need at least one extracted or processed bird. Pullus rows need at least one pulli ringed or brood assessed.', false);
     }
-    whooshFirings = parseInt(whooshInp.dataset.value);
-    whooshInp.classList.remove('input-error');
+    return;
   }
 
-  const payload = {
-    trainee: name,
-    isNewTrainee: nameInput.dataset.isNew === 'true',
-    date,
-    entries,
-    whooshFirings
-  };
-  const newFledgedMethods = [...new Set(
-    entries.filter(e => e.methodWriteIn === 'Yes' && e.method && e.age === 'Fledged').map(e => e.method)
-  )];
-  const newPullusMethods = [...new Set(
-    entries.filter(e => e.methodWriteIn === 'Yes' && e.method && e.age === 'Pullus').map(e => e.method)
-  )];
-  if (newFledgedMethods.length) payload.newFledgedMethods = newFledgedMethods;
-  if (newPullusMethods.length)  payload.newPullusMethods  = newPullusMethods;
+  if (!entries.length && !noCatchWhoosh) { showStatus('Please add at least one species.', false); return; }
 
-  pendingPayload = payload;
-
-  const mainEl = document.querySelector('main');
-  mainEl.classList.add('screen-exit');
-  setTimeout(() => {
-    mainEl.style.display = 'none';
-    mainEl.classList.remove('screen-exit');
-    const confirmEl = document.getElementById('confirm-screen');
-    confirmEl.classList.add('visible', 'screen-enter');
-    confirmEl.addEventListener('animationend', () => confirmEl.classList.remove('screen-enter'), { once: true });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    showConfirmScreen(payload);
-  }, 200);
+  // The server adds any new ringer or method to the sheet itself, so only the data goes across.
+  // (noCatchWhoosh is only for the confirmation screen.)
+  pendingPayload = { trainee: name, date, entries, whooshFirings, noCatchWhoosh };
+  switchScreen(formScreen, confirmScreen, () => showConfirmScreen(pendingPayload));
 }
 
 function showConfirmScreen(payload) {
   document.getElementById('confirm-ringer').textContent = payload.trainee;
   document.getElementById('confirm-date').textContent = payload.date || 'Not specified';
 
-  const totalExt         = payload.entries.reduce((s, e) => s + (e.num || 0), 0);
-  const totalProc        = payload.entries.reduce((s, e) => s + (e.processed || 0), 0);
-  const totalFledgedRing = payload.entries.reduce((s, e) => s + (e.fledgedRinged || 0), 0);
-  const totalPulliRing   = payload.entries.reduce((s, e) => s + (e.pulliRinged || 0), 0);
-  const totalBroods      = payload.entries.reduce((s, e) => s + (e.broodsAssessed || 0), 0);
-  document.getElementById('confirm-tot-ext').textContent    = totalExt;
-  document.getElementById('confirm-tot-proc').textContent   = totalProc;
-  document.getElementById('confirm-tot-fringed').textContent = totalFledgedRing;
-  document.getElementById('confirm-tot-pringed').textContent = totalPulliRing;
-  document.getElementById('confirm-tot-broods').textContent  = totalBroods;
+  // A whoosh row with no birds: say so, and ask for a double-check
+  document.getElementById('confirm-zero-note').style.display = payload.noCatchWhoosh ? '' : 'none';
+  document.getElementById('confirm-zero-count').textContent = payload.whooshFirings;
+  document.getElementById('confirm-species-card').style.display = payload.entries.length ? '' : 'none';
+
+  const sum = key => payload.entries.reduce((s, e) => s + (e[key] || 0), 0);
+  document.getElementById('confirm-tot-ext').textContent     = sum('num');
+  document.getElementById('confirm-tot-proc').textContent    = sum('processed');
+  document.getElementById('confirm-tot-fringed').textContent = sum('fledgedRinged');
+  document.getElementById('confirm-tot-pringed').textContent = sum('pulliRinged');
+  document.getElementById('confirm-tot-broods').textContent  = sum('broodsAssessed');
 
   const whooshCard = document.getElementById('confirm-whoosh-card');
-  const whooshEl   = document.getElementById('confirm-whoosh-firings');
   if (payload.whooshFirings !== null && payload.whooshFirings !== undefined) {
-    whooshEl.textContent = payload.whooshFirings;
+    document.getElementById('confirm-whoosh-firings').textContent = payload.whooshFirings;
     whooshCard.style.display = '';
   } else {
     whooshCard.style.display = 'none';
   }
 
-  const container = document.getElementById('confirm-entries');
-  container.innerHTML = payload.entries.map(e => {
+  const writeInTag = ' <span class="write-in-tag">(write-in)</span>';
+  document.getElementById('confirm-entries').innerHTML = payload.entries.map(e => {
     const isPullus = e.age === 'Pullus';
     return `
     <div class="confirm-table-row">
-      <span class="confirm-cell-primary">${e.species}${e.speciesWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : ''}</span>
-      <span class="confirm-cell">${e.age}</span>
-      <span class="confirm-cell">${e.method + (e.methodWriteIn === 'Yes' ? ' <span style="font-size:0.65rem;color:var(--ink-muted)">(write-in)</span>' : '')}</span>
-      <span class="confirm-cell-num"><span class="confirm-mob-label">Extracted</span>${isPullus ? '—' : e.num}</span>
+      <span class="confirm-cell-primary">${esc(e.species)}${e.speciesWriteIn === 'Yes' ? writeInTag : ''}</span>
+      <span class="confirm-cell">${esc(e.age)}</span>
+      <span class="confirm-cell">${esc(e.method)}${e.methodWriteIn === 'Yes' ? writeInTag : ''}</span>
+      <span class="confirm-cell-num"><span class="confirm-mob-label">Extracted</span>${e.num}</span>
       <span class="confirm-cell-num"><span class="confirm-mob-label">Processed</span>${isPullus ? '—' : e.processed}</span>
       <span class="confirm-cell-num"><span class="confirm-mob-label">Fledged Ringed</span>${isPullus ? '—' : (e.fledgedRinged || 0)}</span>
       <span class="confirm-cell-num"><span class="confirm-mob-label">Pulli ringed</span>${isPullus ? (e.pulliRinged || 0) : '—'}</span>
       <span class="confirm-cell-num"><span class="confirm-mob-label">Broods Ass.</span>${isPullus ? (e.broodsAssessed || 0) : '—'}</span>
-    </div>
-  `}).join('');
+    </div>`;
+  }).join('');
 }
 
-function goBackToForm() {
-  const confirmEl = document.getElementById('confirm-screen');
-  confirmEl.classList.add('screen-exit');
-  setTimeout(() => {
-    confirmEl.classList.remove('visible', 'screen-exit');
-    const mainEl = document.querySelector('main');
-    mainEl.style.display = '';
-    mainEl.classList.add('screen-enter');
-    mainEl.addEventListener('animationend', () => mainEl.classList.remove('screen-enter'), { once: true });
-    showStatus('', null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, 200);
+// Back to the form. An optional error message is shown once the form is visible again.
+function goBackToForm(errorMessage) {
+  switchScreen(confirmScreen, formScreen, () => {
+    if (errorMessage) showStatus(errorMessage, false); else showStatus('', null);
+  });
 }
 
-function showSuccessScreen(numSpecies, name) {
-  const confirmEl = document.getElementById('confirm-screen');
-  confirmEl.classList.add('screen-exit');
-  setTimeout(() => {
-    confirmEl.classList.remove('visible', 'screen-exit');
-    const successEl = document.getElementById('success-screen');
-    document.getElementById('success-sub').textContent =
-      `${numSpecies} species logged for ${name}.`;
-    successEl.classList.add('visible', 'screen-enter');
-    successEl.addEventListener('animationend', () => successEl.classList.remove('screen-enter'), { once: true });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, 200);
+function showSuccessScreen(payload) {
+  const n = payload.entries.length;
+  document.getElementById('success-sub').textContent = n
+    ? `${n} species logged for ${payload.trainee}.`
+    : `${payload.whooshFirings} whoosh net firing${payload.whooshFirings !== 1 ? 's' : ''} logged for ${payload.trainee} (no birds caught).`;
+  switchScreen(confirmScreen, successScreen);
 }
 
 function doSubmit() {
@@ -3001,15 +2044,6 @@ function doSubmit() {
   btn.disabled = true;
   btn.textContent = 'Submitting…';
 
-  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') {
-    setTimeout(() => {
-      showSuccessScreen(pendingPayload.entries.length, pendingPayload.trainee);
-      btn.disabled = false;
-      btn.textContent = 'Submit (Demo mode, no URL set)';
-    }, 600);
-    return;
-  }
-
   fetch(SCRIPT_URL, {
     method: 'POST',
     body: JSON.stringify(pendingPayload)
@@ -3017,15 +2051,14 @@ function doSubmit() {
   .then(r => r.json())
   .then(data => {
     if (data.result === 'success') {
-      showSuccessScreen(pendingPayload.entries.length, pendingPayload.trainee);
+      showSuccessScreen(pendingPayload);
     } else {
-      showStatus('Submission failed — please try again or get in touch if the problem persists.', false);
-      goBackToForm();
+      // The server explains validation problems; anything else gets the generic message
+      goBackToForm(data.error || 'Submission failed — please try again or get in touch if the problem persists.');
     }
   })
   .catch(() => {
-    showStatus('Something went wrong — please check your internet connection and try again.', false);
-    goBackToForm();
+    goBackToForm('Something went wrong — please check your internet connection and try again.');
   })
   .finally(() => {
     btn.disabled = false;
@@ -3033,25 +2066,17 @@ function doSubmit() {
   });
 }
 
+// "Start new session" clears the form completely, including the date (it is not pre-filled again).
 function startNewSession() {
-  const successEl = document.getElementById('success-screen');
-  successEl.classList.add('screen-exit');
-  setTimeout(() => {
-    successEl.classList.remove('visible', 'screen-exit');
-    const mainEl = document.querySelector('main');
-    mainEl.style.display = '';
-    mainEl.classList.add('screen-enter');
-    mainEl.addEventListener('animationend', () => mainEl.classList.remove('screen-enter'), { once: true });
+  switchScreen(successScreen, formScreen, () => {
     pendingPayload = null;
     resetForm();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, 200);
+  });
 }
 
 function resetForm() {
   const nameInput = document.getElementById('trainee-name');
   nameInput.value = '';
-  nameInput.dataset.isNew = 'false';
   nameInput.dataset.selected = '';
   nameInput.classList.remove('input-confirmed', 'input-error');
   document.getElementById('session-date').value = '';
@@ -3059,8 +2084,8 @@ function resetForm() {
   showStatus('', null);
   rowCount = 0;
   const whooshInp = document.getElementById('whoosh-firings');
-  if (whooshInp) { whooshInp.value = '—'; whooshInp.dataset.value = 'null'; whooshInp.classList.remove('input-error'); }
-  document.getElementById('whoosh-section')?.classList.remove('visible');
+  whooshInp.value = '—'; whooshInp.dataset.value = 'null'; whooshInp.classList.remove('input-error');
+  document.getElementById('whoosh-section').classList.remove('visible');
   addRow(true);
 }
 
@@ -3096,7 +2121,8 @@ function resetUploadModal() {
 function closeUploadModal() {
   document.getElementById('upload-modal').classList.remove('open');
   document.body.style.overflow = '';
-  // Reset fully so reopening is always clean
+  // Keep any selected files and notes so an accidental close doesn't lose them;
+  // this only resets the success/error state and shows the form panel again
   resetUploadModal();
 }
 
@@ -3105,21 +2131,13 @@ function handleOverlayClick(e) {
   if (e.target === document.getElementById('upload-modal')) closeUploadModal();
 }
 
-// Close on Escape key
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    const openModals = document.querySelectorAll('.info-overlay.open');
-    if (openModals.length) { openModals.forEach(m => closeInfoModal(m.id)); return; }
-    closeSettings();
-    closeUploadModal();
-  }
-});
+// Hook for shared.js's single Escape-key handler
+window.closeOnEscape = function () { closeUploadModal(); };
 
 // ─────────────────────────────────────────────
 // File upload — historical data
 // ─────────────────────────────────────────────
-
-const UPLOAD_MAX_BYTES = 20 * 1024 * 1024; // 20 MB client-side cap
+const UPLOAD_MAX_BYTES = 20 * 1024 * 1024; // 20 MB (the server enforces the same limit)
 
 // Keyed by a generated uid so removal is safe across add/remove cycles
 let uploadQueue = {};   // { uid: File }
@@ -3153,8 +2171,6 @@ function totalQueueBytes() {
 function renderUploadList() {
   const list  = document.getElementById('upload-file-list');
   const warn  = document.getElementById('upload-size-warn');
-  const total = totalQueueBytes();
-
   const entries = Object.entries(uploadQueue);
 
   if (!entries.length) {
@@ -3166,13 +2182,13 @@ function renderUploadList() {
   list.innerHTML = entries.map(([uid, file]) => `
     <div class="upload-file-item" id="upload-item-${uid}">
       <span class="upload-file-icon">${fileIcon(file.type, file.name)}</span>
-      <span class="upload-file-name" title="${file.name}">${file.name}</span>
+      <span class="upload-file-name" title="${esc(file.name)}">${esc(file.name)}</span>
       <span class="upload-file-size">${formatBytes(file.size)}</span>
-      <button class="upload-file-remove" onclick="removeUploadFile('${uid}')" title="Remove">×</button>
+      <button class="upload-file-remove" onclick="removeUploadFile('${uid}')" title="Remove" aria-label="Remove file">×</button>
     </div>
   `).join('');
 
-  warn.classList.toggle('visible', total > UPLOAD_MAX_BYTES);
+  warn.classList.toggle('visible', totalQueueBytes() > UPLOAD_MAX_BYTES);
 }
 
 function handleFileSelect(fileList) {
@@ -3196,7 +2212,7 @@ function handleDragOver(e) {
   document.getElementById('upload-drop-zone').classList.add('drag-over');
 }
 
-function handleDragLeave(e) {
+function handleDragLeave() {
   document.getElementById('upload-drop-zone').classList.remove('drag-over');
 }
 
@@ -3275,34 +2291,25 @@ async function submitUpload() {
     setProgress(70);
     setUploadStatus('Sending…', null);
 
-    const payload = { action: 'uploadFiles', sender, notes, files: encoded };
-
     const response = await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ action: 'uploadFiles', sender, notes, files: encoded })
     });
 
     const result = await response.json();
     setProgress(100);
 
-    if (result.result === 'success') {
-      setProgress(null);
-      setUploadStatus(
-        '✓ ' + files.length + ' file' + (files.length !== 1 ? 's' : '') + ' sent — thank you!',
-        true
-      );
-      // Show success panel
-      const count = files.length;
-      document.getElementById('upload-success-sub').textContent =
-        count + ' file' + (count !== 1 ? 's' : '') + ' uploaded successfully — thank you!';
-      document.getElementById('upload-form-panel').style.display = 'none';
-      document.getElementById('upload-success-panel').style.display = '';
-      // Clear the queue ready for if they send more
-      uploadQueue = {};
-      document.getElementById('upload-notes').value = '';
-    } else {
-      throw new Error(result.error || 'Unknown error');
-    }
+    if (result.result !== 'success') throw new Error(result.error || 'Unknown error');
+
+    setProgress(null);
+    const count = files.length;
+    document.getElementById('upload-success-sub').textContent =
+      count + ' file' + (count !== 1 ? 's' : '') + ' uploaded successfully — thank you!';
+    document.getElementById('upload-form-panel').style.display = 'none';
+    document.getElementById('upload-success-panel').style.display = '';
+    // Clear the queue ready for if they send more
+    uploadQueue = {};
+    document.getElementById('upload-notes').value = '';
 
   } catch (err) {
     setProgress(null);
@@ -3315,211 +2322,27 @@ async function submitUpload() {
 // ─────────────────────────────────────────────
 // Init
 // ─────────────────────────────────────────────
+
+// Today's date in the visitor's own time zone as YYYY-MM-DD. (toISOString() uses UTC, which is a
+// day behind between 00:00 and 01:00 in BST and made today un-pickable via the max attribute.)
+function localISODate() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-  const today = new Date().toISOString().split('T')[0];
+  initTooltips();
+  const today = localISODate();
   const dateInput = document.getElementById('session-date');
   dateInput.max = today;
-  dateInput.valueAsDate = new Date();
+  dateInput.value = today;
   fetchTrainees();
   fetchMethods();
   addRow(true);
   updateHeaderVisibility();
-
-  // ── Tooltip: CSS hover on desktop, JS fixed-bubble on mobile touch ──
-  const jsTip = document.getElementById('js-tip');
-  let activeTipIcon = null;
-
-  function positionBubble(icon) {
-    const tip = icon.dataset.tip;
-    if (!tip) return;
-    jsTip.textContent = tip;
-    jsTip.style.display = 'block';
-    jsTip.setAttribute('aria-hidden', 'false');
-
-    // Measure after display so offsetWidth is correct
-    requestAnimationFrame(() => {
-      const r   = icon.getBoundingClientRect();
-      const bw  = jsTip.offsetWidth;
-      const bh  = jsTip.offsetHeight;
-      const gap = 8;
-
-      // Centre above the icon; clamp 8 px from each edge
-      let left = r.left + r.width / 2 - bw / 2;
-      left = Math.max(8, Math.min(left, window.innerWidth - bw - 8));
-
-      // Prefer above; fall back to below if no room
-      let top = r.top - bh - gap;
-      if (top < 8) top = r.bottom + gap;
-
-      jsTip.style.left = left + 'px';
-      jsTip.style.top  = top  + 'px';
-    });
-  }
-
-  function hideBubble() {
-    jsTip.style.display = 'none';
-    jsTip.setAttribute('aria-hidden', 'true');
-    activeTipIcon = null;
-  }
-
-  document.addEventListener('touchstart', e => {
-    const icon = e.target.closest('.tip-icon');
-    if (icon) {
-      e.preventDefault(); // prevent ghost click & scroll
-      if (activeTipIcon === icon) {
-        hideBubble();
-      } else {
-        activeTipIcon = icon;
-        positionBubble(icon);
-      }
-    } else {
-      hideBubble();
-    }
-  }, { passive: false });
-
-  // Desktop: show tooltip on mouse hover
-  document.addEventListener('mouseover', e => {
-    const icon = e.target.closest('.tip-icon');
-    if (icon) {
-      activeTipIcon = icon;
-      positionBubble(icon);
-    }
-  });
-
-  document.addEventListener('mouseout', e => {
-    if (e.target.closest('.tip-icon')) {
-      hideBubble();
-    }
-  });
-
-  // Desktop: close when clicking away
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.tip-icon')) {
-      document.querySelectorAll('.tip-icon.tip-open').forEach(el => el.classList.remove('tip-open'));
-    }
-  });
 });
-
-// ─────────────────────────────────────────────
-// Settings dropdown & info modals
-// ─────────────────────────────────────────────
-function toggleSettings(e) {
-  e.stopPropagation();
-  const dd  = document.getElementById('settings-dropdown');
-  const btn = document.getElementById('settings-btn');
-  const open = dd.classList.toggle('open');
-  btn.classList.toggle('open', open);
-}
-
-document.addEventListener('click', function(e) {
-  const wrap = document.querySelector('.settings-wrap');
-  if (wrap && !wrap.contains(e.target)) {
-    document.getElementById('settings-dropdown').classList.remove('open');
-    document.getElementById('settings-btn').classList.remove('open');
-  }
-});
-
-function closeSettings() {
-  document.getElementById('settings-dropdown').classList.remove('open');
-  document.getElementById('settings-btn').classList.remove('open');
-}
-
-function openInfoModal(id) {
-  closeSettings();
-  document.getElementById(id).classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeInfoModal(id) {
-  document.getElementById(id).classList.remove('open');
-  if (!document.querySelectorAll('.info-overlay.open').length) {
-    document.body.style.overflow = '';
-  }
-}
-
-function handleInfoOverlayClick(e, id) {
-  if (e.target === document.getElementById(id)) closeInfoModal(id);
-}
 </script>
-<div id="js-tip"
-     role="tooltip"
-     aria-hidden="true"
-     style="display:none;position:fixed;z-index:9999;pointer-events:none;
-            background:#1a1a14;color:#f5f0e8;font-family:'IBM Plex Mono',monospace;
-            font-size:0.72rem;line-height:1.5;padding:7px 11px;border-radius:4px;
-            max-width:min(260px,calc(100vw - 24px));white-space:normal;
-            box-shadow:0 6px 20px rgba(26,26,20,0.28);">
-</div>
 
-<!-- ── FAQ modal ── -->
-<div class="info-overlay" id="about-modal" onclick="handleInfoOverlayClick(event,'about-modal')">
-  <div class="info-modal">
-    <div class="info-modal-hd">
-      <h2>FAQ</h2>
-      <button class="info-modal-x" onclick="closeInfoModal('about-modal')" aria-label="Close">×</button>
-    </div>
-    <div class="info-modal-bd">
-      <h3>What can Ringing Tracker do?</h3>
-      <p>Ringing Tracker is primarily for ringing trainees and anyone interested in tracking their ringing data, with a focus on those working towards ringing licence endorsements. Anyone with the website link can start logging their own sessions, upload their old records to be added to the database, and view their compiled stats to see breakdowns across species and catching methods.</p>
-      <h3>How does logging data work?</h3>
-      <p>Ringing data is stored on a Google Sheets spreadsheet, which tracks Ringers, Methods, and Responses to the Log session form. If you are new to the tracker, please write your full name and click "Add new" when logging data — it should then be saved going forward. This should also work for new species and catching methods, in case you catch something outside the UK or with a novel method. Since it needs to update a spreadsheet, it requires an internet connection to work.</p>
-      <h3>How does the dashboard work?</h3>
-      <p>The dashboard reads all data from the spreadsheet for the ringer selected, and breaks it down by species and catching method. The "Species gaps" section shows all the species you haven't logged for a method that other ringers have, sorted in descending order — so you'll quickly see any commonly-handled birds you're missing. This is dependent on other ringers having logged them, though, so if everyone is missing a species it won't appear as a gap.</p>
-      <h3>How do I upload my old data?</h3>
-      <p>Use the "Upload previous records" button at the bottom of the Log session page and upload your old data in whatever format you use. Since the data structures will vary, uploaded files need manual approval, so it may be a few days before they get added to the main database and appear in the dashboard. If you want to be notified when this happens, pop your contact details in the notes section.</p>
-      <h3>Is the data backed up?</h3>
-      <p>Yes — every time you log a new session the responses sheet is backed up to a separate spreadsheet, and there are also regular weekly backups to cover manual edits. It's also worth using the "Export CSV" button on the dashboard to download a spreadsheet of all your data so you have an offline copy.</p>
-    </div>
-  </div>
-</div>
-
-<!-- ── Changelog modal ── -->
-<div class="info-overlay" id="changelog-modal" onclick="handleInfoOverlayClick(event,'changelog-modal')">
-  <div class="info-modal">
-    <div class="info-modal-hd">
-      <h2>Changelog</h2>
-      <button class="info-modal-x" onclick="closeInfoModal('changelog-modal')" aria-label="Close">×</button>
-    </div>
-    <div class="info-modal-bd">
-      <div class="cl-entry">
-        <span class="vtag vtag-new">v1.1 · Latest</span>
-        <ul>
-          <li>Added extra detail to appropriately track BTO-relevant ringing progress (e.g. number of whoosh net firings, number of broods assessed)</li>
-          <li>Added bird categories (e.g. open-nesting passerines, birds of prey etc.) to the dashboard for clearer reading</li>
-          <li>Added an export option for a BTO-formatted .xlsx ringing progress tracker, alongside the session-level .csv option</li>
-          <li>Can now click on a species gap to view ringers who have logged that species</li>
-          <li>Fixed mobile padding issue with the settings button</li>
-        </ul>
-      </div>
-      <div class="cl-entry">
-        <span class="vtag">v1.0</span>
-        <ul>
-          <li>Log sessions by species, age class, and catching method, with separate counts for extracted and processed birds</li>
-          <li>Searchable species dropdown covering the full BTO list, with 5-letter codes</li>
-          <li>New species, methods, and ringers are added to the sheet automatically</li>
-          <li>Confirmation screen so you can check everything before it gets submitted</li>
-          <li>Per-ringer dashboard with total extractions, processing counts, and a full method breakdown</li>
-          <li>Species gap analysis — see what other ringers have caught that you haven't yet</li>
-          <li>Upload previous records in any format for manual import into the database</li>
-          <li>Works on mobile</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── Report issues modal ── -->
-<div class="info-overlay" id="report-modal" onclick="handleInfoOverlayClick(event,'report-modal')">
-  <div class="info-modal">
-    <div class="info-modal-hd">
-      <h2>Report issues</h2>
-      <button class="info-modal-x" onclick="closeInfoModal('report-modal')" aria-label="Close">×</button>
-    </div>
-    <div class="info-modal-bd">
-      <h3>Email</h3>
-      <p><a href="#" id="contact-email">— loading —</a><script>(function(){var e="evelynfhowatson"+"@"+"gmail.com";var a=document.getElementById("contact-email");a.href="mailto:"+e;a.textContent=e;})();</script> — let me know if you have any questions or feedback!</p>
-      <h3>GitHub</h3>
-      <p><a href="https://github.com/evelynfh/lrg" target="_blank" rel="noopener">https://github.com/evelynfh/lrg</a> — please report any bugs or issues here!</p>
-    </div>
-  </div>
-</div>
+<script src="shared.js?v=4"></script>
+</body>
+</html>

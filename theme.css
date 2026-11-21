@@ -1,0 +1,130 @@
+/* Ringing Tracker theme: clean utilitarian look, light + dark.
+   Load AFTER the page's own <style> so it overrides the old cream/green look. */
+
+:root {
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --ink: #14181c;
+  --ink-muted: #5a6270;
+  --accent: #1f5fd6;
+  --accent-hover: #174bb0;
+  --accent-light: #e8f0fe;
+  --on-accent: #ffffff;
+  --border: #d9dce0;
+  --border-soft: #eceef1;
+  --border-focus: #1f5fd6;
+  --row-alt: #f9fafb;
+  --th: #eef0f3;
+  --hdr-bg: #ffffff;
+  --danger: #b3261e;
+  --warn-bg: #fff8e6;
+  --warn-border: #e8d88a;
+  --warn-ink: #6b5700;
+  --amber-bg: #fff8e6;
+  --amber-border: #e8d88a;
+  --amber-ink: #6b5700;
+  --shadow: 0 1px 2px rgba(20,24,28,0.06);
+  --shadow-lg: 0 8px 24px rgba(20,24,28,0.14);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f1316;
+  --surface: #171c21;
+  --ink: #e6eaee;
+  --ink-muted: #9aa5b1;
+  --accent: #6ea0ff;
+  --accent-hover: #8db4ff;
+  --accent-light: #1c2a40;
+  --on-accent: #0b1220;
+  --border: #2e373f;
+  --border-soft: #242c33;
+  --border-focus: #6ea0ff;
+  --row-alt: #1b2127;
+  --th: #212830;
+  --hdr-bg: #0b0e11;
+  --danger: #ff8a8a;
+  --warn-bg: #2b2410;
+  --warn-border: #5c4d1a;
+  --warn-ink: #f0d88a;
+  --amber-bg: #2b2410;
+  --amber-border: #5c4d1a;
+  --amber-ink: #f0d88a;
+  --shadow: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  color-scheme: dark;
+}
+
+/* ── Type: one sans family, sentence-case labels ── */
+*, *::before, *::after {
+  font-family: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+body { background: var(--bg); color: var(--ink); }
+
+/* ── Header ── */
+header { background: var(--hdr-bg); color: var(--ink); border-bottom: 1px solid var(--border); padding-top: 18px; padding-bottom: 18px; }
+header h1 { color: var(--ink); font-size: 1.25rem; font-weight: 700; }
+header nav a { color: var(--ink-muted); font-size: 0.85rem; }
+header nav a:hover { color: var(--ink); background: var(--th); }
+header nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); border-radius: 0; }
+.settings-btn { color: var(--ink-muted); border-color: var(--border); font-size: 0.8rem; }
+.settings-btn:hover, .settings-btn.open { color: var(--ink); background: var(--th); border-color: var(--border); }
+
+/* ── Cards: flat, no coloured top bar ── */
+.session-card, .confirm-card, .selector-card, .info-modal, .success-card, .modal {
+  border-top: 1px solid var(--border);
+}
+
+/* ── Section headers: light bar instead of near-black ── */
+.species-section-header, .section-header, .info-modal-hd {
+  background: var(--th); color: var(--ink); border-bottom: 1px solid var(--border);
+}
+.species-section-header span, .section-header .badge, .info-modal-x { color: var(--ink-muted); }
+.info-modal-x:hover { color: var(--ink); }
+.sort-btn { color: var(--ink-muted); border-color: var(--border); }
+.sort-btn:hover { background: var(--accent-light); color: var(--accent); }
+.sort-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+
+/* ── Accent buttons / chips ── */
+.submit-btn, .age-btn.active, .success-new-btn, .tip-icon { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.submit-btn:hover, .success-new-btn:hover { background: var(--accent-hover); }
+.submit-btn:disabled { background: var(--ink-muted); }
+.add-row-btn { border-color: var(--accent); color: var(--accent); }
+
+/* ── Soft borders and fills that were hard-coded cream ── */
+.confirm-meta-item, .confirm-table-row, .data-table td, .session-item, .missing-cat-label { border-bottom-color: var(--border-soft); }
+.confirm-totals-row { background: var(--th); }
+.pill-species { background: var(--th); color: var(--ink-muted); border-color: var(--border); }
+.pill-method, .vtag { border-color: var(--border); }
+.vtag-new { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-border); }
+
+/* ── Warning / amber surfaces ── */
+.confirm-banner { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-ink); }
+.missing-chip { color: var(--warn-ink); }
+.missing-chip:hover { background: var(--warn-border); border-color: var(--warn-border); }
+.chip-count { background: var(--warn-border); color: var(--warn-ink); }
+.upload-drop-zone { background: var(--warn-bg); border-color: var(--warn-border); }
+.upload-drop-zone:hover, .upload-drop-zone.drag-over { background: color-mix(in srgb, var(--warn-border) 40%, var(--warn-bg)); }
+.drop-label { color: var(--warn-ink); }
+.drop-hint { color: var(--ink-muted); }
+.upload-prev-btn:hover { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-border); }
+.modal { border-color: var(--border); }
+
+/* ── Error states ── */
+.error-banner { background: color-mix(in srgb, var(--danger) 12%, var(--surface)); border-color: var(--danger); color: var(--danger); }
+.remove-row:hover, .upload-file-remove:hover { background: color-mix(in srgb, var(--danger) 15%, var(--surface)); color: var(--danger); border-color: var(--danger); }
+
+/* ── Focus rings (blue instead of green) ── */
+input:focus, select:focus, textarea:focus, .row-input:focus, .whoosh-input:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent) !important;
+}
+.input-confirmed {
+  border-color: var(--accent) !important;
+  background: var(--accent-light) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+
+/* ── Tooltip bubble (inline-styled in the page) ── */
+#js-tip { border: 1px solid var(--border); }
