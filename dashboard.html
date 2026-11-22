@@ -6,13 +6,13 @@
 <meta name="theme-color" content="#f6f7f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1316" media="(prefers-color-scheme: dark)">
 <title>Ringing Tracker</title>
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="manifest" href="site.webmanifest">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+<link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css?v=4">
+<link rel="stylesheet" href="css/shared.css?v=4">
 <style>
   /* ── Loading state ── */
   .loading-state {
@@ -671,7 +671,7 @@
     .threshold-expand-icon { margin-right: 5px; }
   }
 </style>
-<script src="theme.js?v=4"></script>
+<script src="js/theme.js?v=4"></script>
 </head>
 <body data-page="dashboard">
 
@@ -839,8 +839,8 @@
   </div>
 </div>
 
-<script src="species.js?v=4"></script>
-<script src="thresholds.js?v=2"></script>
+<script src="js/species.js?v=4"></script>
+<script src="js/thresholds.js?v=2"></script>
 <script>
 // SCRIPT_URL, esc(), isWhoosh(), isMistNet(), downloadBlob() and downloadCSV() come from shared.js.
 // SPECIES_LIST, CATEGORY_ORDER, BTO_FORM, getSpeciesCategory() and getBTORow() come from species.js.
@@ -1035,7 +1035,7 @@ function _attachChipListener() {
   // ─────────────────────────────────────────────
 // Species gaps: trainer data + choosing who to compare against
 // ─────────────────────────────────────────────
-var TRAINER_CSV_URL = 'trainer-data.csv?v=1';   // bump the number after editing the file
+var TRAINER_CSV_URL = 'data/trainer-data.csv?v=1';   // bump the number after editing the file
 var GAP_EXCLUDED_KEY = 'rt-gap-excluded';
 var _trainerRows = [];
 var _gapState = null;
@@ -2485,6 +2485,6 @@ function buildSpeciesTable(order) {
     + '<table class="data-table">' + thead + '<tbody>' + tbody + '</tbody></table></div>';
 }
 </script>
-<script src="shared.js?v=4"></script>
+<script src="js/shared.js?v=4"></script>
 </body>
 </html>
